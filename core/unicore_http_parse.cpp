@@ -3,14 +3,18 @@
 #include "unicore_buf.hpp"
 #include "unicore_request.hpp"
 #include "unicore_status.hpp"
+#include "unicore_defines.hpp"
 
+#include <sys/types.h>
 
 
 int    
  unicore_http_parse ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
 {
 
-   enum
+   u_char ch, *p;
+
+   enum state
    {
 
         START = 0,
@@ -63,8 +67,39 @@ int
         REQUEST_LINE_HTTP_MAJOR_VERSION_1,
         REQUEST_LINE_HTTP_VERSION_DOT,
         REQUEST_LINE_HTTP_MINOR_VERSION_1,
-        REQUEST_LINE_TRAILING_SP_FIELD,
+        REQUEST_LINE_TRAILING_SP_FIELD
 
    } state;
+
+   state = static_cast<enum state>(r->state);
+   for ( p = b->pos; p < b->end ; p++ )
+   {
+
+      ch = *p;
+
+      switch ( state )
+      {
+
+         case START:
+            switch ( ch )
+            {
+
+               case 'H':
+                  state = STATUS_LINE_START;
+                  break;
+               case 'G' or 'P' or 'D':
+                  state = REQUEST_LINE_START;
+                  break;
+               case ' ':
+                  state = START_LINE_PRECEDING_SP_FIELD;
+                  break;
+               case CR or LF:
+
+            }
+            break;
+
+      }
+
+   }
 
 }
