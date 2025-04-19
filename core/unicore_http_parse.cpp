@@ -9,7 +9,7 @@
 
 
 int    
- unicore_http_parse ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
+ unicore_http_parse_start_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
 {
 
    u_char ch, *p;
@@ -38,8 +38,8 @@ int
         STATUS_CODE_SECOND_DIGIT,
         STATUS_CODE_THIRD_DIGIT,
         STATUS_CODE_VALIDATED_BY_SP,
-        CR,
-        LF,
+        CARRIAGE_RETURN,
+        LINE_FEED,
         REASON_PHRASE,
         REQUEST_LINE_START,
         GET_E_ALPHA,
@@ -87,13 +87,18 @@ int
                case 'H':
                   state = STATUS_LINE_START;
                   break;
-               case 'G' or 'P' or 'D':
+               case 'G':
+               case 'P':
+               case 'D':
                   state = REQUEST_LINE_START;
                   break;
                case ' ':
                   state = START_LINE_PRECEDING_SP_FIELD;
                   break;
-               case CR or LF:
+               case CR:
+               case LF:
+                  state = CR_OR_LF;
+                  break;
 
             }
             break;
