@@ -79,7 +79,8 @@ int
 
       switch ( state )
       {
-
+      
+         /* first start-line character */
          case START:
             switch ( ch )
             {
@@ -99,9 +100,78 @@ int
                case LF:
                   state = CR_OR_LF;
                   break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
 
             }
             break;
+         
+         // case START_LINE_PRECEDING_SP_FIELD:
+         //    switch ( ch )
+         //    {
+
+         //       case 'H':
+         //          state = STATUS_LINE_START;
+         //          break;
+         //       case 'G':
+         //       case 'P':
+         //       case 'D':
+         //          state = REQUEST_LINE_START;
+         //          break;
+         //       case ' ':
+         //          break;
+         //       default:
+         //          return UNICORE_INVALID_START_LINE_ERROR;
+
+         //    }
+         //    break;
+
+         // case STATUS_LINE_START:
+         //    switch ( ch )
+         //    {
+
+         //       case 'T':
+         //          state = STATUS_LINE_HTTP_T1_ALPHA;
+         //          break;
+         //       default:
+         //          return UNICORE_INVALID_START_LINE_ERROR;
+
+         //    }
+         //    break;
+
+         // case STATUS_LINE_HTTP_T1_ALPHA:
+         //    switch ( ch )
+         //    {
+
+         //       case 'T':
+         //          state = STATUS_LINE_HTTP_T2_ALPHA;
+         //          break;
+         //       default:
+         //          return UNICORE_INVALID_START_LINE_ERROR;
+
+         //    }
+
+         // case STATUS_LINE_HTTP_T2_ALPHA:
+         //    switch ( ch )
+         //    {
+
+         //       case 'P':
+         //          state = STATUS_LINE_HTTP_P_ALPHA;
+         //          break;
+         //       default:
+         //          return UNICORE_INVALID_START_LINE_ERROR;
+
+         //    }
+
+         // case STATUS_LINE_HTTP_P_ALPHA:
+         //    switch ( ch )
+         //    {
+
+
+
+         //    }
+
+         
 
       }
 
