@@ -266,6 +266,8 @@ int
             switch ( ch )
             {
 
+               case SP:
+                  break;
                case INFORMATIONAL:
                   state = INFO_STATUS_CODE_START;
                   break;
@@ -281,8 +283,6 @@ int
                case SERVER_ERROR:
                   state = SERVER_ERROR_STATUS_CODE_START;
                   break;
-               case SP:
-                  break;
                default:
                   return UNICORE_INVALID_START_LINE_ERROR;
 
@@ -290,12 +290,86 @@ int
             break;
 
          case INFO_STATUS_CODE_START:
+         case SUCCESSFUL_STATUS_CODE_START:
+         case REDICRECTION_STATUS_CODE_START:
+         case CLIENT_ERROR_STATUS_CODE_START:
+         case SERVER_ERROR_STATUS_CODE_START:
+            if ( ch >= '0' and ch <= '9' )
+               state = STATUS_CODE_SECOND_DIGIT;
+            else
+               return UNICORE_INVALID_START_LINE_ERROR;
+            break;
+
+         case STATUS_CODE_SECOND_DIGIT:
+            if ( ch >= '0' and ch <= '9' )
+               state = STATUS_CODE_THIRD_DIGIT;
+            else
+               return UNICORE_INVALID_START_LINE_ERROR;
+            break;
+
+         case STATUS_CODE_THIRD_DIGIT:
             switch ( ch )
             {
 
-               
+               case SP:
+                  state = STATUS_CODE_VALIDATED_BY_SP;
+                  break;
+               case CR:
+                  state = CARRIAGE_RETURN;
+                  break;
+               case LF:
+                  state = LINE_FEED;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
 
             }
+            break;
+
+         case STATUS_CODE_VALIDATED_BY_SP:
+/* TODO: support for SP in reason-phrase if required */
+            if ( VCHAR(ch) or ch == HT ) 
+            {
+
+               state = REASON_PHRASE;
+               break;
+
+            }
+
+            switch ( ch )
+            {
+
+               case SP:
+                  break;
+               case CR:
+                  state = CARRIAGE_RETURN;
+                  break;
+               case LF:
+                  state = LINE_FEED;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case CARRIAGE_RETURN:
+            switch ( ch )
+            {
+
+               case LF:
+                  state = LINE_FEED;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case LINE_FEED:
+            return UNICORE_VALID_START_LINE_SUCCESS;
+
+         
 
          
 
