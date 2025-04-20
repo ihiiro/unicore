@@ -43,7 +43,7 @@
 
 
 #ifndef VCHAR
-#define VCHAR(c) ( c >= 0x21 && c <= 0x7E )
+#define VCHAR( c ) ( c >= 0x21 && c <= 0x7E )
 #endif
 
 

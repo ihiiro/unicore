@@ -41,7 +41,9 @@ int
         CARRIAGE_RETURN,
         LINE_FEED,
         REASON_PHRASE,
-        REQUEST_LINE_START,
+        REQUEST_LINE_START_GET,
+        REQUEST_LINE_START_POST,
+        REQUEST_LINE_START_DELETE,
         GET_E_ALPHA,
         GET_T_ALPHA,
         POST_O_ALPHA,
@@ -89,9 +91,13 @@ int
                   state = STATUS_LINE_START;
                   break;
                case 'G':
+                  state = REQUEST_LINE_START_GET;
+                  break;
                case 'P':
+                  state = REQUEST_LINE_START_POST;
+                  break;
                case 'D':
-                  state = REQUEST_LINE_START;
+                  state = REQUEST_LINE_START_DELETE;
                   break;
                case SP:
                   state = START_LINE_PRECEDING_SP_FIELD;
@@ -124,9 +130,13 @@ int
             {
 
                case 'G':
+                  state = REQUEST_LINE_START_GET;
+                  break;
                case 'P':
+                  state = REQUEST_LINE_START_POST;
+                  break;
                case 'D':
-                  state = REQUEST_LINE_START;
+                  state = REQUEST_LINE_START_DELETE;
                   break;
                case CR:
                   state = START_CR;
@@ -148,9 +158,13 @@ int
                   state = STATUS_LINE_START;
                   break;
                case 'G':
+                  state = REQUEST_LINE_START_GET;
+                  break;
                case 'P':
+                  state = REQUEST_LINE_START_POST;
+                  break;
                case 'D':
-                  state = REQUEST_LINE_START;
+                  state = REQUEST_LINE_START_DELETE;
                   break;
                case SP:
                   break;
@@ -369,9 +383,192 @@ int
          case LINE_FEED:
             return UNICORE_VALID_START_LINE_SUCCESS;
 
-         
+         case REASON_PHRASE:
+            if ( VCHAR( ch ) or ch == HT )
+               break;
+            switch ( ch )
+            {
 
-         
+               case CR:
+                  state = CARRIAGE_RETURN;
+                  break;
+               case LF:
+                  state = LINE_FEED;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_START_GET:
+            switch ( ch )
+            {
+
+               case 'E':
+                  state = GET_E_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_START_POST:
+            switch ( ch )
+            {
+
+               case 'O':
+                  state = POST_O_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_START_DELETE:
+            switch ( ch )
+            {
+
+               case 'E':
+                  state = DELETE_E1_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case GET_E_ALPHA:
+            switch ( ch )
+            {
+
+               case 'T':
+                  state = GET_T_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case GET_T_ALPHA:
+            switch ( ch )
+            {
+
+               case SP:
+                  state = METHOD_VALIDATED_BY_SP;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case POST_O_ALPHA:
+            switch ( ch )
+            {
+
+               case 'S':
+                  state = POST_S_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case POST_S_ALPHA:
+            switch ( ch )
+            {
+
+               case 'T':
+                  state = POST_T_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case POST_T_ALPHA:
+            switch ( ch )
+            {
+
+               case SP:
+                  state = METHOD_VALIDATED_BY_SP;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case DELETE_E1_ALPHA:
+            switch ( ch )
+            {
+
+               case 'L':
+                  state = DELETE_L_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case DELETE_L_ALPHA:
+            switch ( ch )
+            {
+
+               case 'E':
+                  state = DELETE_E2_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case DELETE_E2_ALPHA:
+            switch ( ch )
+            {
+
+               case 'T':
+                  state = DELETE_T_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case DELETE_T_ALPHA:
+            switch ( ch )
+            {
+
+               case 'E':
+                  state =  DELETE_E3_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case DELETE_E3_ALPHA:
+            switch ( ch )
+            {
+
+               case SP:
+                  state = METHOD_VALIDATED_BY_SP;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
 
       }
 
