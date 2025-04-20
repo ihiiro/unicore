@@ -586,7 +586,12 @@ int
             break;
 
          case ORIGIN_FORM_FORWARD_SLASH:
-            
+            if ( PCHAR(ch) )
+            {
+               state = URI_SEGMENT;
+               break;
+            }
+
             switch ( ch )
             {
 
@@ -599,6 +604,108 @@ int
                default:
                   return UNICORE_INVALID_START_LINE_ERROR;
                
+            }
+            break;
+
+         case URI_SEGMENT:
+            switch ( ch )
+            {
+
+               case SP:
+                  state = ORIGIN_FORM_VALIDATED_BY_SP;
+                  break;
+               case '/':
+                  state = ORIGIN_FORM_FORWARD_SLASH;
+                  break;
+               case '?':
+                  state = ORIGIN_FORM_QUESTION_MARK;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case ORIGIN_FORM_QUESTION_MARK:
+            if ( PCHAR( ch ) )
+            {
+
+               state = QUERY_PCHAR;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               case SP:
+                  state = ORIGIN_FORM_VALIDATED_BY_SP;
+                  break;
+               case '/':
+                  state = QUERY_FORWARD_SLASH;
+                  break;
+               case '?':
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case QUERY_FORWARD_SLASH:
+            if ( PCHAR(ch) )
+            {
+
+               state = QUERY_PCHAR;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               case SP:
+                  state = ORIGIN_FORM_VALIDATED_BY_SP;
+                  break;
+               case '?':
+                  state = ORIGIN_FORM_QUESTION_MARK;
+                  break;
+               case '/':
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case QUERY_PCHAR:
+            if ( PCHAR( ch ) )
+               break;
+            
+            switch ( ch )
+            {
+
+               case SP:
+                  state = ORIGIN_FORM_VALIDATED_BY_SP;
+                  break;
+               case '?':
+                  state = ORIGIN_FORM_QUESTION_MARK;
+                  break;
+               case '/':
+                  state = QUERY_FORWARD_SLASH;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case ORIGIN_FORM_VALIDATED_BY_SP:
+            switch ( ch )
+            {
+
+               case 'H':
+                  state = REQUST_LINE_HTTP_H_ALPHA;
+                  break;
+
             }
             break;
       
