@@ -61,7 +61,7 @@ int
         QUERY_FORWARD_SLASH,
         QUERY_PCHAR,
         ORIGIN_FORM_VALIDATED_BY_SP,
-        REQUST_LINE_HTTP_H_ALPHA,
+        REQUEST_LINE_HTTP_H_ALPHA,
         REQUEST_LINE_HTTP_T1_ALPHA,
         REQUEST_LINE_HTTP_T2_ALPHA,
         REQUEST_LINE_HTTP_P_ALPHA,
@@ -111,6 +111,7 @@ int
             }
             break;
          
+    /* possible recurring CRLF before start-line */
          case START_CR:
             switch ( ch )
             {
@@ -150,6 +151,7 @@ int
             }
             break;
 
+   /* possible recurring SP before start-line */
          case START_LINE_PRECEDING_SP_FIELD:
             switch ( ch )
             {
@@ -367,6 +369,8 @@ int
             }
             break;
 
+   /* start-line terminator is a single CRLF */
+   /* a single LF is permitted but bare CR isn't */
          case CARRIAGE_RETURN:
             switch ( ch )
             {
@@ -703,12 +707,150 @@ int
             {
 
                case 'H':
-                  state = REQUST_LINE_HTTP_H_ALPHA;
+                  state = REQUEST_LINE_HTTP_H_ALPHA;
                   break;
+               case SP:
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
 
             }
             break;
-      
+
+         case REQUEST_LINE_HTTP_H_ALPHA:
+            switch ( ch )
+            {
+
+               case 'T':
+                  state = REQUEST_LINE_HTTP_T1_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_HTTP_T1_ALPHA:
+            switch ( ch )
+            {
+
+               case 'T':
+                  state = REQUEST_LINE_HTTP_T2_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_HTTP_T2_ALPHA:
+            switch ( ch )
+            {
+
+               case 'P':
+                  state = REQUEST_LINE_HTTP_P_ALPHA;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_HTTP_P_ALPHA:
+            switch ( ch )
+            {
+
+               case '/':
+                  state = REQUEST_LINE_HTTP_FORWARD_SLASH_BEFORE_VERSION;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_HTTP_FORWARD_SLASH_BEFORE_VERSION:
+            switch ( ch )
+            {
+
+               case '1':
+                  state = REQUEST_LINE_HTTP_MAJOR_VERSION_1;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_HTTP_MAJOR_VERSION_1:
+            switch ( ch )
+            {
+
+               case '.':
+                  state = REQUEST_LINE_HTTP_VERSION_DOT;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_HTTP_VERSION_DOT:
+            switch ( ch )
+            {
+
+               case '1':
+                  state = REQUEST_LINE_HTTP_MINOR_VERSION_1;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_HTTP_MINOR_VERSION_1:
+            switch ( ch )
+            {
+
+               case SP:
+                  state = REQUEST_LINE_TRAILING_SP_FIELD;
+                  break;
+               case CR:
+                  state = CARRIAGE_RETURN;
+                  break;
+               case LF:
+                  state = LINE_FEED;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case REQUEST_LINE_TRAILING_SP_FIELD:
+            if ( VCHAR(ch) or ch == HT )
+            {
+
+               state = REASON_PHRASE;
+               break;
+
+            }
+
+            switch ( ch )
+            {
+
+               case SP:
+                  break;
+               case CR:
+                  state = CARRIAGE_RETURN;
+                  break;
+               case LF:
+                  state = LINE_FEED;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }      
 
       }
 
