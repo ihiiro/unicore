@@ -7,6 +7,9 @@
 
 #include <sys/types.h>
 
+/* remove after testing */
+#include <iostream>
+
 
 int    
  unicore_http_parse_start_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
@@ -78,8 +81,9 @@ int
    state = static_cast<enum state>(r->state);
    for ( p = b->pos; p < b->end ; p++ )
    {
-
       ch = *p;
+      std::cout << "state: " << state << std::endl;
+      std::cout << ch << std::endl;
 
       switch ( state )
       {
@@ -202,6 +206,7 @@ int
                   return UNICORE_INVALID_START_LINE_ERROR;
 
             }
+            break;
 
          case STATUS_LINE_HTTP_T2_ALPHA:
             switch ( ch )
@@ -214,6 +219,7 @@ int
                   return UNICORE_INVALID_START_LINE_ERROR;
 
             }
+            break;
 
          case STATUS_LINE_HTTP_P_ALPHA:
             switch ( ch )
@@ -614,6 +620,9 @@ int
             break;
 
          case URI_SEGMENT:
+            if ( PCHAR( ch ) )
+               break;
+
             switch ( ch )
             {
 
