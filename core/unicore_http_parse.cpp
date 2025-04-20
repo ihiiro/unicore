@@ -570,6 +570,39 @@ int
             }
             break;
 
+         case METHOD_VALIDATED_BY_SP:
+            switch ( ch )
+            {
+
+               case SP:
+                  break;
+               case '/':
+                  state = ORIGIN_FORM_FORWARD_SLASH;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case ORIGIN_FORM_FORWARD_SLASH:
+            
+            switch ( ch )
+            {
+
+               case SP:
+                  state = ORIGIN_FORM_VALIDATED_BY_SP;
+                  break;
+               case '?':
+                  state = ORIGIN_FORM_QUESTION_MARK;
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+               
+            }
+            break;
+      
+
       }
 
    }
