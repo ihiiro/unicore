@@ -11,7 +11,9 @@
 int    
  unicore_http_parse_start_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
 {
-
+   (void)s;
+   (void)b;
+   (void)r;
    u_char ch, *p;
 
    enum state
@@ -855,5 +857,7 @@ int
       }
 
    }
+
+   return UNICORE_VALID_START_LINE_SUCCESS;
 
 }
