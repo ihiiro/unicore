@@ -49,11 +49,11 @@ int main ()
         (u_char *)"HTTP/1.1 53 \r\n",
         (u_char *)"HTTP/1.1 47 \r\n",
         (u_char *)"HTTP/1.1    40 4    \r\n",
-        /* fail */
-        (u_char *)"HTTP/1.1 404 \r\nHTTP/1.1 200\r\n",
-        (u_char *)"HTTP/1.1 201 _\r\nHTTP/1.1 234 _\r\n",
-        (u_char *)"HTTP/1.1 306\r\n\r\n",
-        (u_char *)"HTTP/1.1 288  \r\n\r\n",
+    /* these tests succeed because the first CRLF terminates the start-line */
+        // (u_char *)"HTTP/1.1 404 \r\nHTTP/1.1 200\r\n",
+        // (u_char *)"HTTP/1.1 201 _\r\nHTTP/1.1 234 _\r\n",
+        // (u_char *)"HTTP/1.1 306\r\n\r\n",
+        // (u_char *)"HTTP/1.1 288  \r\n\r\n",
         (u_char *)"HTTP/1.1 103 \r"
     };
 

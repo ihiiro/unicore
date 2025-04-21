@@ -867,6 +867,6 @@ int
 
    }
 
-   return UNICORE_VALID_START_LINE_SUCCESS;
+   return UNICORE_INVALID_START_LINE_ERROR;
 
 }
