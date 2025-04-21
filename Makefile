@@ -9,10 +9,14 @@ HEADERS = core/unicore_defines.hpp \
 			core/unicore_request.hpp \
 			core/unicore_status.hpp 
 
+PARSER_TESTS = parser_tests
 
 NAME = webserv
 
 OFILES = $(CFILES:.cpp=.o)
+
+tests/%.o: tests/%.cpp
+	c++ $(CFLAGS) -c $< -o $@
 
 core/%.o: core/%.cpp
 	c++ $(CFLAGS) -c $< -o $@
@@ -20,15 +24,15 @@ core/%.o: core/%.cpp
 %.o: %.cpp
 	c++ $(CFLAGS) -c $<
 
-$(NAME): $(OFILES) $(HEADERS) Makefile
+$(PARSER_TESTS): $(OFILES) $(HEADERS) Makefile
 	c++ $(OFILES) -o $@
 
-all: $(NAME)
+all: $(PARSER_TESTS)
 
 clean:
 	rm -f $(OFILES)
 
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(PARSER_TESTS)
 
 re: fclean all

@@ -82,8 +82,8 @@ int
    for ( p = b->pos; p < b->end ; p++ )
    {
       ch = *p;
-      std::cout << "state: " << state << std::endl;
-      std::cout << ch << std::endl;
+      // std::cout << "state: " << state << std::endl;
+      // std::cout << ch << std::endl;
 
       switch ( state )
       {
