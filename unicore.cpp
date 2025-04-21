@@ -15,7 +15,18 @@ int main ()
        (u_char *)"POST /$ HTTP/1.1\r\n",
        (u_char *)"DELETE /somepage?// HTTP/1.1\r\n",
        (u_char *)"GET /segmentshit HTTP/1.1 \r\n",
-       (u_char *)"GET /toilet/hole?dinnerfreefire?/ HTTP/1.1\n",
+       (u_char *)"GET /toilet/hole?dinner=free&firep=shit?/ HTTP/1.1\r\n",
+       (u_char *)" GET /segment0/segment1/$subdelim/ HTTP/1.1\r\n",
+       (u_char *)" GET / HTTP/1.1\r\n",
+       (u_char *)"POST / HTTP/1.1\r\n",
+       (u_char *)"DELETE / HTTP/1.1\r\n",
+       (u_char *)"GET /$/$?///P/P?/PPP/???//// HTTP/1.1\r\n",
+       (u_char *)"\r\n\r\n\r\n\r\n GET /?    HTTP/1.1       \r\n",
+       (u_char *)"DELETE /$/$$$$/$?PPPP/??/P/?//PPP????P HTTP/1.1\r\n",
+       (u_char *)"GET /? HTTP/1.1\r\n",
+       (u_char *)"HTTP/1.1 404 __visiblecharsfound:)_\r\n",
+       (u_char *)"GET / HTTP/1.1 \n",
+       (u_char *)"HTTP/1.1 326 \n",
     }
 
 
