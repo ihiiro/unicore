@@ -20,6 +20,10 @@
 #define HT 0x09
 #endif
 
+#ifndef SERVER_SP
+#define SERVER_SP 0x25
+#endif
+
 /* STATUS CODE CATEGORIES */
 #ifndef INFORMATIONAL
 #define INFORMATIONAL 0x31

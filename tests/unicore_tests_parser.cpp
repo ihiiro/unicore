@@ -9,11 +9,10 @@
 int main ()
 {
     u_char *START_LINE_ACCEPTS[] = {
-       (u_char *)"\r\n    HTTP/1.1 200      \r\n",
        (u_char *)"HTTP/1.1 599 \n",
        (u_char *)"HTTP/1.1 300 \n",
        (u_char *)"HTTP/1.1 134 \n",
-       (u_char *)"\r\n\r\n HTTP/1.1 400 \r\n",
+       (u_char *)"%%%%%HTTP/1.1 500 \r\n",
        (u_char *)"POST /$ HTTP/1.1\r\n",
        (u_char *)"DELETE /somepage?// HTTP/1.1\r\n",
        (u_char *)"GET /segmentshit HTTP/1.1 \r\n",
@@ -32,6 +31,9 @@ int main ()
     };
 
     u_char *START_LINE_REJECTS[] = {
+        (u_char *)"\r\n    HTTP/1.1 200      \r\n",
+        (u_char *)"\r\n%%HTTP/1.1 300\r\n",
+        (u_char *)"\r\n\r\n%HTTP/1.1 234\r\n",
         (u_char *)"GET / HTTP/1.2",
         (u_char *)"GET / HTTP/1.2\r\n",
         (u_char *)"  GET / HTTP/1.2\r\n\r\n",
@@ -63,7 +65,7 @@ int main ()
     unicore_status_t s;
     unicore_buf_t b;
     std::cout << "ACCEPTS\n";
-    for ( int i = 0; i < 20; i++ )
+    for ( int i = 0; i < 19; i++ )
     {
 
         b.start = START_LINE_ACCEPTS [ i ];
@@ -77,7 +79,7 @@ int main ()
     }
 
     std::cout << "\e[0m\nREJECTS\n";
-    for ( int i = 0; i < 18; i++ )
+    for ( int i = 0; i < 21; i++ )
     {
 
         b.start = START_LINE_REJECTS [ i ];

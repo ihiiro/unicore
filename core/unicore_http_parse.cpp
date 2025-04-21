@@ -25,7 +25,8 @@ int
         START = 0,
         START_CR,
         START_LF,
-        START_LINE_PRECEDING_SP_FIELD,
+        REQUEST_LINE_PRECEDING_SP_FIELD,
+        STATUS_LINE_PRECEDING_SP_FIELD,
         STATUS_LINE_START,
         STATUS_LINE_HTTP_T1_ALPHA,
         STATUS_LINE_HTTP_T2_ALPHA,
@@ -37,7 +38,7 @@ int
         STATUS_LINE_HTTP_VERSION_VALIDATED_BY_SP,
         INFO_STATUS_CODE_START,         /* code 1## */
         SUCCESSFUL_STATUS_CODE_START,   /* code 2## */
-        REDICRECTION_STATUS_CODE_START, /* code 3## */
+        REDIRECTION_STATUS_CODE_START,  /* code 3## */
         CLIENT_ERROR_STATUS_CODE_START, /* code 4## */
         SERVER_ERROR_STATUS_CODE_START, /* code 5## */
         STATUS_CODE_SECOND_DIGIT,
@@ -93,6 +94,12 @@ int
             switch ( ch )
             {
 
+               case SP:
+                  state = REQUEST_LINE_PRECEDING_SP_FIELD;
+                  break;
+               case SERVER_SP:
+                  state = STATUS_LINE_PRECEDING_SP_FIELD;
+                  break;
                case 'H':
                   state = STATUS_LINE_START;
                   break;
@@ -104,9 +111,6 @@ int
                   break;
                case 'D':
                   state = REQUEST_LINE_START_DELETE;
-                  break;
-               case SP:
-                  state = START_LINE_PRECEDING_SP_FIELD;
                   break;
                case CR:
                   state = START_CR;
@@ -149,7 +153,7 @@ int
                   state = START_CR;
                   break;
                case SP:
-                  state = START_LINE_PRECEDING_SP_FIELD;
+                  state = REQUEST_LINE_PRECEDING_SP_FIELD;
                   break;
                default:
                   return UNICORE_INVALID_START_LINE_ERROR;
@@ -157,14 +161,11 @@ int
             }
             break;
 
-   /* possible recurring SP before start-line */
-         case START_LINE_PRECEDING_SP_FIELD:
+   /* possible recurring SP before request-line */
+         case REQUEST_LINE_PRECEDING_SP_FIELD:
             switch ( ch )
             {
 
-               case 'H':
-                  state = STATUS_LINE_START;
-                  break;
                case 'G':
                   state = REQUEST_LINE_START_GET;
                   break;
@@ -175,6 +176,21 @@ int
                   state = REQUEST_LINE_START_DELETE;
                   break;
                case SP:
+                  break;
+               default:
+                  return UNICORE_INVALID_START_LINE_ERROR;
+
+            }
+            break;
+
+         case STATUS_LINE_PRECEDING_SP_FIELD:
+            switch ( ch )
+            {
+
+               case SERVER_SP:
+                  break;
+               case 'H':
+                  state = STATUS_LINE_START;
                   break;
                default:
                   return UNICORE_INVALID_START_LINE_ERROR;
@@ -299,7 +315,7 @@ int
                   state = SUCCESSFUL_STATUS_CODE_START;
                   break;
                case REDIRECTION:
-                  state = REDICRECTION_STATUS_CODE_START;
+                  state = REDIRECTION_STATUS_CODE_START;
                   break;
                case CLIENT_ERROR:
                   state = CLIENT_ERROR_STATUS_CODE_START;
@@ -315,7 +331,7 @@ int
 
          case INFO_STATUS_CODE_START:
          case SUCCESSFUL_STATUS_CODE_START:
-         case REDICRECTION_STATUS_CODE_START:
+         case REDIRECTION_STATUS_CODE_START:
          case CLIENT_ERROR_STATUS_CODE_START:
          case SERVER_ERROR_STATUS_CODE_START:
             if ( ch >= '0' and ch <= '9' )
