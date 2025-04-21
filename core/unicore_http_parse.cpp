@@ -79,7 +79,7 @@ int
    } state;
 
    state = static_cast<enum state>(r->state);
-   for ( p = b->pos; p < b->end ; p++ )
+   for ( p = b->pos; p <= b->end ; p++ )
    {
       ch = *p;
       // std::cout << "state: " << state << std::endl;

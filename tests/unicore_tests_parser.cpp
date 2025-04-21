@@ -77,7 +77,7 @@ int main ()
     }
 
     std::cout << "\e[0m\nREJECTS\n";
-    for ( int i = 0; i < 22; i++ )
+    for ( int i = 0; i < 18; i++ )
     {
 
         b.start = START_LINE_REJECTS [ i ];
