@@ -1,6 +1,6 @@
 CFLAGS = -std=c++98 -Wall -Wextra -Werror
 
-CFILES = unicore.cpp \
+CFILES = tests/unicore_tests_parser.cpp \
 		core/unicore_http_parse.cpp
 
 HEADERS = core/unicore_defines.hpp \
