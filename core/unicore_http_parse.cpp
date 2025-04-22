@@ -11,9 +11,9 @@
 #include <iostream>
 
 
-int    
- unicore_http_parse_start_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
+int unicore_http_parse_start_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
 {
+
    (void)s;
    (void)b;
    (void)r;
@@ -83,8 +83,6 @@ int
    for ( p = b->pos; p <= b->end ; p++ )
    {
       ch = *p;
-      // std::cout << "state: " << state << std::endl;
-      // std::cout << ch << std::endl;
 
       switch ( state )
       {
@@ -884,5 +882,144 @@ int
    }
 
    return UNICORE_INVALID_START_LINE_ERROR;
+
+}
+
+int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
+{
+
+   (void)s;
+   (void)b;
+   (void)r;
+   u_char ch, *p;
+
+   enum state
+   {
+         START,
+         FIELD_NAME_TCHAR,
+         FIELD_LINE_COLON,
+         FIELD_LINE_OWS_AFTER_COLON,
+         FIELD_VALUE_FIRST_VCHAR,
+         FIELD_VALUE_OPTIONAL_FIRST_VCHAR,
+         FIELD_VALUE_OPTIONAL_SP,
+         FIELD_VALUE_OPTIONAL_HT,
+         FIELD_VALUE_OPTIONAL_LAST_VCHAR,
+         FIELD_LINE_TERMINATING_OWS,
+         FIELD_LINE_CR,
+         FIELD_LINE_LF,
+         CARRIAGE_RETURN,
+         LINE_FEED
+         
+   } state;
+
+   state = static_cast<enum state>(r->state);
+   for ( p = b->pos; p <= b->end ; p++ )
+   {
+
+      ch = *p;
+
+      switch ( state )
+      {
+
+         case START:
+            if ( TCHAR( ch ) )
+            {
+
+               state = FIELD_NAME_TCHAR;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               case CR:
+                  state = CARRIAGE_RETURN;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_NAME_TCHAR:
+            switch ( ch )
+            {
+
+               case ':':
+                  state = FIELD_LINE_COLON;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_LINE_COLON:
+            if ( VCHAR( ch ) )
+            {
+
+               state = FIELD_VALUE_FIRST_VCHAR;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               case SP:
+               case HT:
+                  state = FIELD_LINE_OWS_AFTER_COLON;
+                  break;
+               case CR:
+                  state = FIELD_LINE_CR;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_LINE_OWS_AFTER_COLON:
+            if ( VCHAR( ch ) )
+            {
+
+               state = FIELD_VALUE_FIRST_VCHAR;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = FIELD_LINE_CR;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_VALUE_FIRST_VCHAR:
+            switch ( ch )
+            {
+
+               case SP:
+                  state = FIELD_VALUE_OPTIONAL_SP;
+                  break;
+               case SP:
+               case HT
+
+            }
+            break;
+
+         
+
+      }
+
+   }
+
+   return UNICORE_INVALID_FIELD_LINES_ERROR;
 
 }
