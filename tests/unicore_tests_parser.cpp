@@ -27,7 +27,8 @@ int main ()
        (u_char *)"GET /? HTTP/1.1\r\n",
        (u_char *)"HTTP/1.1 404 __visiblecharsfound:)_\r\n",
        (u_char *)"GET / HTTP/1.1 \n",
-       (u_char *)"HTTP/1.1 326 \n"
+       (u_char *)"HTTP/1.1 326 \n",
+       (u_char *)"GET /index.html HTTP/1.1\r\n",
     };
 
     u_char *START_LINE_REJECTS[] = {
@@ -65,7 +66,7 @@ int main ()
     unicore_status_t s;
     unicore_buf_t b;
     std::cout << "ACCEPTS\n";
-    for ( int i = 0; i < 19; i++ )
+    for ( int i = 0; i < 20; i++ )
     {
 
         b.start = START_LINE_ACCEPTS [ i ];
