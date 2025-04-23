@@ -73,8 +73,6 @@ int main ()
 
     }
 
-    std::cout << "\n\t\t\t\t\e[1;37mFIELD-LINES\e[0m\n";
-    std::cout << "ACCEPTS\n";
     u_char *FIELD_LINES_ACCEPTS[] = {
         (u_char *)"\r\n",
         (u_char *)"F!#Ld_:  \t\r\n\r\n",
@@ -96,13 +94,42 @@ int main ()
         (u_char *)"TTTTTTTTTTTTTTTTT:V     vdksjeh3irhfidjfe  v\trefhdsjfdkfdjsfke383944+-'\r\n\r\n",
         (u_char *)"T:V    \r\n\r\n"
     };
-    u_char *FIELD_LINES_ACCEPTS[] = {
+    u_char *FIELD_LINES_REJECTS[] = {
         (u_char *)"SOMEFIELDNAME\t : somevalueafterwhitespace\r\n\r\n",
         (u_char *)"TTTTTTTTTT:Vvv\t vv\r\n",
         (u_char *)"T:   Vvv\t\t vv",
         (u_char *)"T: V\r\nT:\tV\r\n",
         (u_char *)"T:\t V\r\n\r\nT:   V\r\n\r\n"
     };
+
+    std::cout << "\n\t\t\t\t\e[1;37mFIELD-LINES\e[0m\n";
+    std::cout << "ACCEPTS\n";
+    for ( int i = 0; i < 19; i++ )
+    {
+
+        b.start = FIELD_LINES_ACCEPTS [ i ];
+        b.pos = FIELD_LINES_ACCEPTS [ i ];
+        b.end = b.start + std::strlen ( (const char *)FIELD_LINES_ACCEPTS [ i ] );
+        if ( unicore_http_parse_field_lines ( &r, &b, &s ) == 1 )
+            std::cout << "\e[0;32mpass, ";
+        else
+            std::cout << "\e[0;31mfail, ";
+
+    }
+
+    std::cout << "\e[0m\nREJECTS\n";
+    for ( int i = 0; i < 5; i++ )
+    {
+
+        b.start = FIELD_LINES_REJECTS [ i ];
+        b.pos = FIELD_LINES_REJECTS [ i ];
+        b.end = b.start + std::strlen ( (const char *)FIELD_LINES_REJECTS [ i ] );
+        if ( unicore_http_parse_field_lines ( &r, &b, &s ) == -1 )
+            std::cout << "\e[0;32mpass, ";
+        else
+            std::cout << "\e[0;31mfail, ";
+
+    }
 
 
     return 0;
