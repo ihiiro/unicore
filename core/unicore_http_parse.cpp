@@ -656,7 +656,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
          FIELD_VALUE_OPTIONAL_FIRST_VCHAR,
          FIELD_VALUE_OPTIONAL_SP,
          FIELD_VALUE_OPTIONAL_HT,
-         FIELD_VALUE_OPTIONAL_LAST_VCHAR,
+         FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION,
          FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION,
          FIELD_LINE_CR,
          FIELD_LINE_LF,
@@ -780,15 +780,164 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             break;
 
          case FIELD_VALUE_OPTIONAL_FIRST_VCHAR:
+            if ( VCHAR( ch ) )
+            {
+
+               state = FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION;
+               break;
+
+            }
             switch ( ch )
             {
 
-               case
+               case SP:
+                  state = FIELD_VALUE_OPTIONAL_SP;
+                  break;
+               case HT:
+                  state = FIELD_VALUE_OPTIONAL_HT;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
 
             }
             break;
 
-         
+         case FIELD_VALUE_OPTIONAL_SP:
+            if ( VCHAR( ch ) )
+            {
+
+               state = FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               case SP:
+                  break;
+               case HT:
+                  state = FIELD_VALUE_OPTIONAL_HT;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_VALUE_OPTIONAL_HT:
+            if ( VCHAR( ch ) )
+            {
+
+               state = FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               case SP:
+                  state = FIELD_VALUE_OPTIONAL_SP;
+                  break;
+               case HT:
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+               
+            }
+            break;
+
+         case FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION:
+            if ( VCHAR( ch ) )
+               break;
+            switch ( ch )
+            {
+
+               /* OWS */
+               case SP:
+               case HT:
+                  state = FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION;
+                  break;
+               case CR:
+                  state = FIELD_LINE_CR;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION:
+            if ( VCHAR( ch ) )
+            {
+
+               state = FIELD_VALUE_OPTIONAL_FIRST_VCHAR;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               /* OWS */
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = FIELD_LINE_CR;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_LINE_CR:
+            switch ( ch )
+            {
+
+               case LF:
+                  state = FIELD_LINE_LF;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_LINE_LF:
+            if ( TCHAR( ch ) )
+            {
+
+               state = FIELD_NAME_TCHAR;
+               break;
+
+            }
+            switch ( ch )
+            {
+
+               case CR:
+                  state = CARRIAGE_RETURN;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case CARRIAGE_RETURN:
+            switch ( ch )
+            {
+
+               case LF:
+                  state = LINE_FEED;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case LINE_FEED:
+            return UNICORE_VALID_FIELD_LINES_SUCCESS;
 
       }
 
