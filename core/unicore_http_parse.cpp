@@ -85,7 +85,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = START_CR;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -99,7 +99,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = START_LF;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
                
 
             }
@@ -125,7 +125,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = REQUEST_LINE_PRECEDING_SP_FIELD;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
                
             }
             break;
@@ -135,6 +135,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             switch ( ch )
             {
 
+               case SP:
+                  break;
                case 'G':
                   state = REQUEST_LINE_START_GET;
                   break;
@@ -144,10 +146,9 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                case 'D':
                   state = REQUEST_LINE_START_DELETE;
                   break;
-               case SP:
-                  break;
+
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -164,7 +165,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -179,13 +180,13 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
 
          case LINE_FEED:
-            return UNICORE_VALID_START_LINE_SUCCESS;
+            return UNICORE_VALID_REQUEST_LINE_SUCCESS;
 
          case REQUEST_LINE_START_GET:
             switch ( ch )
@@ -195,7 +196,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = GET_E_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -208,7 +209,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = POST_O_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -221,7 +222,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = DELETE_E1_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -234,7 +235,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = GET_T_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -247,7 +248,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = METHOD_VALIDATED_BY_SP;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -260,7 +261,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = POST_S_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -273,7 +274,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = POST_T_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -286,7 +287,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = METHOD_VALIDATED_BY_SP;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -299,7 +300,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = DELETE_L_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -312,7 +313,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = DELETE_E2_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -325,7 +326,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = DELETE_T_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -338,7 +339,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state =  DELETE_E3_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -351,7 +352,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = METHOD_VALIDATED_BY_SP;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -366,7 +367,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = ORIGIN_FORM_FORWARD_SLASH;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -388,7 +389,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
                
             }
             break;
@@ -410,7 +411,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -435,7 +436,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                case '?':
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -460,7 +461,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                case '/':
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -482,7 +483,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = QUERY_FORWARD_SLASH;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -491,13 +492,13 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             switch ( ch )
             {
 
+               case SP:
+                  break;
                case 'H':
                   state = REQUEST_LINE_HTTP_H_ALPHA;
                   break;
-               case SP:
-                  break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -510,7 +511,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = REQUEST_LINE_HTTP_T1_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -523,7 +524,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = REQUEST_LINE_HTTP_T2_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -536,7 +537,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = REQUEST_LINE_HTTP_P_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -549,7 +550,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = REQUEST_LINE_HTTP_FORWARD_SLASH_BEFORE_VERSION;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -562,7 +563,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = REQUEST_LINE_HTTP_MAJOR_VERSION_1;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -575,7 +576,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = REQUEST_LINE_HTTP_VERSION_DOT;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -588,7 +589,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = REQUEST_LINE_HTTP_MINOR_VERSION_1;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -607,7 +608,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }
             break;
@@ -625,7 +626,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_START_LINE_ERROR;
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
             }      
 
@@ -633,145 +634,166 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
 
    }
 
-   return UNICORE_INVALID_START_LINE_ERROR;
+   return UNICORE_INVALID_REQUEST_LINE_ERROR;
 
 }
 
-// int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
-// {
+int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
+{
 
-//    (void)s;
-//    (void)b;
-//    (void)r;
-//    u_char ch, *p;
+   (void)s;
+   (void)b;
+   (void)r;
+   u_char ch, *p;
 
-//    enum state
-//    {
-//          START,
-//          FIELD_NAME_TCHAR,
-//          FIELD_LINE_COLON,
-//          FIELD_LINE_OWS_AFTER_COLON,
-//          FIELD_VALUE_FIRST_VCHAR,
-//          FIELD_VALUE_OPTIONAL_FIRST_VCHAR,
-//          FIELD_VALUE_OPTIONAL_SP,
-//          FIELD_VALUE_OPTIONAL_HT,
-//          FIELD_VALUE_OPTIONAL_LAST_VCHAR,
-//          FIELD_LINE_TERMINATING_OWS,
-//          FIELD_LINE_CR,
-//          FIELD_LINE_LF,
-//          CARRIAGE_RETURN,
-//          LINE_FEED
+   enum state
+   {
+         START,
+         FIELD_NAME_TCHAR,
+         FIELD_LINE_COLON,
+         FIELD_LINE_OWS_AFTER_COLON,
+         FIELD_VALUE_FIRST_VCHAR,
+         FIELD_VALUE_OPTIONAL_FIRST_VCHAR,
+         FIELD_VALUE_OPTIONAL_SP,
+         FIELD_VALUE_OPTIONAL_HT,
+         FIELD_VALUE_OPTIONAL_LAST_VCHAR,
+         FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION,
+         FIELD_LINE_CR,
+         FIELD_LINE_LF,
+         CARRIAGE_RETURN,
+         LINE_FEED
          
-//    } state;
+   } state;
 
-//    state = static_cast<enum state>(r->state);
-//    for ( p = b->pos; p <= b->end ; p++ )
-//    {
+   state = static_cast<enum state>(r->state);
+   for ( p = b->pos; p <= b->end ; p++ )
+   {
 
-//       ch = *p;
+      ch = *p;
 
-//       switch ( state )
-//       {
+      switch ( state )
+      {
 
-//          case START:
-//             if ( TCHAR( ch ) )
-//             {
+         case START:
+            if ( TCHAR( ch ) )
+            {
 
-//                state = FIELD_NAME_TCHAR;
-//                break;
+               state = FIELD_NAME_TCHAR;
+               break;
 
-//             }
-//             switch ( ch )
-//             {
+            }
+            switch ( ch )
+            {
 
-//                case CR:
-//                   state = CARRIAGE_RETURN;
-//                   break;
-//                default:
-//                   return UNICORE_INVALID_FIELD_LINES_ERROR;
+               case CR:
+                  state = CARRIAGE_RETURN;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
 
-//             }
-//             break;
+            }
+            break;
 
-//          case FIELD_NAME_TCHAR:
-//             switch ( ch )
-//             {
+         case FIELD_NAME_TCHAR:
+            switch ( ch )
+            {
 
-//                case ':':
-//                   state = FIELD_LINE_COLON;
-//                   break;
-//                default:
-//                   return UNICORE_INVALID_FIELD_LINES_ERROR;
+               case ':':
+                  state = FIELD_LINE_COLON;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
 
-//             }
-//             break;
+            }
+            break;
 
-//          case FIELD_LINE_COLON:
-//             if ( VCHAR( ch ) )
-//             {
+         case FIELD_LINE_COLON:
+            if ( VCHAR( ch ) )
+            {
 
-//                state = FIELD_VALUE_FIRST_VCHAR;
-//                break;
+               state = FIELD_VALUE_FIRST_VCHAR;
+               break;
 
-//             }
-//             switch ( ch )
-//             {
+            }
+            switch ( ch )
+            {
 
-//                case SP:
-//                case HT:
-//                   state = FIELD_LINE_OWS_AFTER_COLON;
-//                   break;
-//                case CR:
-//                   state = FIELD_LINE_CR;
-//                   break;
-//                default:
-//                   return UNICORE_INVALID_FIELD_LINES_ERROR;
+               case SP:
+               case HT:
+                  state = FIELD_LINE_OWS_AFTER_COLON;
+                  break;
+               case CR:
+                  state = FIELD_LINE_CR;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
 
-//             }
-//             break;
+            }
+            break;
 
-//          case FIELD_LINE_OWS_AFTER_COLON:
-//             if ( VCHAR( ch ) )
-//             {
+         case FIELD_LINE_OWS_AFTER_COLON:
+            if ( VCHAR( ch ) )
+            {
 
-//                state = FIELD_VALUE_FIRST_VCHAR;
-//                break;
+               state = FIELD_VALUE_FIRST_VCHAR;
+               break;
 
-//             }
-//             switch ( ch )
-//             {
+            }
+            switch ( ch )
+            {
 
-//                case SP:
-//                case HT:
-//                   break;
-//                case CR:
-//                   state = FIELD_LINE_CR;
-//                   break;
-//                default:
-//                   return UNICORE_INVALID_FIELD_LINES_ERROR;
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = FIELD_LINE_CR;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
 
-//             }
-//             break;
+            }
+            break;
 
-//          case FIELD_VALUE_FIRST_VCHAR:
-//             switch ( ch )
-//             {
+         case FIELD_VALUE_FIRST_VCHAR:
+            if ( VCHAR( ch ) )
+            {
 
-//                case SP:
-//                   state = FIELD_VALUE_OPTIONAL_SP;
-//                   break;
-//                case SP:
-//                case HT
+               state = FIELD_VALUE_OPTIONAL_FIRST_VCHAR;
+               break;
 
-//             }
-//             break;
+            }
+            switch ( ch )
+            {
+
+               /* OWS */
+               case SP:
+               case HT:
+                  state = FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION;
+                  break;
+               case CR:
+                  state = FIELD_LINE_CR;
+                  break;
+               default:
+                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+            }
+            break;
+
+         case FIELD_VALUE_OPTIONAL_FIRST_VCHAR:
+            switch ( ch )
+            {
+
+               case
+
+            }
+            break;
 
          
 
-//       }
+      }
 
-//    }
+   }
 
-//    return UNICORE_INVALID_FIELD_LINES_ERROR;
+   return UNICORE_INVALID_FIELD_LINES_ERROR;
 
-// }
+}
