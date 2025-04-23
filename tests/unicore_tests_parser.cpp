@@ -96,6 +96,14 @@ int main ()
         (u_char *)"TTTTTTTTTTTTTTTTT:V     vdksjeh3irhfidjfe  v\trefhdsjfdkfdjsfke383944+-'\r\n\r\n",
         (u_char *)"T:V    \r\n\r\n"
     };
+    u_char *FIELD_LINES_ACCEPTS[] = {
+        (u_char *)"SOMEFIELDNAME\t : somevalueafterwhitespace\r\n\r\n",
+        (u_char *)"TTTTTTTTTT:Vvv\t vv\r\n",
+        (u_char *)"T:   Vvv\t\t vv",
+        (u_char *)"T: V\r\nT:\tV\r\n",
+        (u_char *)"T:\t V\r\n\r\nT:   V\r\n\r\n"
+    };
+
 
     return 0;
 
