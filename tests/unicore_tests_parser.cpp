@@ -9,7 +9,7 @@
 int main ()
 {
 
-    u_char *START_LINE_ACCEPTS[] = {
+    u_char *REQUEST_LINE_ACCEPTS[] = {
        (u_char *)"POST /$ HTTP/1.1\r\n",
        (u_char *)"DELETE /somepage?// HTTP/1.1\r\n",
        (u_char *)"GET /segmentshit HTTP/1.1 \r\n",
@@ -26,7 +26,7 @@ int main ()
        (u_char *)"GET /index.html HTTP/1.1\r\n",
     };
 
-    u_char *START_LINE_REJECTS[] = {
+    u_char *REQUEST_LINE_REJECTS[] = {
         (u_char *)"GET / HTTP/1.2",
         (u_char *)"GET / HTTP/1.2\r\n",
         (u_char *)"  GET / HTTP/1.2\r\n\r\n",
@@ -44,13 +44,14 @@ int main ()
     r.state = 0;
     unicore_status_t s;
     unicore_buf_t b;
+    std::cout << "\t\t\t\t\e[1;37mREQUEST-LINE\e[0m\n";
     std::cout << "ACCEPTS\n";
     for ( int i = 0; i < 14; i++ )
     {
 
-        b.start = START_LINE_ACCEPTS [ i ];
-        b.pos = START_LINE_ACCEPTS [ i ];
-        b.end = b.start + std::strlen ( (const char *)START_LINE_ACCEPTS [ i ] );
+        b.start = REQUEST_LINE_ACCEPTS [ i ];
+        b.pos = REQUEST_LINE_ACCEPTS [ i ];
+        b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_ACCEPTS [ i ] );
         if ( unicore_http_parse_request_line ( &r, &b, &s ) == 1 )
             std::cout << "\e[0;32mpass, ";
         else
@@ -62,15 +63,39 @@ int main ()
     for ( int i = 0; i < 10; i++ )
     {
 
-        b.start = START_LINE_REJECTS [ i ];
-        b.pos = START_LINE_REJECTS [ i ];
-        b.end = b.start + std::strlen ( (const char *)START_LINE_REJECTS [ i ] );
+        b.start = REQUEST_LINE_REJECTS [ i ];
+        b.pos = REQUEST_LINE_REJECTS [ i ];
+        b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_REJECTS [ i ] );
         if ( unicore_http_parse_request_line ( &r, &b, &s ) == -1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
 
     }
+
+    std::cout << "\n\t\t\t\t\e[1;37mFIELD-LINES\e[0m\n";
+    std::cout << "ACCEPTS\n";
+    u_char *FIELD_LINES_ACCEPTS[] = {
+        (u_char *)"\r\n",
+        (u_char *)"F!#Ld_:  \t\r\n\r\n",
+        (u_char *)"Transfer-Encoding:     \r\n\r\n",
+        (u_char *)"!!####`|veryvalidfield&':value  VALUE\r\nFIELD: Vvv\r\n\r\n",
+        (u_char *)"If-None-Match:SOME-VALID-VCHAR\r\n\r\n",
+        (u_char *)"If-None-Match:    \t\t  SOME-VALID-VCHAR\r\nIf-None-Match:        SOME-VALID-VCHAR\r\n\r\n",
+        (u_char *)"SOMEHEADER: Valeur    \t\t   \t\r\nANOTHER#ONE:       value      \t\t\r\n\r\n",
+        (u_char *)"T: Vv v    \t\t\r\n\r\n",
+        (u_char *)"T: \t \t Vv\t\tvv    \t\t\t\t\t\t\t\r\n\r\n",
+        (u_char *)"T:\t\tVv \t \tv\t\t\t\r\n\r\n",
+        (u_char *)"IMF-fixdate:\t\tV\t \t    vvvv\r\n\r\n",
+        (u_char *)"MY-OWN-STUPID-HEADER:STUPID-VALUE\t\t\tmorevalueandshit\r\n\r\n",
+        (u_char *)"HEADERHEADERHEADERheaderHEADER##--++:\tV    vv   \r\n\r\n",
+        (u_char *)"If-I-ever-were-to-lose-you:   I'd-surely-lose+my+self\r\n\r\n",
+        (u_char *)"TTTTTT-tTTTTTTT \t \t \t \t \r\n\r\n",
+        (u_char *)"TTTTTTTTTTTTTTTT:                           \r\n\r\n",
+        (u_char *)"TTTTTTTTTTTTTT:\r\n\r\n",
+        (u_char *)"TTTTTTTTTTTTTTTTT:V     vdksjeh3irhfidjfe  v\trefhdsjfdkfdjsfke383944+-'\r\n\r\n",
+        (u_char *)"T:V    \r\n\r\n"
+    };
 
     return 0;
 
