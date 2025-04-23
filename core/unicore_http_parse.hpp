@@ -6,4 +6,4 @@
 #include "unicore_status.hpp"
 
 int    
-unicore_http_parse_start_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s );
+unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s );
