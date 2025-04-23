@@ -88,7 +88,7 @@ int main ()
         (u_char *)"MY-OWN-STUPID-HEADER:STUPID-VALUE\t\t\tmorevalueandshit\r\n\r\n",
         (u_char *)"HEADERHEADERHEADERheaderHEADER##--++:\tV    vv   \r\n\r\n",
         (u_char *)"If-I-ever-were-to-lose-you:   I'd-surely-lose+my+self\r\n\r\n",
-        (u_char *)"TTTTTT-tTTTTTTT \t \t \t \t \r\n\r\n",
+        (u_char *)"TTTTTT-tTTTTTTT: \t \t \t \t \r\n\r\n",
         (u_char *)"TTTTTTTTTTTTTTTT:                           \r\n\r\n",
         (u_char *)"TTTTTTTTTTTTTT:\r\n\r\n",
         (u_char *)"TTTTTTTTTTTTTTTTT:V     vdksjeh3irhfidjfe  v\trefhdsjfdkfdjsfke383944+-'\r\n\r\n",
@@ -99,7 +99,11 @@ int main ()
         (u_char *)"TTTTTTTTTT:Vvv\t vv\r\n",
         (u_char *)"T:   Vvv\t\t vv",
         (u_char *)"T: V\r\nT:\tV\r\n",
-        (u_char *)"T:\t V\r\n\r\nT:   V\r\n\r\n"
+    /*
+will succeed because one CRLF terminates the field
+   and the other CRLF is the mandatory CRLF before message-body
+    */
+        // (u_char *)"T:\t V\r\n\r\nT:   V\r\n\r\n"
     };
 
     std::cout << "\n\t\t\t\t\e[1;37mFIELD-LINES\e[0m\n";
@@ -118,7 +122,7 @@ int main ()
     }
 
     std::cout << "\e[0m\nREJECTS\n";
-    for ( int i = 0; i < 5; i++ )
+    for ( int i = 0; i < 4; i++ )
     {
 
         b.start = FIELD_LINES_REJECTS [ i ];

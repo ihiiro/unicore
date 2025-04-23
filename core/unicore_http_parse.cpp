@@ -695,6 +695,8 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             break;
 
          case FIELD_NAME_TCHAR:
+            if ( TCHAR( ch ) )
+               break;
             switch ( ch )
             {
 
@@ -742,6 +744,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             switch ( ch )
             {
 
+               /* OWS */
                case SP:
                case HT:
                   break;
