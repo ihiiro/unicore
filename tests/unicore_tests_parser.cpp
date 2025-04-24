@@ -74,8 +74,8 @@ int main ()
     }
 
     u_char *FIELD_LINES_ACCEPTS[] = {
-        (u_char *)"\r\n",
-        (u_char *)"F!#Ld_:  \t\r\n\r\n",
+        (u_char *)"\n",
+        (u_char *)"F!#Ld_:  \t\r\n\n",
         (u_char *)"Transfer-Encoding:     \r\n\r\n",
         (u_char *)"!!####`|veryvalidfield&':value  VALUE\r\nFIELD: Vvv\r\n\r\n",
         (u_char *)"If-None-Match:SOME-VALID-VCHAR\r\n\r\n",
@@ -134,8 +134,6 @@ will succeed because one CRLF terminates the field
             std::cout << "\e[0;31mfail, ";
 
     }
-
-
     return 0;
 
 }

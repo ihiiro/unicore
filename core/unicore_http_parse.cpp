@@ -688,6 +688,9 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
                case CR:
                   state = CARRIAGE_RETURN;
                   break;
+               case LF:
+                  state = LINE_FEED;
+                  break;
                default:
                   return UNICORE_INVALID_FIELD_LINES_ERROR;
 
@@ -919,6 +922,9 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
 
                case CR:
                   state = CARRIAGE_RETURN;
+                  break;
+               case LF:
+                  state = LINE_FEED;
                   break;
                default:
                   return UNICORE_INVALID_FIELD_LINES_ERROR;
