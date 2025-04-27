@@ -39,8 +39,10 @@ int main ()
         (u_char *)"delete / http/1.1\r\n"
     };
 
-
     unicore_request_t r;
+    r.headers = new ht;
+    r.headers->buckets = new bucket [ M ];
+    std::memset ( r.headers->buckets , 0 , M );
     unicore_status_t s;
     unicore_buf_t b;
     std::cout << "\t\t\t\t\e[1;37mREQUEST-LINE\e[0m\n";
@@ -133,6 +135,13 @@ will succeed because one CRLF terminates the field
             std::cout << "\e[0;31mfail, ";
 
     }
+
+    std::cout << "\n\t\t\t\t\e[1;37mHASH TABLE\e[0m\n";
+    for ( int i = 0 ; i < M ; i++ )
+        if ( r.headers->buckets [ i ].key )
+            std::cout << r.headers->buckets [ i ].value << "\n";
+    // std::cout << get ( r.headers ,  (u_char *)"!!####`|veryvalidfield&'" )->value;
+
     return 0;
 
 }

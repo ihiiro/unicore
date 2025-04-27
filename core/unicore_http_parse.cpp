@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <cstdlib>
 
 int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
 {
@@ -735,6 +736,8 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             */
             len = p - strt - 1;
             key = new u_char [ len + 1 ];
+            if ( !key )
+               std::exit ( 1 );
             i = 0;
             for (; i < len ; i++ )
             {
@@ -750,6 +753,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             if ( VCHAR( ch ) )
             {
 
+               strt = p;
                state = FIELD_VALUE_FIRST_VCHAR;
                break;
 
@@ -935,14 +939,17 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             
             if ( strt )
             {
+
                len = p - strt - 1;
                value = new u_char [ len + 1 ];
+               if ( !value )
+                  std::exit ( 1 );
                i = 0;
                for (; i < len ; i++ )
                   value [ i ] = strt [ i ];
                value [ i ] = '\0';
+               insert ( r->headers , key , value );
                strt = NULL;
-               // insert ( HT , key , value )
                
             }
             else
