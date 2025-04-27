@@ -739,7 +739,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             for (; i < len ; i++ )
             {
 
-               key [ i ] = lowcase[ strt [ i ] ];
+               key [ i ] = lowcase [ strt [ i ] ];
                if ( !key [ i ] )
                   key [ i ] = strt [ i ];
 
@@ -932,10 +932,10 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             break;
 
          case FIELD_LINE_CR:
+            
             if ( strt )
             {
-
-               len = p - strt - 2;
+               len = p - strt - 1;
                value = new u_char [ len + 1 ];
                i = 0;
                for (; i < len ; i++ )
@@ -963,6 +963,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             if ( TCHAR( ch ) )
             {
 
+               strt = p;
                state = FIELD_NAME_TCHAR;
                break;
 

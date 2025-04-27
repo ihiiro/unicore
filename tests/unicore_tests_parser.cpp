@@ -41,7 +41,6 @@ int main ()
 
 
     unicore_request_t r;
-    r.state = 0;
     unicore_status_t s;
     unicore_buf_t b;
     std::cout << "\t\t\t\t\e[1;37mREQUEST-LINE\e[0m\n";
