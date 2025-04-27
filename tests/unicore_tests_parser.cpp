@@ -137,10 +137,85 @@ will succeed because one CRLF terminates the field
     }
 
     std::cout << "\n\t\t\t\t\e[1;37mHASH TABLE\e[0m\n";
-    for ( int i = 0 ; i < M ; i++ )
-        if ( r.headers->buckets [ i ].key )
-            std::cout << r.headers->buckets [ i ].value << "\n";
-    // std::cout << get ( r.headers ,  (u_char *)"!!####`|veryvalidfield&'" )->value;
+    if ( get ( r.headers , (u_char *)"" ) == NULL )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( get ( r.headers , (u_char *)"f!#ld_" ) == NULL )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( get ( r.headers , (u_char *)"transfer-encoding" ) == NULL )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"!!####`|veryvalidfield&'" )->value,
+    "value  VALUE") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"field" )->value,
+    "Vvv") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"if-none-match" )->value,
+    "SOME-VALID-VCHAR") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"someheader" )->value,
+    "Valeur    \t\t   \t") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"another#one" )->value,
+    "value      \t\t") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"t" )->value,
+    "Vv v    \t\t") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"imf-fixdate" )->value,
+    "V\t \t    vvvv") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"my-own-stupid-header" )->value,
+    "STUPID-VALUE\t\t\tmorevalueandshit") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"headerheaderheaderheaderheader##--++" )->value,
+    "V    vv   ") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"if-i-ever-were-to-lose-you" )->value,
+    "I'd-surely-lose+my+self") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( get ( r.headers , (u_char *)"tttttt-tttttttt" ) == NULL )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( get ( r.headers , (u_char *)"tttttttttttttttt" ) == NULL )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( get ( r.headers , (u_char *)"tttttttttttttt" ) == NULL )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"ttttttttttttttttt" )->value,
+    "V     vdksjeh3irhfidjfe  v\trefhdsjfdkfdjsfke383944+-'") )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
 
     return 0;
 
