@@ -6,6 +6,8 @@
 #include "unicore_defines.hpp"
 
 #include <sys/types.h>
+#include <stddef.h>
+#include <stdint.h>
 
 int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
 {
@@ -644,7 +646,18 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
    (void)s;
    (void)b;
    (void)r;
-   u_char ch, *p;
+   u_char ch, *p, *key, *value, *strt = NULL;
+   uint64_t len, i;
+   static u_char  lowcase[] =
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        "\0abcdefghijklmnopqrstuvwxyz\0\0\0\0\0"
+        "\0abcdefghijklmnopqrstuvwxyz\0\0\0\0\0"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+   
 
    enum state
    {
@@ -678,6 +691,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             if ( TCHAR( ch ) )
             {
 
+               strt = p;
                state = FIELD_NAME_TCHAR;
                break;
 
@@ -713,6 +727,26 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             break;
 
          case FIELD_LINE_COLON:
+            /* 
+
+               create a copy of key for hashing
+               field-lines are case insensitive so lowcase is used for conversion 
+
+            */
+            len = p - strt - 1;
+            key = new u_char [ len + 1 ];
+            i = 0;
+            for (; i < len ; i++ )
+            {
+
+               key [ i ] = lowcase[ strt [ i ] ];
+               if ( !key [ i ] )
+                  key [ i ] = strt [ i ];
+
+            }
+            key [ i ] = '\0';
+            strt = NULL;
+
             if ( VCHAR( ch ) )
             {
 
@@ -740,6 +774,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             if ( VCHAR( ch ) )
             {
 
+               strt = p;
                state = FIELD_VALUE_FIRST_VCHAR;
                break;
 
@@ -897,6 +932,21 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             break;
 
          case FIELD_LINE_CR:
+            if ( strt )
+            {
+
+               len = p - strt - 2;
+               value = new u_char [ len + 1 ];
+               i = 0;
+               for (; i < len ; i++ )
+                  value [ i ] = strt [ i ];
+               value [ i ] = '\0';
+               strt = NULL;
+               // insert ( HT , key , value )
+               
+            }
+            else
+               delete key;
             switch ( ch )
             {
 
