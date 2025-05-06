@@ -18,7 +18,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
    (void)r;
    u_char ch, *p;
 
-   enum state
+   enum
    {
 
         START = 0,
@@ -60,7 +60,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
    } state;
 
    state = START;
-   for ( p = b->pos; p <= b->end ; p++ )
+   for ( p = b->pos; p <= b->end ; p++ ) // pos needs to set always !!
    {
       ch = *p;
 
@@ -660,9 +660,9 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
         "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
    
 
-   enum state
+   enum
    {
-         START,
+         START = 0,
          FIELD_NAME_TCHAR,
          FIELD_LINE_COLON,
          FIELD_LINE_OWS_AFTER_COLON,
