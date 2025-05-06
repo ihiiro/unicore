@@ -57,7 +57,25 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        CGI_HT,
        CGI_COMMENT,
        SERVER_NAME,
-       
+       SERVER_NAME_HOSTNAME,
+       SERVER_NAME_LF,
+       SERVER_NAME_HT,
+       SERVER_NAME_COMMENT,
+       FIDR, /* FILE_IF_DIRECTORY_REQUEST */
+       FIDR_SYSTEM_PATH,
+       FIDR_LF,
+       FIDR_HT,
+       FIDR_COMMENT,
+       MCMS, /* MAX_CLIENT_MESSAGE_SIZE */
+       MCMS_DIGIT,
+       MCMS_B,
+       MCMS_K,
+       MCMS_M,
+       MCMS_G,
+       MCMS_LF,
+       MCMS_HT,
+       MCMS_COMMENT,
+       SERVER_BLOCK_TERMINAL_LF
 
     } state;
 
