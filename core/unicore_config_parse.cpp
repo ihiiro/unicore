@@ -152,32 +152,24 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     break;
 
                 }
-                switch ( ch )
+                else if ( ch == LF )
                 {
 
-                    case LF:
-                        // check if port is in unsigned 16bit range and > 1024,
-                        // not 49151 and not 49152 and not 65535
-                        // otherwise return error
-                        state = SERVER_BLOCK_LF;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    // check if port is in unsigned 16bit range and > 1024,
+                    //         // not 49151 and not 49152 and not 65535
+                    //         // otherwise return error
+                    state = SERVER_BLOCK_LF;
 
                 }
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case SERVER_BLOCK_LF:
-                switch ( ch )
-                {
-
-                    case HT:
-                        state = SERVER_BLOCK_HT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
+                if ( ch == HT )
+                    state = SERVER_BLOCK_HT;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case SERVER_BLOCK_HT:
@@ -219,6 +211,152 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
                     case LF:
                         state = GLOBAL_LF;
+                        break;
+                    case HT:
+                    case SP:
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case GLOBAL_LF:
+                if ( HCHAR( ch ) )
+                {
+
+                    state = SERVER_BLOCK_SENTRY_HOST;
+                    break;
+
+                }
+                switch ( ch )
+                {
+
+                    case LF:
+                        break;
+                    case '#':
+                        state = GLOBAL_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case UPLOADS:
+                if ( ch == '/' )
+                    state = UPLOADS_ROUTE_FORWARD_SLASH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case UPLOADS_ROUTE_FORWARD_SLASH:
+                if ( PCHAR( ch ) )
+                    state = UPLOADS_SEGMENT;
+                else if ( ch == '|' )
+                    state = UPLOADS_SEPARATOR_AFTER_ROUTE;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case UPLOADS_SEGMENT:
+                if ( PCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case '/':
+                        state = UPLOADS_ROUTE_FORWARD_SLASH;
+                        break;
+                    case '|':
+                        state = UPLOADS_SEPARATOR_AFTER_ROUTE;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case UPLOADS_SEPARATOR_AFTER_ROUTE:
+                if ( VCHAR( ch ) )
+                    state = UPLOADS_SYSTEM_PATH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case UPLOADS_SYSTEM_PATH:
+                if ( VCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = UPLOADS_LF;
+                        break;
+                    case '#':
+                        state = UPLOADS_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case UPLOADS_LF:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_BLOCK_TERMINAL_LF;
+                        break;
+                    case HT:
+                        state = UPLOADS_HT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    
+                }
+                break;
+
+            case UPLOADS_HT:
+                switch ( ch )
+                {
+
+                    case 'S':
+                        state = SERVER_NAME;
+                        break;
+                    case 'R':
+                        state = ROUTES;
+                        break;
+                    case 'E':
+                        state = ERROR_PAGES;
+                        break;
+                    case 'U':
+                        state = UPLOADS;
+                        break;
+                    case 'C':
+                        state = CGI;
+                        break;
+                    case 'M':
+                        state = MCMS;
+                        break;
+                    case 'F':
+                        state = FIDR;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case UPLOADS_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = UPLOADS_LF;
                         break;
                     case HT:
                     case SP:
