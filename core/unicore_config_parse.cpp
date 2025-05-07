@@ -331,8 +331,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     case 'E':
                         state = ERROR_PAGES;
                         break;
-                    case 'U':
-                        state = UPLOADS;
+                    case '/':
+                        state = UPLOADS_ROUTE_FORWARD_SLASH;
                         break;
                     case 'C':
                         state = CGI;
@@ -440,6 +440,142 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_PATH_SEGMENT:
+                if ( PCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ROUTES_LF;
+                        break;
+                    case '|':
+                        state = ROUTES_SEPARATOR_AFTER_PATH;
+                        break;
+                    case '/':
+                        state = ROUTES_PATH_FORWARD_SLASH;
+                        break;
+                    case '#':
+                        state = ROUTES_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_SEPARATOR_AFTER_PATH:
+                if ( ch == '/' )
+                    state = ROUTES_REDIRECTION_FORWARD_SLASH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_REDIRECTION_FORWARD_SLASH:
+                if ( PCHAR( ch ) )
+                {
+
+                    state = ROUTES_REDIRECTION_SEGMENT;
+                    break;
+
+                }
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ROUTES_LF;
+                        break;
+                    case '#':
+                        state = ROUTES_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_REDIRECTION_SEGMENT:
+                if ( PCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ROUTES_LF;
+                        break;
+                    case '/':
+                        state = ROUTES_REDIRECTION_FORWARD_SLASH;
+                        break;
+                    case '#':
+                        state = ROUTES_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_LF:
+                if ( ch == HT )
+                    state = ROUTES_HT;
+                else if ( ch == LF )
+                    state = SERVER_BLOCK_TERMINAL_LF;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+            
+            case ROUTES_HT:
+                if ( ch == '0' or ch == '1' )
+                {
+
+                    state = ROUTES_GET;
+                    break;
+
+                }
+
+                switch ( ch )
+                {
+
+                    case 'S':
+                        state = SERVER_NAME;
+                        break;
+                    case 'R':
+                        state = ROUTES;
+                        break;
+                    case 'E':
+                        state = ERROR_PAGES;
+                        break;
+                    case 'C':
+                        state = CGI;
+                        break;
+                    case 'M':
+                        state = MCMS;
+                        break;
+                    case 'F':
+                        state = FIDR;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ROUTES_LF;
+                        break;
+                    case HT:
+                    case SP:
+                        break;
 
                 }
                 break;
