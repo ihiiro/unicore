@@ -167,6 +167,68 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 }
                 break;
 
+            case SERVER_BLOCK_LF:
+                switch ( ch )
+                {
+
+                    case HT:
+                        state = SERVER_BLOCK_HT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_BLOCK_HT:
+                switch ( ch )
+                {
+
+                    case 'S':
+                        state = SERVER_NAME;
+                        break;
+                    case 'R':
+                        state = ROUTES;
+                        break;
+                    case 'E':
+                        state = ERROR_PAGES;
+                        break;
+                    case 'U':
+                        state = UPLOADS;
+                        break;
+                    case 'C':
+                        state = CGI;
+                        break;
+                    case 'M':
+                        state = MCMS;
+                        break;
+                    case 'F':
+                        state = FIDR;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case GLOBAL_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = GLOBAL_LF;
+                        break;
+                    case HT:
+                    case SP:
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
         }
 
     }
