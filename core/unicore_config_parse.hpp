@@ -5,6 +5,8 @@
 
 typedef std::ifstream::traits_type traits_type;
 
+
+
 typedef struct
 {
     /* stuff */

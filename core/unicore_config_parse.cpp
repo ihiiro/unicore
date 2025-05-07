@@ -1,9 +1,13 @@
 
 #include "unicore_config_parse.hpp"
+#include "unicore_defines.hpp"
 
 int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 {
+    // (void)s;
+    (void)c;
     char ch;
+    int port_digit_count;
 
     enum
     {
@@ -79,11 +83,94 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
     } state;
 
+    state = START;
     for ( ch = s.get() ; ch != traits_type::eof() ; ch = s.get() )
     {
 
+        switch ( state )
+        {
 
+            case START:
+                if ( HCHAR( ch ) )
+                {
+
+                    state = SERVER_BLOCK_SENTRY_HOST;
+                    break;
+
+                }
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = GLOBAL_LF;
+                        break;
+                    case '#':
+                        state = GLOBAL_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_BLOCK_SENTRY_HOST:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_BLOCK_LF;
+                        break;
+                    case ':':
+                        state = SERVER_BLOCK_SENTRY_COLON;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_BLOCK_SENTRY_COLON:
+                if ( ch >= '0' and ch <= '9' )
+                {
+
+                    state = SERVER_BLOCK_SENTRY_PORT;
+                    port_digit_count = 1;
+
+                }
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case SERVER_BLOCK_SENTRY_PORT:
+                if ( ch >= '0' and ch <= '9' )
+                {
+
+                    if ( port_digit_count < 5 )
+                        port_digit_count++;
+                    else
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    break;
+
+                }
+                switch ( ch )
+                {
+
+                    case LF:
+                        // check if port is in unsigned 16bit range and > 1024,
+                        // not 49151 and not 49152 and not 65535
+                        // otherwise return error
+                        state = SERVER_BLOCK_LF;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+        }
 
     }
+
+    return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
 }
