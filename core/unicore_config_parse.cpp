@@ -366,6 +366,83 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
                 }
                 break;
+            
+            case ROUTES:
+                if ( ch == '0' or ch == '1' )
+                    state = ROUTES_GET;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+            
+            case ROUTES_GET:
+                if ( ch == '0' or ch == '1' )
+                    state = ROUTES_POST;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_POST:
+                if ( ch == '0' or ch == '1' )
+                    state = ROUTES_DELETE;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_DELETE:
+                if ( ch == '|' )
+                    state = ROUTES_SEPARATOR_AFTER_METHODS;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_SEPARATOR_AFTER_METHODS:
+                if ( VCHAR( ch ) )
+                    state = ROUTES_ROOT;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_ROOT:
+                if ( VCHAR( ch ) )
+                    break;
+                else if ( ch == '|' )
+                    state = ROUTES_SEPARATOR_AFTER_ROOT;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_SEPARATOR_AFTER_ROOT:
+                if ( ch == '/' )
+                    state = ROUTES_PATH_FORWARD_SLASH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_PATH_FORWARD_SLASH:
+                if ( PCHAR( ch ) )
+                {
+
+                    state = ROUTES_PATH_SEGMENT;
+                    break;
+
+                }
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ROUTES_LF;
+                        break;
+                    case '|':
+                        state = ROUTES_SEPARATOR_AFTER_PATH;
+                        break;
+                    case '#':
+                        state = ROUTES_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
 
         }
 
