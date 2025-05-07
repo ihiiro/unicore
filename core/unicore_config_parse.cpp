@@ -6,8 +6,11 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 {
     // (void)s;
     (void)c;
-    char ch;
-    int port_digit_count;
+    int digit_count;
+    char ch, error_pages[] = "ERROR_PAGES=", uploads[] = "UPLOADS=",
+                cgi[] = "COMMON_GATEWAY_INTERFACE=", fidr[] = "FILE_IF_DIRECTORY_REQUEST=",
+                routes[] = "ROUTES=", mcms[] = "MAX_CLIENT_MESSAGE_SIZE=",
+                server_name[] = "SERVER_NAME=";
 
     enum
     {
@@ -134,7 +137,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 {
 
                     state = SERVER_BLOCK_SENTRY_PORT;
-                    port_digit_count = 1;
+                    digit_count = 1;
 
                 }
                 else
@@ -145,8 +148,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch >= '0' and ch <= '9' )
                 {
 
-                    if ( port_digit_count < 5 )
-                        port_digit_count++;
+                    if ( digit_count < 5 )
+                        digit_count++;
                     else
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
                     break;
@@ -244,6 +247,10 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case UPLOADS:
+                for ( int i = 1 ; i < 8 ; i++, ch = s.get() )
+                    if ( ch != uploads [ i ] )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
                 if ( ch == '/' )
                     state = UPLOADS_ROUTE_FORWARD_SLASH;
                 else
@@ -368,6 +375,10 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
             
             case ROUTES:
+                for ( int i = 1 ; i < 7 ; i++, ch = s.get() )
+                    if ( ch != routes [ i ] )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
                 if ( ch == '0' or ch == '1' )
                     state = ROUTES_GET;
                 else
@@ -543,8 +554,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     case 'S':
                         state = SERVER_NAME;
                         break;
-                    case 'R':
-                        state = ROUTES;
+                    case 'U':
+                        state = UPLOADS;
                         break;
                     case 'E':
                         state = ERROR_PAGES;
@@ -579,6 +590,188 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
                 }
                 break;
+
+            case ERROR_PAGES:
+                for ( int i = 1 ; i < 12 ; i++, ch = s.get() )
+                    if ( ch != error_pages [ i ] )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                if ( ch >= '0' and ch <= '9' )
+                {
+
+                    state = ERROR_PAGES_CODE;
+                    digit_count = 1;
+
+                }
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ERROR_PAGES_CODE:
+                if ( ch >= '0' and ch <= '9' )
+                {
+
+                    if ( digit_count < 3 )
+                        digit_count++;
+                    else
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    break;
+
+                }
+                else if ( ch == '|' )
+                    state = ERROR_PAGES_SEPARATOR_AFTER_CODE;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ERROR_PAGES_SEPARATOR_AFTER_CODE:
+                if ( ch == '/' )
+                    state = ERROR_PAGES_PATH_FORWARD_SLASH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ERROR_PAGES_PATH_FORWARD_SLASH:
+                if ( PCHAR( ch ) )
+                {
+
+                    state = ERROR_PAGES_SEGMENT;
+                    break;
+
+                }
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ERROR_PAGES_LF;
+                        break;
+                    case '#':
+                        state = ERROR_PAGES_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ERROR_PAGES_SEGMENT:
+                if ( PCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ERROR_PAGES_LF;
+                        break;
+                    case '/':
+                        state = ERROR_PAGES_PATH_FORWARD_SLASH;
+                        break;
+                    case '#':
+                        state = ERROR_PAGES_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ERROR_PAGES_LF:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_BLOCK_TERMINAL_LF;
+                        break;
+                    case HT:
+                        state = ERROR_PAGES_HT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ERROR_PAGES_HT:
+                if ( ch == '0' or ch == '1' )
+                {
+
+                    state = ERROR_PAGES_CODE;
+                    digit_count = 1;
+                    break;
+
+                }
+                switch ( ch )
+                {
+
+                    case 'S':
+                        state = SERVER_NAME;
+                        break;
+                    case 'R':
+                        state = ROUTES;
+                        break;
+                    case 'U':
+                        state = UPLOADS;
+                        break;
+                    case 'C':
+                        state = CGI;
+                        break;
+                    case 'M':
+                        state = MCMS;
+                        break;
+                    case 'F':
+                        state = FIDR;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ERROR_PAGES_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ERROR_PAGES_LF;
+                        break;
+                    case HT:
+                    case SP:
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case CGI:
+                for ( int i = 1 ; i < 25 ; i++, ch = s.get() )
+                    if ( ch != cgi [ i ] )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                if ( ch == '0' or ch == '1' )
+                    state = CGI_GET;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case CGI_GET:
+                if ( ch == '0' or ch == '1' )
+                    state = CGI_POST;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case CGI_POST:
+                if ( ch == '|' )
+                    state = CGI_SEPARATOR_AFTER_METHODS;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case CGI_SEPARATOR_AFTER_METHODS:
+
 
         }
 
