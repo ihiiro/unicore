@@ -117,6 +117,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case SERVER_BLOCK_SENTRY_HOST:
+                if ( HCHAR( ch ) )
+                    break;
+
                 switch ( ch )
                 {
 
@@ -771,7 +774,426 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case CGI_SEPARATOR_AFTER_METHODS:
+                if ( ch == '0' or ch == '1' )
+                    state = CGI_PYTHON;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
 
+            case CGI_PYTHON:
+                if ( ch == '0' or ch == '1' )
+                    state = CGI_PHP;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case CGI_PHP:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = CGI_LF;
+                        break;
+                    case '#':
+                        state = CGI_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case CGI_LF:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_BLOCK_TERMINAL_LF;
+                        break;
+                    case HT:
+                        state = CGI_HT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+
+            case CGI_HT:
+                if ( ch == '0' or ch == '1' )
+                {
+
+                    state = CGI_GET;
+                    break;
+
+                }
+
+                switch ( ch )
+                {
+
+                    case 'S':
+                        state = SERVER_NAME;
+                        break;
+                    case 'R':
+                        state = ROUTES;
+                        break;
+                    case 'E':
+                        state = ERROR_PAGES;
+                        break;
+                    case 'U':
+                        state = UPLOADS;
+                        break;
+                    case 'M':
+                        state = MCMS;
+                        break;
+                    case 'F':
+                        state = FIDR;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case CGI_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = CGI_LF;
+                        break;
+                    case HT:
+                    case SP:
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_NAME:
+                for ( int i = 1 ; i < 12 ; i++, ch = s.get() )
+                    if ( ch != server_name [ i ] )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                if ( HCHAR( ch ) )
+                    state = SERVER_NAME_HOSTNAME;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case SERVER_NAME_HOSTNAME:
+                if ( HCHAR( ch ) )
+                    break;
+
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_NAME_LF;
+                        break;
+                    case '#':
+                        state = SERVER_NAME_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_NAME_LF:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_BLOCK_TERMINAL_LF;
+                        break;
+                    case HT:
+                        state = SERVER_NAME_HT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_NAME_HT:
+                switch ( ch )
+                {
+
+                    case 'C':
+                        state = CGI;
+                        break;
+                    case 'R':
+                        state = ROUTES;
+                        break;
+                    case 'E':
+                        state = ERROR_PAGES;
+                        break;
+                    case 'U':
+                        state = UPLOADS;
+                        break;
+                    case 'M':
+                        state = MCMS;
+                        break;
+                    case 'F':
+                        state = FIDR;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_NAME_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_NAME_LF;
+                        break;
+                    case HT:
+                    case SP:
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case FIDR:
+                for ( int i = 1 ; i < 26 ; i++, ch = s.get() )
+                    if ( ch != fidr [ i ] )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                if ( VCHAR( ch ) )
+                    state = FIDR_SYSTEM_PATH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case FIDR_SYSTEM_PATH:
+                if ( VCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = FIDR_LF;
+                        break;
+                    case '#':
+                        state = FIDR_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case FIDR_LF:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_BLOCK_TERMINAL_LF;
+                        break;
+                    case HT:
+                        state = FIDR_HT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case FIDR_HT:
+                switch ( ch )
+                {
+
+                    case 'C':
+                        state = CGI;
+                        break;
+                    case 'R':
+                        state = ROUTES;
+                        break;
+                    case 'E':
+                        state = ERROR_PAGES;
+                        break;
+                    case 'U':
+                        state = UPLOADS;
+                        break;
+                    case 'M':
+                        state = MCMS;
+                        break;
+                    case 'S':
+                        state = SERVER_NAME;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case FIDR_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = FIDR_LF;
+                        break;
+                    case HT:
+                    case SP:
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case MCMS:
+                for ( int i = 1 ; i < 24 ; i++, ch = s.get() )
+                    if ( ch != mcms [ i ] )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                if ( ch >= '0' and ch <= '9' )
+                {
+
+                    state = MCMS_DIGIT;
+                    digit_count = 1;
+
+                }
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case MCMS_DIGIT:
+                if ( ch >= '0' and ch <= '9' )
+                {
+
+                    if ( digit_count < 10 )
+                        digit_count++;
+                    else
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    break;
+
+                }
+
+                switch ( ch )
+                {
+
+                    case 'B':
+                        state = MCMS_B;
+                        break;
+                    case 'K':
+                        state = MCMS_K;
+                        break;
+                    case 'M':
+                        state = MCMS_M;
+                        break;
+                    case 'G':
+                        state = MCMS_G;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case MCMS_B:
+            case MCMS_K:
+            case MCMS_M:
+            case MCMS_G:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = MCMS_LF;
+                        break;
+                    case '#':
+                        state = MCMS_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case MCMS_LF:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_BLOCK_TERMINAL_LF;
+                        break;
+                    case HT:
+                        state = MCMS_HT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case MCMS_HT:
+                switch ( ch )
+                {
+
+                    case 'C':
+                        state = CGI;
+                        break;
+                    case 'R':
+                        state = ROUTES;
+                        break;
+                    case 'E':
+                        state = ERROR_PAGES;
+                        break;
+                    case 'U':
+                        state = UPLOADS;
+                        break;
+                    case 'F':
+                        state = FIDR;
+                        break;
+                    case 'S':
+                        state = SERVER_NAME;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case MCMS_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = MCMS_LF;
+                        break;
+                    case HT:
+                    case SP:
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_BLOCK_TERMINAL_LF:
+                if ( HCHAR( ch ) )
+                    state = SERVER_BLOCK_SENTRY_HOST;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
 
         }
 
