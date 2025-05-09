@@ -221,12 +221,41 @@ will succeed because one CRLF terminates the field
         std::cout << "\e[0;31mfail, ";
 
     std::cout << "\n\t\t\t\t\e[1;37mCONFIGURATION\e[0m\n";
-    std::ifstream pass0 ( "tests/pass0.conf" );
+    char *passes[] = {
+        (char *)"tests/pass0.conf",
+        (char *)"tests/pass1.conf",
+        (char *)"tests/pass2.conf",
+        (char *)"tests/pass3.conf",
+        (char *)"tests/pass4.conf",
+        (char *)"tests/pass5.conf",
+        (char *)"tests/pass6.conf",
+        (char *)"tests/pass7.conf",
+        (char *)"tests/pass8.conf",
+        (char *)"tests/pass9.conf",
+        (char *)"tests/pass10.conf",
+        (char *)"tests/pass11.conf",
+        (char *)"tests/pass12.conf",
+        (char *)"tests/pass13.conf",
+        (char *)"tests/pass14.conf",
+        (char *)"tests/pass15.conf",
+        (char *)"tests/pass16.conf",
+        (char *)"tests/pass17.conf",
+        (char *)"tests/pass18.conf"
+    };
 
 
     unicore_config_t conf;
 
-    std::cout << unicore_config_parse ( pass0 , &conf );
+    for ( int i = 0 ; i < 19 ; i++ )
+    {
+
+        std::ifstream stream ( passes [ i ] );
+        if ( unicore_config_parse ( stream , &conf ) == 1 )
+            std::cout << "\e[0;32mpass, ";
+        else
+            std::cout << "\e[0;31mfail, ";
+
+    }
 
 
     return 0;
