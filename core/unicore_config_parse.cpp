@@ -2,6 +2,8 @@
 #include "unicore_config_parse.hpp"
 #include "unicore_defines.hpp"
 
+#include <iostream>
+
 int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 {
     // (void)s;
@@ -90,6 +92,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
     for ( ch = s.get() ; ch != traits_type::eof() ; ch = s.get() )
     {
 
+        // std::cout << ch;
+        // std::cout << " " << ch;
+        // std::cout << "->" << state;
         switch ( state )
         {
 
@@ -295,21 +300,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case UPLOADS_SYSTEM_PATH:
-                if ( VCHAR( ch ) )
+                if ( ch == LF )
+                    state = UPLOADS_LF;
+                else if ( ch == '#' )
+                    state = UPLOADS_COMMENT;
+                else if ( VCHAR( ch ) )
                     break;
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = UPLOADS_LF;
-                        break;
-                    case '#':
-                        state = UPLOADS_COMMENT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case UPLOADS_LF:
@@ -417,10 +415,10 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ROUTES_ROOT:
-                if ( VCHAR( ch ) )
-                    break;
-                else if ( ch == '|' )
+                if ( ch == '|' )
                     state = ROUTES_SEPARATOR_AFTER_ROOT;
+                else if ( VCHAR( ch ) )
+                    break;
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
@@ -590,6 +588,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     case HT:
                     case SP:
                         break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
                 }
                 break;
@@ -695,7 +695,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ERROR_PAGES_HT:
-                if ( ch == '0' or ch == '1' )
+                if ( ch >= '0' and ch <= '9' )
                 {
 
                     state = ERROR_PAGES_CODE;
@@ -817,6 +817,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
                 }
+                break;
 
             case CGI_HT:
                 if ( ch == '0' or ch == '1' )
@@ -977,21 +978,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case FIDR_SYSTEM_PATH:
-                if ( VCHAR( ch ) )
+                if ( ch == LF )
+                    state = FIDR_LF;
+                else if ( ch == '#' )
+                    state = FIDR_COMMENT;
+                else if ( VCHAR( ch ) )
                     break;
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = FIDR_LF;
-                        break;
-                    case '#':
-                        state = FIDR_COMMENT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case FIDR_LF:
@@ -1199,6 +1193,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
     }
 
+
+    if ( state == SERVER_BLOCK_TERMINAL_LF )
+        return UNICORE_VALID_CONFIG_FILE_SUCCESS;
     return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
 }

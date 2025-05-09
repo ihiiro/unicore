@@ -1,10 +1,13 @@
 
 
 #include "../core/unicore_http_parse.hpp"
+#include "../core/unicore_config_parse.hpp"
 
 #include <cstring>
 
 #include <iostream>
+
+#include <fstream>
 
 int main ()
 {
@@ -216,6 +219,15 @@ will succeed because one CRLF terminates the field
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
+
+    std::cout << "\n\t\t\t\t\e[1;37mCONFIGURATION\e[0m\n";
+    std::ifstream pass0 ( "tests/pass0.conf" );
+
+
+    unicore_config_t conf;
+
+    std::cout << unicore_config_parse ( pass0 , &conf );
+
 
     return 0;
 
