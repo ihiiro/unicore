@@ -61,16 +61,15 @@ bucket *get ( ht *HT , const u_char *key )
 {
 
     uint64_t index = hash ( key );
-    bool stop = 0;
 
     while ( 1 )
     {
+
+        if ( HT->buckets [ index ].key == NULL )
+            return NULL;
         if ( index == M )
         {
 
-            if ( stop )
-                return NULL;
-            stop = 1;
             index = 0;
             continue;
 
