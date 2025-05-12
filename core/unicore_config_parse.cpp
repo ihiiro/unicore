@@ -9,10 +9,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
     // (void)s;
     (void)c;
     int digit_count;
-    char ch, error_pages[] = "ERROR_PAGES=", uploads[] = "UPLOADS=",
-                cgi[] = "COMMON_GATEWAY_INTERFACE=", fidr[] = "FILE_IF_DIRECTORY_REQUEST=",
-                routes[] = "ROUTES=", mcms[] = "MAX_CLIENT_MESSAGE_SIZE=",
-                server_name[] = "SERVER_NAME=";
+    char ch, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
+                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=",server_name[] = "SERVER_NAME=";
 
     enum
     {
@@ -25,14 +23,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        SERVER_BLOCK_HT,
        GLOBAL_COMMENT,
        GLOBAL_LF,
-       UPLOADS,
-       UPLOADS_ROUTE_FORWARD_SLASH,
-       UPLOADS_SEGMENT,
-       UPLOADS_SEPARATOR_AFTER_ROUTE,
-       UPLOADS_SYSTEM_PATH,
-       UPLOADS_LF,
-       UPLOADS_HT,
-       UPLOADS_COMMENT,
        ROUTES,
        ROUTES_GET,
        ROUTES_POST,
@@ -40,11 +30,22 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        ROUTES_SEPARATOR_AFTER_METHODS,
        ROUTES_ROOT,
        ROUTES_SEPARATOR_AFTER_ROOT,
-       ROUTES_PATH_FORWARD_SLASH,
-       ROUTES_PATH_SEGMENT,
-       ROUTES_SEPARATOR_AFTER_PATH,
+       ROUTES_URL_FORWARD_SLASH,
+       ROUTES_URL_SEGMENT,
+       ROUTES_SEPARATOR_AFTER_URL,
        ROUTES_REDIRECTION_FORWARD_SLASH,
        ROUTES_REDIRECTION_SEGMENT,
+       ROUTES_SEPARATOR_AFTER_REDIRECTION,
+       ROUTES_UPLOAD_PATH,
+       ROUTES_SEPARATOR_AFTER_UPLOAD_PATH,
+       ROUTES_DIRECTORY_LISTING,
+       ROUTES_SEPARATOR_AFTER_DIRECTORY_LISTING,
+       ROUTES_FILE_IF_DIRECTORY_REQUEST,
+       ROUTES_SEPARATOR_AFTER_FIDR,
+       ROUTES_CGI_GET,
+       ROUTES_CGI_POST,
+       ROUTES_CGI_PYTHON,
+       ROUTES_CGI_PHP,
        ROUTES_LF,
        ROUTES_HT,
        ROUTES_COMMENT,
@@ -55,25 +56,11 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        ERROR_PAGES_LF,
        ERROR_PAGES_HT,
        ERROR_PAGES_COMMENT,
-       CGI,
-       CGI_GET,
-       CGI_POST,
-       CGI_SEPARATOR_AFTER_METHODS,
-       CGI_PYTHON,
-       CGI_PHP,
-       CGI_LF,
-       CGI_HT,
-       CGI_COMMENT,
        SERVER_NAME,
        SERVER_NAME_HOSTNAME,
        SERVER_NAME_LF,
        SERVER_NAME_HT,
        SERVER_NAME_COMMENT,
-       FIDR, /* FILE_IF_DIRECTORY_REQUEST */
-       FIDR_SYSTEM_PATH,
-       FIDR_LF,
-       FIDR_HT,
-       FIDR_COMMENT,
        MCMS, /* MAX_CLIENT_MESSAGE_SIZE */
        MCMS_DIGIT,
        MCMS_B,
@@ -192,17 +179,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     case 'E':
                         state = ERROR_PAGES;
                         break;
-                    case 'U':
-                        state = UPLOADS;
-                        break;
-                    case 'C':
-                        state = CGI;
-                        break;
                     case 'M':
                         state = MCMS;
-                        break;
-                    case 'F':
-                        state = FIDR;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -243,127 +221,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                         break;
                     case '#':
                         state = GLOBAL_COMMENT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case UPLOADS:
-                for ( int i = 1 ; i < 8 ; i++, ch = s.get() )
-                    if ( ch != uploads [ i ] )
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                if ( ch == '/' )
-                    state = UPLOADS_ROUTE_FORWARD_SLASH;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case UPLOADS_ROUTE_FORWARD_SLASH:
-                if ( PCHAR( ch ) )
-                    state = UPLOADS_SEGMENT;
-                else if ( ch == '|' )
-                    state = UPLOADS_SEPARATOR_AFTER_ROUTE;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case UPLOADS_SEGMENT:
-                if ( PCHAR( ch ) )
-                    break;
-                switch ( ch )
-                {
-
-                    case '/':
-                        state = UPLOADS_ROUTE_FORWARD_SLASH;
-                        break;
-                    case '|':
-                        state = UPLOADS_SEPARATOR_AFTER_ROUTE;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case UPLOADS_SEPARATOR_AFTER_ROUTE:
-                if ( VCHAR( ch ) )
-                    state = UPLOADS_SYSTEM_PATH;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case UPLOADS_SYSTEM_PATH:
-                if ( ch == LF )
-                    state = UPLOADS_LF;
-                else if ( ch == '#' )
-                    state = UPLOADS_COMMENT;
-                else if ( VCHAR( ch ) )
-                    break;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case UPLOADS_LF:
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = SERVER_BLOCK_TERMINAL_LF;
-                        break;
-                    case HT:
-                        state = UPLOADS_HT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                    
-                }
-                break;
-
-            case UPLOADS_HT:
-                switch ( ch )
-                {
-
-                    case 'S':
-                        state = SERVER_NAME;
-                        break;
-                    case 'R':
-                        state = ROUTES;
-                        break;
-                    case 'E':
-                        state = ERROR_PAGES;
-                        break;
-                    case '/':
-                        state = UPLOADS_ROUTE_FORWARD_SLASH;
-                        break;
-                    case 'C':
-                        state = CGI;
-                        break;
-                    case 'M':
-                        state = MCMS;
-                        break;
-                    case 'F':
-                        state = FIDR;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case UPLOADS_COMMENT:
-                if ( VCHAR( ch ) )
-                    break;
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = UPLOADS_LF;
-                        break;
-                    case HT:
-                    case SP:
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -421,30 +278,24 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_SEPARATOR_AFTER_ROOT:
                 if ( ch == '/' )
-                    state = ROUTES_PATH_FORWARD_SLASH;
+                    state = ROUTES_URL_FORWARD_SLASH;
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
-            case ROUTES_PATH_FORWARD_SLASH:
+            case ROUTES_URL_FORWARD_SLASH:
                 if ( PCHAR( ch ) )
                 {
 
-                    state = ROUTES_PATH_SEGMENT;
+                    state = ROUTES_URL_SEGMENT;
                     break;
 
                 }
                 switch ( ch )
                 {
 
-                    case LF:
-                        state = ROUTES_LF;
-                        break;
                     case '|':
-                        state = ROUTES_SEPARATOR_AFTER_PATH;
-                        break;
-                    case '#':
-                        state = ROUTES_COMMENT;
+                        state = ROUTES_SEPARATOR_AFTER_URL;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -452,23 +303,17 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 }
                 break;
 
-            case ROUTES_PATH_SEGMENT:
+            case ROUTES_URL_SEGMENT:
                 if ( PCHAR( ch ) )
                     break;
                 switch ( ch )
                 {
 
-                    case LF:
-                        state = ROUTES_LF;
-                        break;
                     case '|':
-                        state = ROUTES_SEPARATOR_AFTER_PATH;
+                        state = ROUTES_SEPARATOR_AFTER_URL;
                         break;
                     case '/':
-                        state = ROUTES_PATH_FORWARD_SLASH;
-                        break;
-                    case '#':
-                        state = ROUTES_COMMENT;
+                        state = ROUTES_URL_FORWARD_SLASH;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -476,7 +321,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 }
                 break;
 
-            case ROUTES_SEPARATOR_AFTER_PATH:
+            case ROUTES_SEPARATOR_AFTER_URL:
                 if ( ch == '/' )
                     state = ROUTES_REDIRECTION_FORWARD_SLASH;
                 else
@@ -494,11 +339,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
-                    case LF:
-                        state = ROUTES_LF;
-                        break;
-                    case '#':
-                        state = ROUTES_COMMENT;
+                    case '|':
+                        state = ROUTES_SEPARATOR_AFTER_REDIRECTION;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -512,11 +354,98 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
-                    case LF:
-                        state = ROUTES_LF;
-                        break;
                     case '/':
                         state = ROUTES_REDIRECTION_FORWARD_SLASH;
+                        break;
+                    case '|':
+                        state = ROUTES_SEPARATOR_AFTER_REDIRECTION;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_SEPARATOR_AFTER_REDIRECTION:
+                if ( VCHAR( ch ) )
+                    state = ROUTES_UPLOAD_PATH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_UPLOAD_PATH:
+                if ( ch == '|' )
+                    state = ROUTES_SEPARATOR_AFTER_UPLOAD_PATH;
+                else if ( VCHAR( ch ) )
+                    break;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_SEPARATOR_AFTER_UPLOAD_PATH:
+                if ( ch == '0' or ch == '1' )
+                    state = ROUTES_DIRECTORY_LISTING;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_DIRECTORY_LISTING:
+                if ( ch == '|' )
+                    state = ROUTES_SEPARATOR_AFTER_DIRECTORY_LISTING;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_SEPARATOR_AFTER_DIRECTORY_LISTING:
+                if ( VCHAR( ch ) )
+                    state = ROUTES_FILE_IF_DIRECTORY_REQUEST;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_FILE_IF_DIRECTORY_REQUEST:
+                if ( ch == '|' )
+                    state = ROUTES_SEPARATOR_AFTER_FIDR;
+                else if ( VCHAR( ch ) )
+                    break;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_SEPARATOR_AFTER_FIDR:
+                if ( ch == '0' or ch == '1' )
+                    state = ROUTES_CGI_GET;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_CGI_GET:
+                if ( ch == '0' or ch == '1' )
+                    state = ROUTES_CGI_POST;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_CGI_POST:
+                if ( ch == '0' or ch == '1' )
+                    state = ROUTES_CGI_PYTHON;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_CGI_PYTHON:
+                if ( ch == '0' or ch == '1' )
+                    state = ROUTES_CGI_PHP;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_CGI_PHP:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ROUTES_LF;
                         break;
                     case '#':
                         state = ROUTES_COMMENT;
@@ -551,20 +480,11 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     case 'S':
                         state = SERVER_NAME;
                         break;
-                    case 'U':
-                        state = UPLOADS;
-                        break;
                     case 'E':
                         state = ERROR_PAGES;
                         break;
-                    case 'C':
-                        state = CGI;
-                        break;
                     case 'M':
                         state = MCMS;
-                        break;
-                    case 'F':
-                        state = FIDR;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -675,17 +595,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     case 'R':
                         state = ROUTES;
                         break;
-                    case 'U':
-                        state = UPLOADS;
-                        break;
-                    case 'C':
-                        state = CGI;
-                        break;
                     case 'M':
                         state = MCMS;
-                        break;
-                    case 'F':
-                        state = FIDR;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -701,132 +612,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
                     case LF:
                         state = ERROR_PAGES_LF;
-                        break;
-                    case HT:
-                    case SP:
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case CGI:
-                for ( int i = 1 ; i < 25 ; i++, ch = s.get() )
-                    if ( ch != cgi [ i ] )
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                if ( ch == '0' or ch == '1' )
-                    state = CGI_GET;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case CGI_GET:
-                if ( ch == '0' or ch == '1' )
-                    state = CGI_POST;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case CGI_POST:
-                if ( ch == '|' )
-                    state = CGI_SEPARATOR_AFTER_METHODS;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case CGI_SEPARATOR_AFTER_METHODS:
-                if ( ch == '0' or ch == '1' )
-                    state = CGI_PYTHON;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case CGI_PYTHON:
-                if ( ch == '0' or ch == '1' )
-                    state = CGI_PHP;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case CGI_PHP:
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = CGI_LF;
-                        break;
-                    case '#':
-                        state = CGI_COMMENT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case CGI_LF:
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = SERVER_BLOCK_TERMINAL_LF;
-                        break;
-                    case HT:
-                        state = CGI_HT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case CGI_HT:
-                if ( ch == '0' or ch == '1' )
-                {
-
-                    state = CGI_GET;
-                    break;
-
-                }
-
-                switch ( ch )
-                {
-
-                    case 'S':
-                        state = SERVER_NAME;
-                        break;
-                    case 'R':
-                        state = ROUTES;
-                        break;
-                    case 'E':
-                        state = ERROR_PAGES;
-                        break;
-                    case 'U':
-                        state = UPLOADS;
-                        break;
-                    case 'M':
-                        state = MCMS;
-                        break;
-                    case 'F':
-                        state = FIDR;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case CGI_COMMENT:
-                if ( VCHAR( ch ) )
-                    break;
-
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = CGI_LF;
                         break;
                     case HT:
                     case SP:
@@ -887,23 +672,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
-                    case 'C':
-                        state = CGI;
-                        break;
                     case 'R':
                         state = ROUTES;
                         break;
                     case 'E':
                         state = ERROR_PAGES;
                         break;
-                    case 'U':
-                        state = UPLOADS;
-                        break;
                     case 'M':
                         state = MCMS;
-                        break;
-                    case 'F':
-                        state = FIDR;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -919,91 +695,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
                     case LF:
                         state = SERVER_NAME_LF;
-                        break;
-                    case HT:
-                    case SP:
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case FIDR:
-                for ( int i = 1 ; i < 26 ; i++, ch = s.get() )
-                    if ( ch != fidr [ i ] )
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                if ( VCHAR( ch ) )
-                    state = FIDR_SYSTEM_PATH;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case FIDR_SYSTEM_PATH:
-                if ( ch == LF )
-                    state = FIDR_LF;
-                else if ( ch == '#' )
-                    state = FIDR_COMMENT;
-                else if ( VCHAR( ch ) )
-                    break;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case FIDR_LF:
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = SERVER_BLOCK_TERMINAL_LF;
-                        break;
-                    case HT:
-                        state = FIDR_HT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case FIDR_HT:
-                switch ( ch )
-                {
-
-                    case 'C':
-                        state = CGI;
-                        break;
-                    case 'R':
-                        state = ROUTES;
-                        break;
-                    case 'E':
-                        state = ERROR_PAGES;
-                        break;
-                    case 'U':
-                        state = UPLOADS;
-                        break;
-                    case 'M':
-                        state = MCMS;
-                        break;
-                    case 'S':
-                        state = SERVER_NAME;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case FIDR_COMMENT:
-                if ( VCHAR( ch ) )
-                    break;
-
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = FIDR_LF;
                         break;
                     case HT:
                     case SP:
@@ -1102,20 +793,11 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
-                    case 'C':
-                        state = CGI;
-                        break;
                     case 'R':
                         state = ROUTES;
                         break;
                     case 'E':
                         state = ERROR_PAGES;
-                        break;
-                    case 'U':
-                        state = UPLOADS;
-                        break;
-                    case 'F':
-                        state = FIDR;
                         break;
                     case 'S':
                         state = SERVER_NAME;

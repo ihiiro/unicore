@@ -230,23 +230,13 @@ will succeed because one CRLF terminates the field
         (char *)"tests/pass5.conf",
         (char *)"tests/pass6.conf",
         (char *)"tests/pass7.conf",
-        (char *)"tests/pass8.conf",
-        (char *)"tests/pass9.conf",
-        (char *)"tests/pass10.conf",
-        (char *)"tests/pass11.conf",
-        (char *)"tests/pass12.conf",
-        (char *)"tests/pass13.conf",
-        (char *)"tests/pass14.conf",
-        (char *)"tests/pass15.conf",
-        (char *)"tests/pass16.conf",
-        (char *)"tests/pass17.conf",
-        (char *)"tests/pass18.conf"
+        (char *)"tests/pass8.conf"
     };
 
 
     unicore_config_t conf;
 
-    for ( int i = 0 ; i < 19 ; i++ )
+    for ( int i = 0 ; i < 9 ; i++ )
     {
 
         std::ifstream stream ( passes [ i ] );
