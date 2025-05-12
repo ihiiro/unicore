@@ -55,8 +55,6 @@ void insert ( ht *HT , const u_char *key , const u_char *value )
 
 }
 
-#include <iostream>
-
 bucket *get ( ht *HT , const u_char *key )
 {
 

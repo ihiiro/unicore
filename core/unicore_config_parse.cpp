@@ -51,8 +51,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        ERROR_PAGES,
        ERROR_PAGES_CODE,
        ERROR_PAGES_SEPARATOR_AFTER_CODE,
-       ERROR_PAGES_PATH_FORWARD_SLASH,
-       ERROR_PAGES_SEGMENT,
+       ERROR_PAGES_SYSTEM_PATH,
        ERROR_PAGES_LF,
        ERROR_PAGES_HT,
        ERROR_PAGES_COMMENT,
@@ -92,9 +91,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
     for ( ch = s.get() ; ch != traits_type::eof() ; ch = s.get() )
     {
 
-        // std::cout << ch;
-        // std::cout << " " << ch;
-        // std::cout << "->" << state;
         switch ( state )
         {
 
@@ -628,54 +624,21 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ERROR_PAGES_SEPARATOR_AFTER_CODE:
-                if ( ch == '/' )
-                    state = ERROR_PAGES_PATH_FORWARD_SLASH;
+                if ( VCHAR( ch ) )
+                    state = ERROR_PAGES_SYSTEM_PATH;
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
-            case ERROR_PAGES_PATH_FORWARD_SLASH:
-                if ( PCHAR( ch ) )
-                {
-
-                    state = ERROR_PAGES_SEGMENT;
+            case ERROR_PAGES_SYSTEM_PATH:
+                if ( ch == '#' )
+                    state = ERROR_PAGES_COMMENT;
+                else if ( ch == LF )
+                    state = ERROR_PAGES_LF;
+                else if ( VCHAR( ch ) )
                     break;
-
-                }
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = ERROR_PAGES_LF;
-                        break;
-                    case '#':
-                        state = ERROR_PAGES_COMMENT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case ERROR_PAGES_SEGMENT:
-                if ( PCHAR( ch ) )
-                    break;
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = ERROR_PAGES_LF;
-                        break;
-                    case '/':
-                        state = ERROR_PAGES_PATH_FORWARD_SLASH;
-                        break;
-                    case '#':
-                        state = ERROR_PAGES_COMMENT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ERROR_PAGES_LF:
