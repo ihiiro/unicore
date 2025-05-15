@@ -6,11 +6,11 @@
 
 int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 {
-    // (void)s;
-    (void)c;
-    int digit_count;
-    char ch, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
-                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=";
+
+    int digit_count = 0, i = 0;
+    char ch = 0, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
+                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", buf [ 512 ];
+    std::memset ( buf , 0 , 512 );
 
     enum
     {
@@ -84,6 +84,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( HCHAR( ch ) )
                 {
 
+                    std::memset ( buf , 0 , 512 );
+                    i = 0;
+                    buf [ i++ ] = ch;
                     state = SERVER_BLOCK_SENTRY_HOST;
                     break;
 
@@ -105,7 +108,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case SERVER_BLOCK_SENTRY_HOST:
                 if ( HCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    buf [ i++ ] = ch;
                     break;
+
+                }
 
                 switch ( ch )
                 {
@@ -159,6 +169,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case SERVER_BLOCK_LF:
+                c->host = new char [ i + 1 ];
+                for ( int j = 0 ; j < i ; j++ )
+                    c->host [ j ] = buf [ j ];
+                c->host [ i ] = '\0';
+
+                std::cout << "HOST [" << c->host << "]\n";
+
+
                 if ( ch == HT )
                     state = SERVER_BLOCK_HT;
                 else
@@ -206,6 +224,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( HCHAR( ch ) )
                 {
 
+                    std::memset ( buf , 0 , 512 );
+                    i = 0;
+                    buf [ i++ ] = ch;
                     state = SERVER_BLOCK_SENTRY_HOST;
                     break;
 
@@ -777,7 +798,15 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case SERVER_BLOCK_TERMINAL_LF:
                 if ( HCHAR( ch ) )
+                {
+
+                    std::memset ( buf , 0 , 512 );
+                    i = 0;
+                    buf [ i++ ] = ch;
                     state = SERVER_BLOCK_SENTRY_HOST;
+
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
