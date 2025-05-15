@@ -10,7 +10,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
     (void)c;
     int digit_count;
     char ch, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
-                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=",server_name[] = "SERVER_NAME=";
+                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=";
 
     enum
     {
@@ -60,11 +60,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        ERROR_PAGES_LF,
        ERROR_PAGES_HT,
        ERROR_PAGES_COMMENT,
-       SERVER_NAME,
-       SERVER_NAME_HOSTNAME,
-       SERVER_NAME_LF,
-       SERVER_NAME_HT,
-       SERVER_NAME_COMMENT,
        MCMS, /* MAX_CLIENT_MESSAGE_SIZE */
        MCMS_DIGIT,
        MCMS_B,
@@ -174,9 +169,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
-                    case 'S':
-                        state = SERVER_NAME;
-                        break;
                     case 'R':
                         state = ROUTES;
                         break;
@@ -438,9 +430,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
-                    case 'S':
-                        state = SERVER_NAME;
-                        break;
                     case 'E':
                         state = ERROR_PAGES;
                         break;
@@ -637,9 +626,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
-                    case 'S':
-                        state = SERVER_NAME;
-                        break;
                     case 'R':
                         state = ROUTES;
                         break;
@@ -660,89 +646,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
                     case LF:
                         state = ERROR_PAGES_LF;
-                        break;
-                    case HT:
-                    case SP:
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case SERVER_NAME:
-                for ( int i = 1 ; i < 12 ; i++, ch = s.get() )
-                    if ( ch != server_name [ i ] )
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                if ( HCHAR( ch ) )
-                    state = SERVER_NAME_HOSTNAME;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case SERVER_NAME_HOSTNAME:
-                if ( HCHAR( ch ) )
-                    break;
-
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = SERVER_NAME_LF;
-                        break;
-                    case '#':
-                        state = SERVER_NAME_COMMENT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case SERVER_NAME_LF:
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = SERVER_BLOCK_TERMINAL_LF;
-                        break;
-                    case HT:
-                        state = SERVER_NAME_HT;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case SERVER_NAME_HT:
-                switch ( ch )
-                {
-
-                    case 'R':
-                        state = ROUTES;
-                        break;
-                    case 'E':
-                        state = ERROR_PAGES;
-                        break;
-                    case 'M':
-                        state = MCMS;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case SERVER_NAME_COMMENT:
-                if ( VCHAR( ch ) )
-                    break;
-                switch ( ch )
-                {
-
-                    case LF:
-                        state = SERVER_NAME_LF;
                         break;
                     case HT:
                     case SP:
@@ -846,9 +749,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                         break;
                     case 'E':
                         state = ERROR_PAGES;
-                        break;
-                    case 'S':
-                        state = SERVER_NAME;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
