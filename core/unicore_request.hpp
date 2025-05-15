@@ -25,18 +25,22 @@
 
 typedef struct
 {
-    const u_char *key;
-    const u_char *value;
+
+    const u_char     *key;
+    void             *value;
+
 } bucket;
 
 typedef struct 
 {
+
     bucket *buckets;
+    
 } ht;
 
 uint64_t FNV_1A_HASH ( const u_char *k );
 uint64_t hash ( const u_char *k );
-void insert ( ht *HT , const u_char *key , const u_char *value );
+void insert ( ht *HT , const u_char *key , void *value );
 bucket *get ( ht *HT , const u_char *key );
 
 typedef struct

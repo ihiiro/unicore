@@ -24,7 +24,7 @@ uint64_t hash ( const u_char *k )
 
 }
 
-void insert ( ht *HT , const u_char *key , const u_char *value )
+void insert ( ht *HT , const u_char *key , void *value )
 {
 
     uint64_t index = hash ( key );
