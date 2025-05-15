@@ -33,9 +33,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        ROUTES_URL_FORWARD_SLASH,
        ROUTES_URL_SEGMENT,
        ROUTES_SEPARATOR_AFTER_URL,
-       ROUTES_REDIRECTION_FORWARD_SLASH,
-       ROUTES_REDIRECTION_SEGMENT,
-       ROUTES_SEPARATOR_AFTER_REDIRECTION,
        ROUTES_UPLOAD_PATH,
        ROUTES_SEPARATOR_AFTER_UPLOAD_PATH,
        ROUTES_DIRECTORY_LISTING,
@@ -48,6 +45,13 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        ROUTES_CGI_PHP,
        ROUTES_LF,
        ROUTES_HT,
+       ROUTES_REDIRECTION_OLD_FORWARD_SLASH,
+       ROUTES_REDIRECTION_OLD_SEGMENT,
+       ROUTES_REDIRECTION_SEPARATOR_AFTER_OLD,
+       ROUTES_REDIRECTION_NEW_FORWARD_SLASH,
+       ROUTES_REDIRECTION_NEW_SEGMENT,
+       ROUTES_REDIRECTION_LF,
+       ROUTES_REDIRECTION_HT,
        ROUTES_COMMENT,
        ERROR_PAGES,
        ERROR_PAGES_CODE,
@@ -322,52 +326,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ROUTES_SEPARATOR_AFTER_URL:
-                if ( ch == '/' )
-                    state = ROUTES_REDIRECTION_FORWARD_SLASH;
-                else
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                break;
-
-            case ROUTES_REDIRECTION_FORWARD_SLASH:
-                if ( PCHAR( ch ) )
-                {
-
-                    state = ROUTES_REDIRECTION_SEGMENT;
-                    break;
-
-                }
-                switch ( ch )
-                {
-
-                    case '|':
-                        state = ROUTES_SEPARATOR_AFTER_REDIRECTION;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case ROUTES_REDIRECTION_SEGMENT:
-                if ( PCHAR( ch ) )
-                    break;
-                switch ( ch )
-                {
-
-                    case '/':
-                        state = ROUTES_REDIRECTION_FORWARD_SLASH;
-                        break;
-                    case '|':
-                        state = ROUTES_SEPARATOR_AFTER_REDIRECTION;
-                        break;
-                    default:
-                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
-
-                }
-                break;
-
-            case ROUTES_SEPARATOR_AFTER_REDIRECTION:
-                if ( VCHAR( ch ) )
+                if ( ch == '|' )
+                    state = ROUTES_SEPARATOR_AFTER_UPLOAD_PATH;
+                else if ( VCHAR( ch ) )
                     state = ROUTES_UPLOAD_PATH;
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
@@ -486,10 +447,97 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     case 'M':
                         state = MCMS;
                         break;
+                    case '/':
+                        state = ROUTES_REDIRECTION_OLD_FORWARD_SLASH;
+                        break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
                 }
+                break;
+
+            case ROUTES_REDIRECTION_OLD_FORWARD_SLASH:
+                if ( PCHAR( ch ) )
+                    state = ROUTES_REDIRECTION_OLD_SEGMENT;
+                else if ( ch == '|' )
+                    state = ROUTES_REDIRECTION_SEPARATOR_AFTER_OLD;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_REDIRECTION_OLD_SEGMENT:
+                if ( PCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case '/':
+                        state = ROUTES_REDIRECTION_OLD_FORWARD_SLASH;
+                        break;
+                    case '|':
+                        state = ROUTES_REDIRECTION_SEPARATOR_AFTER_OLD;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_REDIRECTION_SEPARATOR_AFTER_OLD:
+                if ( ch == '/' )
+                    state = ROUTES_REDIRECTION_NEW_FORWARD_SLASH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_REDIRECTION_NEW_FORWARD_SLASH:
+                if ( PCHAR( ch ) )
+                    state = ROUTES_REDIRECTION_NEW_SEGMENT;
+                else if ( ch == LF )
+                    state = ROUTES_REDIRECTION_LF;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case ROUTES_REDIRECTION_NEW_SEGMENT:
+                if ( PCHAR( ch ) )
+                    break;
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = ROUTES_REDIRECTION_LF;
+                        break;
+                    case '/':
+                        state = ROUTES_REDIRECTION_NEW_FORWARD_SLASH;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_REDIRECTION_LF:
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_BLOCK_TERMINAL_LF;
+                        break;
+                    case HT:
+                        state = ROUTES_REDIRECTION_HT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case ROUTES_REDIRECTION_HT:
+                if ( ch == '/' )
+                    state = ROUTES_REDIRECTION_OLD_FORWARD_SLASH;
+                else
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_COMMENT:
