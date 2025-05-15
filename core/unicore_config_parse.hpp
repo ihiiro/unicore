@@ -35,7 +35,7 @@ typedef struct
     ht                  *redirection_list;   /* hashed by old url (bucket) */  
 
     size_t              max_client_message_size;
-
+    size_t              port;
 
 
 } unicore_config_t;
