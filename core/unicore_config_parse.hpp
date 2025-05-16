@@ -23,6 +23,8 @@ typedef struct
     bool            CGI_PYTHON;
     bool            CGI_PHP;
 
+    bool            directory_listing;
+
 
 } unicore_route_t;
 

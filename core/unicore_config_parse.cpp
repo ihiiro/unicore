@@ -256,7 +256,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     if ( ch != routes [ i ] )
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
-                c [ j ].routes = new ht [ M ];
+                c [ j ].routes = new ht;
+                c [ j ].routes->buckets = new bucket [ M ];
                 route = new unicore_route_t;
 
                 if ( ch == '0' or ch == '1' )
@@ -447,10 +448,13 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ROUTES_SEPARATOR_AFTER_UPLOAD_PATH:
-                
-                std::cout << "UPLOAD PATH [" << secondary_buf << "]\n";
                 if ( ch == '0' or ch == '1' )
+                {
+
+                    route->directory_listing = ch - '0';
                     state = ROUTES_DIRECTORY_LISTING;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
@@ -464,7 +468,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_SEPARATOR_AFTER_DIRECTORY_LISTING:
                 if ( VCHAR( ch ) )
+                {
+
+                    std::memset ( secondary_buf , 0 , 512 );
+                    i = 0;
+                    secondary_buf [ i++ ] = ch;
                     state = ROUTES_FILE_IF_DIRECTORY_REQUEST;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
@@ -473,40 +484,74 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch == '|' )
                     state = ROUTES_SEPARATOR_AFTER_FIDR;
                 else if ( VCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    secondary_buf [ i++ ] = ch;
                     break;
+                    
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_SEPARATOR_AFTER_FIDR:
+                for ( len = 0 ; secondary_buf [ len ] ; len++ );
+                    route->file_if_directory_request = new char [ len + 1 ];
+                for ( int k = 0 ; k < len ; k++ )
+                    route->file_if_directory_request [ k ] = secondary_buf [ k ];
+                route->file_if_directory_request [ i ] = '\0';
                 if ( ch == '0' or ch == '1' )
+                {
+
+                    route->CGI_GET = ch - '0';
                     state = ROUTES_CGI_GET;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_CGI_GET:
                 if ( ch == '0' or ch == '1' )
+                {
+
+                    route->CGI_POST = ch - '0';
                     state = ROUTES_CGI_POST;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_CGI_POST:
                 if ( ch == '0' or ch == '1' )
+                {
+
+                    route->CGI_PYTHON = ch - '0';
                     state = ROUTES_CGI_PYTHON;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_CGI_PYTHON:
                 if ( ch == '0' or ch == '1' )
+                {
+
+                    route->CGI_PHP = ch - '0';
                     state = ROUTES_CGI_PHP;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_CGI_PHP:
+                // std::cout << "ROUTE [" << primary_buf << "]\n";
+                insert ( c [ j ].routes , (u_char *)primary_buf , route );
                 switch ( ch )
                 {
 
