@@ -234,7 +234,15 @@ int main ()
 //     };
 
 
-    unicore_config_t conf [ 5 ];
+    unicore_config_t conf [ 5 ] ;
+    // for ( int i = 0 ; i < 5 ; i++ )
+    // {
+
+    //     conf->routes = new ht [ M ];
+    //     conf->error_pages = new ht [ M ];
+    //     conf->redirection_list = new ht [ M ];
+
+    // }
 
 //     for ( int i = 0 ; i < 9 ; i++ )
 //     {

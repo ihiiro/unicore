@@ -7,10 +7,12 @@
 int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 {
 
-    int digit_count = 0, i = 0, j = 0;
+    int digit_count = 0, i = 0, j = 0, len = 0;
     char ch = 0, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
-                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", buf [ 512 ];
-    std::memset ( buf , 0 , 512 );
+                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", primary_buf [ 512 ] , secondary_buf [ 512 ];
+    unicore_route_t *route = NULL;
+    std::memset ( primary_buf , 0 , 512 );
+    std::memset ( secondary_buf , 0 , 512 );
 
     enum
     {
@@ -84,9 +86,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( HCHAR( ch ) )
                 {
 
-                    std::memset ( buf , 0 , 512 );
+                    std::memset ( primary_buf , 0 , 512 );
                     i = 0;
-                    buf [ i++ ] = ch;
+                    primary_buf [ i++ ] = ch;
                     state = SERVER_BLOCK_SENTRY_HOST;
                     break;
 
@@ -112,7 +114,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
                     if ( i > 510 )
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                    buf [ i++ ] = ch;
+                    primary_buf [ i++ ] = ch;
                     break;
 
                 }
@@ -178,7 +180,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
             case SERVER_BLOCK_LF:
                 c [ j ].host = new char [ i + 1 ];
                 for ( int k = 0 ; k < i ; k++ )
-                    c [ j ].host [ k ] = buf [ k ];
+                    c [ j ].host [ k ] = primary_buf [ k ];
                 c [ j ].host [ i ] = '\0';
 
                 if ( ch == HT )
@@ -228,9 +230,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( HCHAR( ch ) )
                 {
 
-                    std::memset ( buf , 0 , 512 );
+                    std::memset ( primary_buf , 0 , 512 );
                     i = 0;
-                    buf [ i++ ] = ch;
+                    primary_buf [ i++ ] = ch;
                     state = SERVER_BLOCK_SENTRY_HOST;
                     break;
 
@@ -254,22 +256,40 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     if ( ch != routes [ i ] )
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
+                c [ j ].routes = new ht [ M ];
+                route = new unicore_route_t;
+
                 if ( ch == '0' or ch == '1' )
+                {
+
+                    route->ROUTE_GET = ch - '0';
                     state = ROUTES_GET;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
-            
+
             case ROUTES_GET:
                 if ( ch == '0' or ch == '1' )
+                {
+
+                    route->ROUTE_POST = ch - '0';
                     state = ROUTES_POST;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_POST:
                 if ( ch == '0' or ch == '1' )
+                {
+
+                    route->ROUTE_DELETE = ch - '0';
                     state = ROUTES_DELETE;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
@@ -283,7 +303,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_SEPARATOR_AFTER_METHODS:
                 if ( VCHAR( ch ) )
+                {
+
+                    std::memset ( primary_buf , 0 , 512 );
+                    i = 0;
+                    primary_buf [ i++ ] = ch;
                     state = ROUTES_ROOT;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
@@ -292,14 +319,33 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch == '|' )
                     state = ROUTES_SEPARATOR_AFTER_ROOT;
                 else if ( VCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    primary_buf [ i++ ] = ch;
                     break;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_SEPARATOR_AFTER_ROOT:
+                for ( len = 0 ; primary_buf [ len ] ; len++ );
+                route->root = new char [ len + 1 ];
+                for ( int k = 0 ; k < len ; k++ )
+                    route->root [ k ] = primary_buf [ k ];
+                route->root [ i ] = '\0';
                 if ( ch == '/' )
+                {
+
+                    std::memset ( primary_buf , 0 , 512 );
+                    i = 0;
+                    primary_buf [ i++ ] = ch;
                     state = ROUTES_URL_FORWARD_SLASH;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
@@ -308,6 +354,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( PCHAR( ch ) )
                 {
 
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    primary_buf [ i++ ] = ch;
                     state = ROUTES_URL_SEGMENT;
                     break;
 
@@ -326,7 +375,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_URL_SEGMENT:
                 if ( PCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    primary_buf [ i++ ] = ch;
                     break;
+
+                }
                 switch ( ch )
                 {
 
@@ -344,23 +400,55 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_SEPARATOR_AFTER_URL:
                 if ( ch == '|' )
+                {
+
+                    route->ROUTE_UPLOADS = 0;
+                    route->upload_path = NULL;
                     state = ROUTES_SEPARATOR_AFTER_UPLOAD_PATH;
+
+                }
                 else if ( VCHAR( ch ) )
+                {
+
+                    route->ROUTE_UPLOADS = 1;
+                    std::memset ( secondary_buf , 0 , 512 );
+                    i = 0;
+                    secondary_buf [ i++ ] = ch;
                     state = ROUTES_UPLOAD_PATH;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_UPLOAD_PATH:
                 if ( ch == '|' )
+                {
+
+                    for ( len = 0 ; secondary_buf [ len ] ; len++ );
+                    route->upload_path = new char [ len + 1 ];
+                    for ( int k = 0 ; k < len ; k++ )
+                        route->upload_path [ k ] = secondary_buf [ k ];
+                    route->upload_path [ i ] = '\0';
                     state = ROUTES_SEPARATOR_AFTER_UPLOAD_PATH;
+
+                }
                 else if ( VCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    secondary_buf [ i++ ] = ch;
                     break;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_SEPARATOR_AFTER_UPLOAD_PATH:
+                
+                std::cout << "UPLOAD PATH [" << secondary_buf << "]\n";
                 if ( ch == '0' or ch == '1' )
                     state = ROUTES_DIRECTORY_LISTING;
                 else
@@ -760,7 +848,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case MCMS_LF:
-                std::cout << "MCMS [" << c [ j ].max_client_message_size << "]\n";
                 switch ( ch )
                 {
 
@@ -815,9 +902,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( HCHAR( ch ) )
                 {
 
-                    std::memset ( buf , 0 , 512 );
+                    std::memset ( primary_buf , 0 , 512 );
                     i = 0;
-                    buf [ i++ ] = ch;
+                    primary_buf [ i++ ] = ch;
                     j++;
                     state = SERVER_BLOCK_SENTRY_HOST;
 
