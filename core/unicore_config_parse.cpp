@@ -124,6 +124,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 {
 
                     case LF:
+                        c [ j ].port = 8080;
                         state = SERVER_BLOCK_LF;
                         break;
                     case ':':
@@ -718,7 +719,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ROUTES_REDIRECTION_LF:
-                // std::cout << "NEW URL [" << secondary_buf << "]\n";
                 for ( len = 0 ; primary_buf [ len ] ; len++ );
                 key = new char [ len + 1 ];
                 for ( int k = 0 ; k < len ; k++ )
