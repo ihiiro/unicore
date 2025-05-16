@@ -9,7 +9,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
     int digit_count = 0, i = 0, j = 0, len = 0;
     char ch = 0, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
-                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", primary_buf [ 512 ] , secondary_buf [ 512 ];
+                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", primary_buf [ 512 ] , secondary_buf [ 512 ],
+                *key, *value;
     unicore_route_t *route = NULL;
     std::memset ( primary_buf , 0 , 512 );
     std::memset ( secondary_buf , 0 , 512 );
@@ -258,6 +259,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
                 c [ j ].routes = new ht;
                 c [ j ].routes->buckets = new bucket [ M ];
+                std::memset ( c [ j ].routes->buckets , 0 , M );
                 route = new unicore_route_t;
 
                 if ( ch == '0' or ch == '1' )
@@ -550,8 +552,11 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ROUTES_CGI_PHP:
-                // std::cout << "ROUTE [" << primary_buf << "]\n";
-                insert ( c [ j ].routes , (u_char *)primary_buf , route );
+                key = new char [ i + 1 ];
+                for ( int k = 0 ; k < i ; k++ )
+                    key [ k ] = primary_buf [ k ];
+                key [ i ] = '\0';
+                insert ( c [ j ].routes , (u_char *)key , route );
                 switch ( ch )
                 {
 
@@ -580,6 +585,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch == '0' or ch == '1' )
                 {
 
+                    route->ROUTE_GET = ch - '0';
                     state = ROUTES_GET;
                     break;
 
@@ -595,6 +601,12 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                         state = MCMS;
                         break;
                     case '/':
+                        c [ j ].redirection_list = new ht;
+                        c [ j ].redirection_list->buckets = new bucket [ M ];
+                        std::memset ( c [ j ].redirection_list->buckets , 0 , M );
+                        std::memset ( primary_buf , 0 , 512 );
+                        i = 0;
+                        primary_buf [ i++ ] = ch;
                         state = ROUTES_REDIRECTION_OLD_FORWARD_SLASH;
                         break;
                     default:
@@ -605,7 +617,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_REDIRECTION_OLD_FORWARD_SLASH:
                 if ( PCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    primary_buf [ i++ ] = ch;
                     state = ROUTES_REDIRECTION_OLD_SEGMENT;
+
+                }
                 else if ( ch == '|' )
                     state = ROUTES_REDIRECTION_SEPARATOR_AFTER_OLD;
                 else
@@ -614,11 +633,21 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_REDIRECTION_OLD_SEGMENT:
                 if ( PCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    primary_buf [ i++ ] = ch;
                     break;
+
+                }
                 switch ( ch )
                 {
 
                     case '/':
+                        if ( i > 510 )
+                            return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                        primary_buf [ i++ ] = ch;
                         state = ROUTES_REDIRECTION_OLD_FORWARD_SLASH;
                         break;
                     case '|':
@@ -632,14 +661,28 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_REDIRECTION_SEPARATOR_AFTER_OLD:
                 if ( ch == '/' )
+                {
+
+                    std::memset ( secondary_buf , 0 , 512 );
+                    i = 0;
+                    secondary_buf [ i++ ] = ch;
                     state = ROUTES_REDIRECTION_NEW_FORWARD_SLASH;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ROUTES_REDIRECTION_NEW_FORWARD_SLASH:
                 if ( PCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    secondary_buf [ i++ ] = ch;
                     state = ROUTES_REDIRECTION_NEW_SEGMENT;
+
+                }
                 else if ( ch == LF )
                     state = ROUTES_REDIRECTION_LF;
                 else
@@ -648,7 +691,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_REDIRECTION_NEW_SEGMENT:
                 if ( PCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    secondary_buf [ i++ ] = ch;
                     break;
+
+                }
                 switch ( ch )
                 {
 
@@ -656,6 +706,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                         state = ROUTES_REDIRECTION_LF;
                         break;
                     case '/':
+                        if ( i > 510 )
+                            return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                        secondary_buf [ i++ ] = ch;
                         state = ROUTES_REDIRECTION_NEW_FORWARD_SLASH;
                         break;
                     default:
@@ -665,6 +718,17 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ROUTES_REDIRECTION_LF:
+                // std::cout << "NEW URL [" << secondary_buf << "]\n";
+                for ( len = 0 ; primary_buf [ len ] ; len++ );
+                key = new char [ len + 1 ];
+                for ( int k = 0 ; k < len ; k++ )
+                    key [ k ] = primary_buf [ k ];
+                key [ len ] = '\0';
+                value = new char [ i + 1 ];
+                for ( int k = 0 ; k < i ; k++ )
+                    value [ k ] = secondary_buf [ k ];
+                value [ i ] = '\0';
+                insert ( c [ j ].redirection_list , (u_char *)key , value );
                 switch ( ch )
                 {
 
@@ -682,7 +746,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ROUTES_REDIRECTION_HT:
                 if ( ch == '/' )
+                {
+
+                    std::memset ( primary_buf , 0 , 512 );
+                    i = 0;
+                    primary_buf [ i++ ] = ch;
                     state = ROUTES_REDIRECTION_OLD_FORWARD_SLASH;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
@@ -710,9 +781,16 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     if ( ch != error_pages [ i ] )
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
+                c [ j ].error_pages = new ht;
+                c [ j ].error_pages->buckets = new bucket [ M ];
+                std::memset ( c [ j ].error_pages->buckets , 0 , M );
+
                 if ( ch >= '0' and ch <= '9' )
                 {
 
+                    std::memset ( primary_buf , 0 , 512 );
+                    i = 0;
+                    primary_buf [ i++ ] = ch;
                     state = ERROR_PAGES_CODE;
                     digit_count = 1;
 
@@ -726,7 +804,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 {
 
                     if ( digit_count < 3 )
+                    {
+
+                        if ( i > 510 )
+                            return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                        primary_buf [ i++ ] = ch;
                         digit_count++;
+
+                    }
                     else
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
                     break;
@@ -740,7 +825,14 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
             case ERROR_PAGES_SEPARATOR_AFTER_CODE:
                 if ( VCHAR( ch ) )
+                {
+
+                    std::memset ( secondary_buf , 0 , 512 );
+                    i = 0;
+                    secondary_buf [ i++ ] = ch;
                     state = ERROR_PAGES_SYSTEM_PATH;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
@@ -751,12 +843,28 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 else if ( ch == LF )
                     state = ERROR_PAGES_LF;
                 else if ( VCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    secondary_buf [ i++ ] = ch;
                     break;
+
+                }
                 else
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 break;
 
             case ERROR_PAGES_LF:
+                key = new char [ i + 1 ];
+                for ( int k = 0 ; k < i ; k++ )
+                    key [ k ] = primary_buf [ k ];
+                key [ i ] = '\0';
+                value = new char [ i + 1 ];
+                for ( int k = 0 ; k < i ; k++ )
+                    value [ k ] = secondary_buf [ k ];
+                value [ i ] = '\0';
+                insert ( c [ j ].error_pages , (u_char *)key , value );
                 switch ( ch )
                 {
 
@@ -776,6 +884,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch >= '0' and ch <= '9' )
                 {
 
+                    std::memset ( primary_buf , 0 , 512 );
+                    i = 0;
+                    primary_buf [ i++ ] = ch;
                     state = ERROR_PAGES_CODE;
                     digit_count = 1;
                     break;
