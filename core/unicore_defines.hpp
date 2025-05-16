@@ -73,6 +73,18 @@
                     ( c >= 0x26 and c <= 0x2C ) or c == 0x3B or c == 0x3D
 #endif
 
+#ifndef KiB
+   #define KiB 1024
+#endif
+
+#ifndef MiB
+   #define MiB 1048576
+#endif
+
+#ifndef GiB
+   #define GiB 1073741824
+#endif
+
 #ifndef UNICORE_INVALID_REQUEST_LINE_ERROR
    #define UNICORE_INVALID_REQUEST_LINE_ERROR -1
 #endif

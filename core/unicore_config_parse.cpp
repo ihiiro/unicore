@@ -7,7 +7,7 @@
 int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 {
 
-    int digit_count = 0, i = 0;
+    int digit_count = 0, i = 0, j = 0;
     char ch = 0, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
                 mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", buf [ 512 ];
     std::memset ( buf , 0 , 512 );
@@ -136,6 +136,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch >= '0' and ch <= '9' )
                 {
 
+                    c [ j ].port = ch - '0';
                     state = SERVER_BLOCK_SENTRY_PORT;
                     digit_count = 1;
 
@@ -149,7 +150,12 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 {
 
                     if ( digit_count < 5 )
+                    {
+
+                        c [ j ].port = c [ j ].port * 10 + ( ch - '0' );
                         digit_count++;
+
+                    }
                     else
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
                     break;
@@ -158,9 +164,10 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 else if ( ch == LF )
                 {
 
-                    // check if port is in unsigned 16bit range and > 1024,
-                    //         // not 49151 and not 49152 and not 65535
-                    //         // otherwise return error
+                    if ( c [ j ].port >= 65535 or c [ j ].port <= 1024
+                        or c [ j ].port == 49151 or c [ j ].port == 49152 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    // error if port already bound to another server
                     state = SERVER_BLOCK_LF;
 
                 }
@@ -169,13 +176,10 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case SERVER_BLOCK_LF:
-                c->host = new char [ i + 1 ];
-                for ( int j = 0 ; j < i ; j++ )
-                    c->host [ j ] = buf [ j ];
-                c->host [ i ] = '\0';
-
-                std::cout << "HOST [" << c->host << "]\n";
-
+                c [ j ].host = new char [ i + 1 ];
+                for ( int k = 0 ; k < i ; k++ )
+                    c [ j ].host [ k ] = buf [ k ];
+                c [ j ].host [ i ] = '\0';
 
                 if ( ch == HT )
                     state = SERVER_BLOCK_HT;
@@ -685,6 +689,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch >= '0' and ch <= '9' )
                 {
 
+                    c [ j ].max_client_message_size = ch - '0';
                     state = MCMS_DIGIT;
                     digit_count = 1;
 
@@ -697,8 +702,13 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch >= '0' and ch <= '9' )
                 {
 
-                    if ( digit_count < 10 )
+                    if ( digit_count < 3 )
+                    {
+
+                        c [ j ].max_client_message_size = c [ j ].max_client_message_size * 10 + ( ch - '0' );
                         digit_count++;
+
+                    }
                     else
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
                     break;
@@ -708,16 +718,20 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
+                    /* normalize to bytes */
                     case 'B':
                         state = MCMS_B;
                         break;
                     case 'K':
+                        c [ j ].max_client_message_size *= KiB;
                         state = MCMS_K;
                         break;
                     case 'M':
+                        c [ j ].max_client_message_size *= MiB;
                         state = MCMS_M;
                         break;
                     case 'G':
+                        c [ j ].max_client_message_size *= GiB;
                         state = MCMS_G;
                         break;
                     default:
@@ -746,6 +760,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case MCMS_LF:
+                std::cout << "MCMS [" << c [ j ].max_client_message_size << "]\n";
                 switch ( ch )
                 {
 
@@ -803,6 +818,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                     std::memset ( buf , 0 , 512 );
                     i = 0;
                     buf [ i++ ] = ch;
+                    j++;
                     state = SERVER_BLOCK_SENTRY_HOST;
 
 

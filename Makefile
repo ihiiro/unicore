@@ -19,13 +19,13 @@ NAME = webserv
 OFILES = $(CFILES:.cpp=.o)
 
 tests/%.o: tests/%.cpp
-	c++ $(CFLAGS) -c $< -o $@
+	c++ -g $(CFLAGS) -c $< -o $@
 
 core/%.o: core/%.cpp
-	c++ $(CFLAGS) -c $< -o $@
+	c++ -g $(CFLAGS) -c $< -o $@
 
 %.o: %.cpp
-	c++ $(CFLAGS) -c $<
+	c++ -g $(CFLAGS) -c $<
 
 $(PARSER_TESTS): $(OFILES) $(HEADERS) Makefile
 	c++ $(OFILES) -o $@

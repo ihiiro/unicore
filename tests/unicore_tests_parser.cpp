@@ -234,7 +234,7 @@ int main ()
 //     };
 
 
-    unicore_config_t conf;
+    unicore_config_t conf [ 5 ];
 
 //     for ( int i = 0 ; i < 9 ; i++ )
 //     {
@@ -250,7 +250,7 @@ int main ()
     
     std::ifstream stream ( "tests/pass.conf" );
 
-    std::cout << unicore_config_parse ( stream , &conf );
+    std::cout << unicore_config_parse ( stream , conf );
 
 //     return 0;
 
