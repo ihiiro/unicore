@@ -261,6 +261,10 @@ will succeed because one CRLF terminates the field
 		std::cout << "\e[0;32mpass, ";
 	else
 		std::cout << "\e[0;31mfail, ";
+    if ( config.max_client_message_size == 10737418240 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
 	if ( !strcmp ( "server_name" , config.server_name ) )
 		std::cout << "\e[0;32mpass, ";
 	else
@@ -376,6 +380,18 @@ will succeed because one CRLF terminates the field
 	else
 		std::cout << "\e[0;31mfail, ";
     if ( route->directory_listing == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( get ( config.redirection_list , (u_char *)"shitdoesntexist" ) == NULL )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( !strcmp ( "/newurl/newshit" , (char *)get ( config.redirection_list , (u_char *)"/oldurl/smshit" )->value ) )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( !strcmp ( "/oui" , (char *)get ( config.redirection_list , (u_char *)"/another" )->value ) )
     	std::cout << "\e[0;32mpass, ";
 	else
 		std::cout << "\e[0;31mfail, ";
