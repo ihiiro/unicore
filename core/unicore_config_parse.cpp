@@ -282,7 +282,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
             
             case SERVER_NAME_LF:
-                // std::cout << "SERVER_NAME [" << primary_buf << "]\n";
                 c [ j ].server_name = new char [ i + 1 ];
                 for ( int k = 0 ; k < i ; k++ )
                     c [ j ].server_name [ k ] = primary_buf [ k ];
@@ -372,12 +371,11 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 c [ j ].routes = new ht;
                 c [ j ].routes->buckets = new bucket [ M ];
                 std::memset ( c [ j ].routes->buckets , 0 , M );
-                route = new unicore_route_t;
 
                 if ( ch == '0' or ch == '1' )
                 {
 
-                    route->ROUTE_GET = ch - '0';
+                    *primary_buf = ch - '0';
                     state = ROUTES_GET;
 
                 }
@@ -386,6 +384,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ROUTES_GET:
+                route = new unicore_route_t;
+                route->ROUTE_GET = *primary_buf;
                 if ( ch == '0' or ch == '1' )
                 {
 
@@ -664,10 +664,11 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case ROUTES_CGI_PHP:
-                key = new char [ i + 1 ];
-                for ( int k = 0 ; k < i ; k++ )
+                for ( len = 0 ; primary_buf [ len ] ; len++ );
+                key = new char [ len + 1 ];
+                for ( int k = 0 ; k < len ; k++ )
                     key [ k ] = primary_buf [ k ];
-                key [ i ] = '\0';
+                key [ len ] = '\0';
                 insert ( c [ j ].routes , (u_char *)key , route );
                 switch ( ch )
                 {
@@ -697,7 +698,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 if ( ch == '0' or ch == '1' )
                 {
 
-                    route->ROUTE_GET = ch - '0';
+                    *primary_buf = ch - '0';
                     state = ROUTES_GET;
                     break;
 

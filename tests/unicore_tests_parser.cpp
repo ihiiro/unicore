@@ -247,6 +247,138 @@ will succeed because one CRLF terminates the field
 
     }
 
+    std::cout << "\n\t\t\t\t\e[1;37mCONFIGURATION DATA\e[0m\n";
+    std::ifstream stream ( "tests/config_pass.conf" );
+
+    unicore_config_t config;
+
+	unicore_config_parse ( stream , &config );
+	if ( !strcmp ( "HOST" , config.host ) )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+	if ( config.port == 8080 )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+	if ( !strcmp ( "server_name" , config.server_name ) )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+	if ( get ( config.error_pages , (u_char *)"nonexistent" ) == NULL )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+	if ( !strcmp ( (char *)get ( config.error_pages , (u_char *)"404" )->value , "404.html" ) )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+	if ( !strcmp ( (char *)get ( config.error_pages , (u_char *)"434" )->value , "/hellbound_errors/434.html" ) )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+	if ( get ( config.routes , (u_char *)"nonexistent" ) == NULL )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+	unicore_route_t *route = (unicore_route_t *)get ( config.routes , (u_char *)"/route" )->value;
+	if ( !strcmp ( route->root , "/root_dir" ) )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( !strcmp ( route->file_if_directory_request , "file" ) )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->upload_path == NULL )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->ROUTE_GET == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->ROUTE_POST == 0 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->ROUTE_DELETE == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->ROUTE_UPLOADS == 0 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->CGI_GET == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->CGI_POST == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->CGI_PYTHON == 0 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->CGI_PHP == 0 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->directory_listing == 0 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    route = (unicore_route_t *)get ( config.routes , (u_char *)"/" )->value;
+	if ( !strcmp ( route->root , "/" ) )
+		std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( !strcmp ( route->file_if_directory_request , "FILE" ) )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( !strcmp ( "uploads/videos" , route->upload_path ) )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->ROUTE_GET == 0 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->ROUTE_POST == 0 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->ROUTE_DELETE == 0 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->ROUTE_UPLOADS == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->CGI_GET == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->CGI_POST == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->CGI_PYTHON == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->CGI_PHP == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
+    if ( route->directory_listing == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
     
     // std::ifstream stream ( "tests/pass.conf" );
 
