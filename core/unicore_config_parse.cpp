@@ -9,7 +9,8 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
 
     int digit_count = 0, i = 0, j = 0, len = 0;
     char ch = 0, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
-                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", primary_buf [ 512 ] , secondary_buf [ 512 ],
+                mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", server_name[] = "SERVER_NAME=",
+                primary_buf [ 512 ] , secondary_buf [ 512 ],
                 *key, *value;
     unicore_route_t *route = NULL;
     std::memset ( primary_buf , 0 , 512 );
@@ -24,6 +25,11 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
        SERVER_BLOCK_SENTRY_PORT,
        SERVER_BLOCK_LF,
        SERVER_BLOCK_HT,
+       SERVER_NAME,
+       SERVER_NAME_NAME,
+       SERVER_NAME_COMMENT,
+       SERVER_NAME_LF,
+       SERVER_NAME_HT,
        GLOBAL_COMMENT,
        GLOBAL_LF,
        ROUTES,
@@ -184,7 +190,6 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 for ( int k = 0 ; k < i ; k++ )
                     c [ j ].host [ k ] = primary_buf [ k ];
                 c [ j ].host [ i ] = '\0';
-
                 if ( ch == HT )
                     state = SERVER_BLOCK_HT;
                 else
@@ -195,6 +200,9 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 switch ( ch )
                 {
 
+                    case 'S':
+                        state = SERVER_NAME;
+                        break;
                     case 'R':
                         state = ROUTES;
                         break;
@@ -203,6 +211,109 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                         break;
                     case 'M':
                         state = MCMS;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_NAME:
+                for ( int i = 1 ; i < 12 ; i++, ch = s.get() )
+                    if ( ch != server_name [ i ] )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                if ( HCHAR( ch ) )
+                {
+
+                    std::memset ( primary_buf , 0 , 512 );
+                    i = 0;
+                    primary_buf [ i++ ] = ch;
+                    state = SERVER_NAME_NAME;
+
+                }
+                else 
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                break;
+
+            case SERVER_NAME_NAME:
+                if ( HCHAR( ch ) )
+                {
+
+                    if ( i > 510 )
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                    primary_buf [ i++ ] = ch;
+                    break;
+
+                }
+
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_NAME_LF;
+                        break;
+                    case '#':
+                        state = SERVER_NAME_COMMENT;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_NAME_COMMENT:
+                if ( VCHAR( ch ) )
+                    break;
+
+                switch ( ch )
+                {
+
+                    case LF:
+                        state = SERVER_NAME_LF;
+                        break;
+                    case SP:
+                    case HT:
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+            
+            case SERVER_NAME_LF:
+                // std::cout << "SERVER_NAME [" << primary_buf << "]\n";
+                c [ j ].server_name = new char [ i + 1 ];
+                for ( int k = 0 ; k < i ; k++ )
+                    c [ j ].server_name [ k ] = primary_buf [ k ];
+                c [ j ].server_name [ i ] = '\0';
+                switch ( ch )
+                {
+
+                    case HT:
+                        state = SERVER_NAME_HT;
+                        break;
+                    case LF:
+                        state = SERVER_BLOCK_TERMINAL_LF;
+                        break;
+                    default:
+                        return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
+                }
+                break;
+
+            case SERVER_NAME_HT:
+                switch ( ch )
+                {
+
+                    case 'E':
+                        state = ERROR_PAGES;
+                        break;
+                    case 'M':
+                        state = MCMS;
+                        break;
+                    case 'R':
+                        state = ROUTES;
                         break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;

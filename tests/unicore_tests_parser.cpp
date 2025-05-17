@@ -233,8 +233,8 @@ will succeed because one CRLF terminates the field
         (char *)"tests/pass8.conf"
     };
 
-
     unicore_config_t conf [ 5 ] ;
+    std::memset ( conf , 0 , sizeof ( unicore_config_t ) * 5 ); // always
 
     for ( int i = 0 ; i < 9 ; i++ )
     {

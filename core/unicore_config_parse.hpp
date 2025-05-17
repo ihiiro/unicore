@@ -34,6 +34,7 @@ typedef struct
     /* socket */
 
     char                *host;
+    char                *server_name;
 
     ht                  *error_pages;        /* hashed by status code (bucket) */
     ht                  *routes;             /* hashed by route */
