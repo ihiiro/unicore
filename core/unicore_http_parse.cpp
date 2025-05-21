@@ -19,8 +19,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
    (void)b;
    (void)r;
    u_char ch, *p, primary_buf [ 512 ];
-   int primary_i = 0;
-   bool  route_portion = 0;
+   int primary_i = 0, path_info_start;
+   bool  portion = 0;
    std::memset ( primary_buf , 0 , 512 );
    std::memset ( r , 0 , sizeof ( unicore_request_t ) );
    r->SCRIPT_NAME = (u_char *)"";
@@ -382,7 +382,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                case SP:
                   break;
                case '/':
-                  route_portion = 1;
+                  portion = 1;
                   primary_buf [ primary_i++ ] = ch;
                   state = ORIGIN_FORM_FORWARD_SLASH;
                   break;
@@ -401,14 +401,18 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                break;
 
             }
-            if (  route_portion )
+            if (  portion == 1 )
             {
 
-               std::cout << primary_buf << "\n";
+               // std::cout << primary_buf << "\n";
                r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
                if ( r->route == NULL )
                   return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
-               route_portion = 0;
+               portion = 2;
+               std::memset ( primary_buf , 0 , 512 );
+               primary_i = 0;
+               primary_buf [ primary_i++ ] = ch;
+
             }
 
 
@@ -434,27 +438,49 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                if ( primary_i > 510 )
                   return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
                primary_buf [ primary_i++ ] = ch;
+               if ( portion == 2 and p [ 0 ] == '.' and ( ( p [ 1 ] and p [ 1 ] == 'p' and p [ 2 ] and p [ 2 ] == 'y' ) or
+                  p [ 0 ] == '.' and ( p [ 1 ] and p [ 1 ] == 'p' and p [ 2 ] and p [ 2 ] == 'h' and
+                           p [ 3 ] and p [ 3 ] == 'p' ) ) )
+               {
+
+                  r->SCRIPT_NAME = new u_char [ primary_i + 1 ];
+                  for ( int i = 0 ; i < primary_i ; i++ )
+                     r->SCRIPT_NAME [ i ] = primary_buf [ i ];
+                  r->SCRIPT_NAME [ primary_i ] = '\0';
+                  if ( p [ 2 ] == 'y' )
+                     r->cgi_script_type = PYTHON;
+                  else
+                     r->cgi_script_type = PHP;
+                  portion = 3;
+                  path_info_start = primary_i;
+
+
+               }
                break;
 
             }
 
-            if ( route_portion )
+            if ( portion == 1 )
             {
                
-               std::cout << primary_buf << "\n";
+               // std::cout << primary_buf << "\n";
                r->route = (unicore_route_t *)get ( c->routes , primary_buf );
                if ( r->route == NULL )
                {
-               
                   r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
                   if ( r->route == NULL )
                      return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
 
                }
-               route_portion = 0;
+               portion = 2;
+               std::memset ( primary_buf , 0 , 512 );
+               primary_i = 0;
+               primary_buf [ primary_i++ ] = ch;
+
 
 
             }
+
 
             switch ( ch )
             {
@@ -463,6 +489,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
                   break;
                case '/':
+                  primar_buf [  ]
                   state = ORIGIN_FORM_FORWARD_SLASH;
                   break;
                case '?':

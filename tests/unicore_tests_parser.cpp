@@ -399,8 +399,8 @@ int main ()
 
     std::cout << unicore_config_parse ( stream , conf ) << std::endl;
 
-    u_char *request = (u_char *)"GET / HTTP/1.1\r\n";
-    unicore_buf_t b = { request , request , request + 16 };
+    u_char *request = (u_char *)"GET /somethin HTTP/1.1\r\n";
+    unicore_buf_t b = { request , request , request + 25 };
 
     std::cout << unicore_http_parse_request_line ( &r , &b , conf );
 
