@@ -3,7 +3,7 @@
 #pragma once
 #include "unicore_buf.hpp"
 #include "unicore_request.hpp"
-#include "unicore_status.hpp"
+#include "unicore_config_parse.hpp"
 
-int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s );
-int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s );
+int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_config_t *c );
+int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b );

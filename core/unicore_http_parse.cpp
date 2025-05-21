@@ -2,21 +2,32 @@
 
 #include "unicore_buf.hpp"
 #include "unicore_request.hpp"
-#include "unicore_status.hpp"
 #include "unicore_defines.hpp"
+#include "unicore_config_parse.hpp"
 
 #include <sys/types.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <cstdlib>
 
-int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
+
+#include <iostream>
+
+int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_config_t *c )
 {
 
-   (void)s;
    (void)b;
    (void)r;
-   u_char ch, *p;
+   u_char ch, *p, primary_buf [ 512 ];
+   int primary_i = 0;
+   bool  route_portion = 0;
+   std::memset ( primary_buf , 0 , 512 );
+   std::memset ( r , 0 , sizeof ( unicore_request_t ) );
+   r->SCRIPT_NAME = (u_char *)"";
+   r->PATH_INFO = (u_char *)"";
+   r->PATH_TRANSLATED = (u_char *)"";
+   r->QUERY_STRING = (u_char *)"";
+   r->GATEWAY_INTERFACE = (u_char *)"CGI/1.1";
 
    enum
    {
@@ -60,7 +71,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
    } state;
 
    state = START;
-   for ( p = b->pos; p <= b->end ; p++ ) // pos needs to set always !!
+   for ( p = b->pos; p <= b->end ; p++ )
    {
       ch = *p;
 
@@ -189,9 +200,11 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             break;
 
          case LINE_FEED:
+            b->pos = p;
             return UNICORE_VALID_REQUEST_LINE_SUCCESS;
 
          case REQUEST_LINE_START_GET:
+            r->REQUEST_METHOD = GET;
             switch ( ch )
             {
 
@@ -205,6 +218,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             break;
 
          case REQUEST_LINE_START_POST:
+            r->REQUEST_METHOD = POST;
             switch ( ch )
             {
 
@@ -218,6 +232,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             break;
 
          case REQUEST_LINE_START_DELETE:
+            r->REQUEST_METHOD = DELETE;
             switch ( ch )
             {
 
@@ -367,6 +382,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                case SP:
                   break;
                case '/':
+                  route_portion = 1;
+                  primary_buf [ primary_i++ ] = ch;
                   state = ORIGIN_FORM_FORWARD_SLASH;
                   break;
                default:
@@ -378,9 +395,22 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
          case ORIGIN_FORM_FORWARD_SLASH:
             if ( PCHAR(ch) )
             {
+
+               primary_buf [ primary_i++ ] = ch;
                state = URI_SEGMENT;
                break;
+
             }
+            if (  route_portion )
+            {
+
+               std::cout << primary_buf << "\n";
+               r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+               if ( r->route == NULL )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+               route_portion = 0;
+            }
+
 
             switch ( ch )
             {
@@ -399,7 +429,32 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
 
          case URI_SEGMENT:
             if ( PCHAR( ch ) )
+            {
+
+               if ( primary_i > 510 )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+               primary_buf [ primary_i++ ] = ch;
                break;
+
+            }
+
+            if ( route_portion )
+            {
+               
+               std::cout << primary_buf << "\n";
+               r->route = (unicore_route_t *)get ( c->routes , primary_buf );
+               if ( r->route == NULL )
+               {
+               
+                  r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+                  if ( r->route == NULL )
+                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+
+               }
+               route_portion = 0;
+
+
+            }
 
             switch ( ch )
             {
@@ -641,10 +696,9 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
 
 }
 
-int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , unicore_status_t *s )
+int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
 {
 
-   (void)s;
    (void)b;
    (void)r;
    u_char ch, *p, *key, *value, *strt = NULL;
@@ -659,7 +713,6 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
         "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
         "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
    
-
    enum
    {
          START = 0,
@@ -1004,6 +1057,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b , u
             break;
 
          case LINE_FEED:
+            b->pos = p;
             return UNICORE_VALID_FIELD_LINES_SUCCESS;
 
       }
