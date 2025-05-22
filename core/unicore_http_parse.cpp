@@ -394,6 +394,14 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             break;
 
          case ORIGIN_FORM_FORWARD_SLASH:
+            if ( ch == '.' )
+            {
+
+               p--;
+               state = URI_SEGMENT;
+               break;
+
+            }
             if ( PCHAR(ch) )
             {
 
@@ -455,8 +463,17 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                            p [ 3 ] and p [ 3 ] == 'p' ) ) )
                {
 
+                  // std::cout << "here";
                   // if (  )
-                  portion = 2;
+                  if ( portion == 1 )
+                  {
+
+                     std::cout << "ROUTE " << "/" << "\n";
+                     r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+                     if ( r->route == NULL )
+                        return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+
+                  }
                   r->cgi = 1;
                   if ( p [ 2 ] == 'y' )
                   {
