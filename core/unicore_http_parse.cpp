@@ -412,28 +412,29 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                break;
 
             }
-            if (  portion == 1 )
-            {
+            // if (  portion == 1 )
+            // {
 
-               std::cout << "ROUTE " << primary_buf << "\n";
-               r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
-               if ( r->route == NULL )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
-               portion = 2;
-               std::memset ( primary_buf , 0 , 512 );
-               primary_i = 0;
-               primary_buf [ primary_i++ ] = ch;
+            //    std::cout << "ROUTE " << primary_buf << "\n";
+            //    r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+            //    if ( r->route == NULL )
+            //       return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+            //    portion = 2;
+            //    std::memset ( primary_buf , 0 , 512 );
+            //    primary_i = 0;
+            //    // primary_buf [ primary_i++ ] = ch;
 
-            }
-            else if ( portion == 3 )
-            {
+            // }
+            // if ( portion == 3 )
+            // {
 
-               r->PATH_INFO = new u_char [ primary_i - path_info_start + 1 ];
-               for ( int i = 0, k = path_info_start ; k < primary_i ; i++, k++ )
-                  r->PATH_INFO [ i ] = primary_buf [ k ];
-               r->PATH_INFO [ primary_i - path_info_start ] = '\0';
+            //    std::cout << "second";
+            //    r->PATH_INFO = new u_char [ primary_i - path_info_start + 1 ];
+            //    for ( int i = 0, k = path_info_start ; k < primary_i ; i++, k++ )
+            //       r->PATH_INFO [ i ] = primary_buf [ k ];
+            //    r->PATH_INFO [ primary_i - path_info_start ] = '\0';
 
-            }
+            // }
 
 
             switch ( ch )
@@ -457,14 +458,13 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             if ( PCHAR( ch ) )
             {
 
-               if ( p [ 0 ] == '.' and ( 
+               if ( ( portion == 1 or portion == 2 ) and p [ 0 ] == '.' and ( 
                   ( p [ 1 ] and p [ 1 ] == 'p' and p [ 2 ] and p [ 2 ] == 'y' ) or
                   ( p [ 1 ] and p [ 1 ] == 'p' and p [ 2 ] and p [ 2 ] == 'h' and
                            p [ 3 ] and p [ 3 ] == 'p' ) ) )
                {
 
-                  // std::cout << "here";
-                  // if (  )
+
                   if ( portion == 1 )
                   {
 
@@ -514,7 +514,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                {
 
                   if ( primary_i > 510 )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
                   primary_buf [ primary_i++ ] = ch;
 
                }
@@ -525,10 +525,11 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             if ( portion == 1 )
             {
                
-               std::cout << "ROUTE " << primary_buf << "\n";
                r->route = (unicore_route_t *)get ( c->routes , primary_buf );
+               std::cout << "ROUTE " << primary_buf << "\n";
                if ( r->route == NULL )
                {
+                  std::cout << "ROUTE " << "/" << "\n";
                   r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
                   if ( r->route == NULL )
                      return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
@@ -542,6 +543,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             else if ( portion == 3 and ch != '/' )
             {
 
+               // std::cout << "first";
                r->PATH_INFO = new u_char [ primary_i - path_info_start + 1 ];
                for ( int i = 0, k = path_info_start ; k < primary_i ; i++, k++ )
                   r->PATH_INFO [ i ] = primary_buf [ k ];
@@ -698,6 +700,15 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                for ( int i = 0 ; i < primary_i ; i++ )
                   r->static_uri_path [ i ] = primary_buf [ i ];
                r->static_uri_path [ primary_i ] = '\0';
+
+            }
+            if ( r->route == NULL )
+            {
+
+               std::cout << "ROUTE " << "/" << "\n";
+               r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+               if ( r->route == NULL )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
 
             }
             std::cout << "SCRIPT_NAME " << r->SCRIPT_NAME << "\n";
