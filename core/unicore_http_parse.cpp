@@ -455,6 +455,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                            p [ 3 ] and p [ 3 ] == 'p' ) ) )
                {
 
+                  // if (  )
+                  portion = 2;
                   r->cgi = 1;
                   if ( p [ 2 ] == 'y' )
                   {

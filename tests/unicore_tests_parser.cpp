@@ -400,8 +400,8 @@ int main ()
     std::cout << unicore_config_parse ( stream , conf ) << std::endl;
 
     // u_char *request = (u_char *)"GET /route/scripts/runtime/cgi/something.php/dir/something/PATH_INFO.html/\x3F?\x3F/name=yassir/?/?/// HTTP/1.1\r\n";
-    u_char *request = (u_char *)"GET /route/d.py/extrapath/?string HTTP/1.1\r\n";
-    unicore_buf_t b = { request , request , request + 43 };
+    u_char *request = (u_char *)"GET /.py/extrapath/stuff.ph/something/?f HTTP/1.1\r\n";
+    unicore_buf_t b = { request , request , request + 67 };
 
     std::cout << unicore_http_parse_request_line ( &r , &b , conf );
 
