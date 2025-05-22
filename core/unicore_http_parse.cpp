@@ -19,9 +19,10 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
 
    (void)b;
    (void)r;
-   u_char ch, *p, primary_buf [ 512 ];
-   int primary_i = 0, path_info_start, portion = 0;
+   u_char ch, *p, primary_buf [ 512 ], secondary_buf [ 512 ];
+   int primary_i = 0, secondary_i = 0, path_info_start, portion = 0;
    std::memset ( primary_buf , 0 , 512 );
+   std::memset ( secondary_buf , 0 , 512 );
    std::memset ( r , 0 , sizeof ( unicore_request_t ) );
    r->SCRIPT_NAME = (u_char *)"";
    r->PATH_INFO = (u_char *)"";
@@ -424,8 +425,6 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   r->PATH_INFO [ i ] = primary_buf [ k ];
                r->PATH_INFO [ primary_i - path_info_start ] = '\0';
 
-               std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
-
             }
 
 
@@ -436,8 +435,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
                   break;
                case '?':
-                  std::memset ( primary_buf , 0 , 512 );
-                  primary_i = 0;
+                  std::memset ( secondary_buf , 0 , 512 );
+                  secondary_i = 0;
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                default:
@@ -456,6 +455,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                            p [ 3 ] and p [ 3 ] == 'p' ) ) )
                {
 
+                  r->cgi = 1;
                   if ( p [ 2 ] == 'y' )
                   {
 
@@ -464,7 +464,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                      {
 
                         if ( primary_i > 510 )
-                           return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
+                           return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
                         primary_buf [ primary_i++ ] = *p;
                      }
 
@@ -477,7 +477,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                      {
 
                         if ( primary_i > 510 )
-                           return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
+                           return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
                         primary_buf [ primary_i++ ] = *p;
                      }
 
@@ -489,7 +489,6 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   portion = 3;
                   path_info_start = primary_i;
                   p--; // so that a character is not skipped in the next iteration
-                  std::cout << "SCRIPT_NAME " << primary_buf << "\n";
 
                }
                else
@@ -529,7 +528,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   r->PATH_INFO [ i ] = primary_buf [ k ];
                r->PATH_INFO [ primary_i - path_info_start ] = '\0';
 
-               std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
+               // std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
 
             }
 
@@ -547,8 +546,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   state = ORIGIN_FORM_FORWARD_SLASH;
                   break;
                case '?':
-                  std::memset ( primary_buf , 0 , 512 );
-                  primary_i = 0;
+                  std::memset ( secondary_buf , 0 , 512 );
+                  secondary_i = 0;
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                default:
@@ -561,9 +560,9 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             if ( PCHAR( ch ) )
             {
 
-               if ( primary_i > 510 )
-                  return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
+               if ( secondary_i > 510 )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+               secondary_buf [ secondary_i++ ] = ch;
                state = QUERY_PCHAR;
                break;
 
@@ -572,22 +571,22 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             {
 
                case SP:
-                  r->QUERY_STRING = new u_char [ primary_i + 1 ];
-                  for ( int i = 0 ; i < primary_i ; i++ )
-                     r->QUERY_STRING [ i ] = primary_buf [ i ];
-                  r->QUERY_STRING [ primary_i ] = '\0';
+                  r->QUERY_STRING = new u_char [ secondary_i + 1 ];
+                  for ( int i = 0 ; i < secondary_i ; i++ )
+                     r->QUERY_STRING [ i ] = secondary_buf [ i ];
+                  r->QUERY_STRING [ secondary_i ] = '\0';
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
                   break;
                case '/':
-                  if ( primary_i > 510 )
-                     return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  if ( secondary_i > 510 )
+                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  secondary_buf [ secondary_i++ ] = ch;
                   state = QUERY_FORWARD_SLASH;
                   break;
                case '?':
-                  if ( primary_i > 510 )
-                     return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  if ( secondary_i > 510 )
+                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  secondary_buf [ secondary_i++ ] = ch;
                   break;
                default:
                   return UNICORE_INVALID_REQUEST_LINE_ERROR;
@@ -599,9 +598,9 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             if ( PCHAR(ch) )
             {
 
-               if ( primary_i > 510 )
-                  return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
+               if ( secondary_i > 510 )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+               secondary_buf [ secondary_i++ ] = ch;
                state = QUERY_PCHAR;
                break;
 
@@ -610,22 +609,22 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             {
 
                case SP:
-                  r->QUERY_STRING = new u_char [ primary_i + 1 ];
-                  for ( int i = 0 ; i < primary_i ; i++ )
-                     r->QUERY_STRING [ i ] = primary_buf [ i ];
-                  r->QUERY_STRING [ primary_i ] = '\0';
+                  r->QUERY_STRING = new u_char [ secondary_i + 1 ];
+                  for ( int i = 0 ; i < secondary_i ; i++ )
+                     r->QUERY_STRING [ i ] = secondary_buf [ i ];
+                  r->QUERY_STRING [ secondary_i ] = '\0';
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
                   break;
                case '?':
-                  if ( primary_i > 510 )
-                     return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  if ( secondary_i > 510 )
+                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  secondary_buf [ secondary_i++ ] = ch;
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                case '/':
-                  if ( primary_i > 510 )
-                     return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  if ( secondary_i > 510 )
+                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  secondary_buf [ secondary_i++ ] = ch;
                   break;
                default:
                   return UNICORE_INVALID_REQUEST_LINE_ERROR;
@@ -637,9 +636,9 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             if ( PCHAR( ch ) )
             {
 
-               if ( primary_i > 510 )
-                  return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
+               if ( secondary_i > 510 )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+               secondary_buf [ secondary_i++ ] = ch;
                break;
 
             }
@@ -648,16 +647,22 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             {
 
                case SP:
-                  r->QUERY_STRING = new u_char [ primary_i + 1 ];
-                  for ( int i = 0 ; i < primary_i ; i++ )
-                     r->QUERY_STRING [ i ] = primary_buf [ i ];
-                  r->QUERY_STRING [ primary_i ] = '\0';
+                  r->QUERY_STRING = new u_char [ secondary_i + 1 ];
+                  for ( int i = 0 ; i < secondary_i ; i++ )
+                     r->QUERY_STRING [ i ] = secondary_buf [ i ];
+                  r->QUERY_STRING [ secondary_i ] = '\0';
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
                   break;
                case '?':
+                  if ( secondary_i > 510 )
+                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  secondary_buf [ secondary_i++ ] = ch;
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                case '/':
+                  if ( secondary_i > 510 )
+                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  secondary_buf [ secondary_i++ ] = ch;
                   state = QUERY_FORWARD_SLASH;
                   break;
                default:
@@ -676,8 +681,11 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                r->static_uri_path [ primary_i ] = '\0';
 
             }
+            std::cout << "SCRIPT_NAME " << r->SCRIPT_NAME << "\n";
+            std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
             std::cout << "QUERY_STRING " << r->QUERY_STRING << "\n";
-            std::cout << "static path " << r->static_uri_path << "\n";
+            if ( r->static_uri_path )
+               std::cout << "static path " << r->static_uri_path << "\n";
             switch ( ch )
             {
 
