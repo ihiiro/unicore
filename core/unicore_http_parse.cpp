@@ -29,6 +29,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
    r->PATH_TRANSLATED = (u_char *)"";
    r->QUERY_STRING = (u_char *)"";
    r->GATEWAY_INTERFACE = (u_char *)"CGI/1.1";
+   r->http_version = 101;
 
    enum
    {
@@ -412,19 +413,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                break;
 
             }
-            // if (  portion == 1 )
-            // {
 
-            //    std::cout << "ROUTE " << primary_buf << "\n";
-            //    r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
-            //    if ( r->route == NULL )
-            //       return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
-            //    portion = 2;
-            //    std::memset ( primary_buf , 0 , 512 );
-            //    primary_i = 0;
-            //    // primary_buf [ primary_i++ ] = ch;
-
-            // }
             if ( portion == 3 )
             {
 
@@ -440,6 +429,15 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             {
 
                case SP:
+                  if ( portion == 1 )
+                  {
+
+                     std::cout << "ROUTE " << "/" << "\n";
+                     r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+                     if ( r->route == NULL )
+                        return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+
+                  }
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
                   break;
                case '?':
@@ -525,7 +523,16 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             {
                
                r->route = (unicore_route_t *)get ( c->routes , primary_buf );
+               /* if second hierarchy route exists then its part of route component 
+                     and shouldn't be in SCRIPT_NAME which also uses primary_buf */
                std::cout << "ROUTE " << primary_buf << "\n";
+               if ( r->route )
+               {
+
+                  std::memset ( primary_buf , 0 , 512 );
+                  primary_i = 0;
+
+               }
                if ( r->route == NULL )
                {
                   std::cout << "ROUTE " << "/" << "\n";
@@ -535,20 +542,15 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
 
                }
                portion = 2;
-               std::memset ( primary_buf , 0 , 512 );
-               primary_i = 0;
 
             }
             else if ( portion == 3 and ch != '/' )
             {
 
-               // std::cout << "first";
                r->PATH_INFO = new u_char [ primary_i - path_info_start + 1 ];
                for ( int i = 0, k = path_info_start ; k < primary_i ; i++, k++ )
                   r->PATH_INFO [ i ] = primary_buf [ k ];
                r->PATH_INFO [ primary_i - path_info_start ] = '\0';
-
-               // std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
 
             }
 
@@ -701,15 +703,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                r->static_uri_path [ primary_i ] = '\0';
 
             }
-            // if ( r->route == NULL )
-            // {
-
-            //    std::cout << "ROUTE " << "/" << "\n";
-            //    r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
-            //    if ( r->route == NULL )
-            //       return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
-
-            // }
+            
             std::cout << "SCRIPT_NAME " << r->SCRIPT_NAME << "\n";
             std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
             std::cout << "QUERY_STRING " << r->QUERY_STRING << "\n";
