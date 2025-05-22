@@ -437,9 +437,6 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             if ( PCHAR( ch ) )
             {
 
-               if ( primary_i > 510 )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
                if ( p [ 0 ] == '.' and ( 
                   ( p [ 1 ] and p [ 1 ] == 'p' and p [ 2 ] and p [ 2 ] == 'y' ) or
                   ( p [ 1 ] and p [ 1 ] == 'p' and p [ 2 ] and p [ 2 ] == 'h' and
@@ -450,17 +447,26 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   {
 
                      r->cgi_script_type = PYTHON;
-                     primary_buf [ primary_i++ ] = *( p++ );
-                     primary_buf [ primary_i++ ] = *( p++ );
+                     for ( int i = 0 ; i < 3 ; i++, p++ )
+                     {
+
+                        if ( primary_i > 510 )
+                           return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
+                        primary_buf [ primary_i++ ] = *p;
+                     }
 
                   }
                   else
                   {
 
                      r->cgi_script_type = PHP;
-                     primary_buf [ primary_i++ ] = *( p++ );
-                     primary_buf [ primary_i++ ] = *( p++ );
-                     primary_buf [ primary_i++ ] = *( p++ );
+                     for ( int i = 0 ; i < 4 ; i++, p++ )
+                     {
+
+                        if ( primary_i > 510 )
+                           return UNICORE_INVALID_CONFIG_FILE_ERROR; // or specific error
+                        primary_buf [ primary_i++ ] = *p;
+                     }
 
                   }
                   r->SCRIPT_NAME = new u_char [ primary_i + 1 ];
@@ -469,7 +475,16 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   r->SCRIPT_NAME [ primary_i ] = '\0';
                   portion = 3;
                   path_info_start = primary_i;
-                  std::cout << "SCRIPT_NAME " << r->SCRIPT_NAME << "\n";
+                  p--; // so that a character is not skipped in the next iteration
+                  std::cout << "SCRIPT_NAME " << primary_buf << "\n";
+
+               }
+               else
+               {
+
+                  if ( primary_i > 510 )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  primary_buf [ primary_i++ ] = ch;
 
                }
                break;
@@ -491,7 +506,6 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                portion = 2;
                std::memset ( primary_buf , 0 , 512 );
                primary_i = 0;
-               primary_buf [ primary_i++ ] = ch;
 
 
 

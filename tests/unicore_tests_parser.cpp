@@ -399,8 +399,8 @@ int main ()
 
     std::cout << unicore_config_parse ( stream , conf ) << std::endl;
 
-    u_char *request = (u_char *)"GET /cgi.py/extrapath HTTP/1.1\r\n";
-    unicore_buf_t b = { request , request , request + 32 };
+    u_char *request = (u_char *)"GET /home/here/athome/cgis/yes/cgi.py/extrapath/morepath/andevemore HTTP/1.1\r\n";
+    unicore_buf_t b = { request , request , request + 78 };
 
     std::cout << unicore_http_parse_request_line ( &r , &b , conf );
 
