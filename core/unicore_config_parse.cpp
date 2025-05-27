@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
+int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& c )
 {
 
     int digit_count = 0, i = 0, j = 0, len = 0;
@@ -116,6 +116,7 @@ int unicore_config_parse ( std::ifstream &s , unicore_config_t *c  )
                 break;
 
             case SERVER_BLOCK_SENTRY_HOST:
+                c.push_back ( ( unicore_config_t ){ } );
                 if ( HCHAR( ch ) )
                 {
 
