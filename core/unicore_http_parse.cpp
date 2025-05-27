@@ -14,7 +14,8 @@
 
 #include <iostream>
 
-int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_config_t *c )
+int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b 
+      , unicore_config_t& c )
 {
 
    (void)b;
@@ -433,7 +434,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   {
 
                      std::cout << "ROUTE " << "/" << "\n";
-                     r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+                     r->route = (unicore_route_t *)get ( c.routes , (u_char *)"/" );
                      if ( r->route == NULL )
                         return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
 
@@ -466,7 +467,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                   {
 
                      std::cout << "ROUTE " << "/" << "\n";
-                     r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+                     r->route = (unicore_route_t *)get ( c.routes , (u_char *)"/" );
                      if ( r->route == NULL )
                         return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
 
@@ -522,7 +523,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
             if ( portion == 1 )
             {
                
-               r->route = (unicore_route_t *)get ( c->routes , primary_buf );
+               r->route = (unicore_route_t *)get ( c.routes , primary_buf );
                /* if second hierarchy route exists then its part of route component 
                      and shouldn't be in SCRIPT_NAME which also uses primary_buf */
                std::cout << "ROUTE " << primary_buf << "\n";
@@ -536,7 +537,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , 
                if ( r->route == NULL )
                {
                   std::cout << "ROUTE " << "/" << "\n";
-                  r->route = (unicore_route_t *)get ( c->routes , (u_char *)"/" );
+                  r->route = (unicore_route_t *)get ( c.routes , (u_char *)"/" );
                   if ( r->route == NULL )
                      return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
 

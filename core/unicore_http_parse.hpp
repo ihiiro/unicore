@@ -13,5 +13,6 @@
     #define PHP 1
 #endif
 
-int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b , unicore_config_t *c );
+int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b 
+            , unicore_config_t& c );
 int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b );

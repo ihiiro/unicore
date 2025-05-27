@@ -43,7 +43,7 @@ int main ()
     //     (u_char *)"delete / http/1.1\r\n"
     // };
 
-    // unicore_request_t r;
+    unicore_request_t r;
     // r.headers = new ht;
     // r.headers->buckets = new bucket [ M ];
     // std::memset ( r.headers->buckets , 0 , M );
@@ -234,8 +234,8 @@ int main ()
     };
 
     std::vector < unicore_config_t > conf;
-    // for ( int i = 0 ; i < conf.size () ; i++ )
-    //     std::memset ( &conf [ i ] , 0 , sizeof ( unicore_config_t ) );
+    for ( size_t i = 0 ; i < conf.size () ; i++ )
+        std::memset ( &conf [ i ] , 0 , sizeof ( unicore_config_t ) );
 
     for ( int i = 0 ; i < 9 ; i++ )
     {
@@ -398,17 +398,17 @@ int main ()
 	else
 		std::cout << "\e[0;31mfail, ";
     
-    // std::ifstream stream ( "tests/pass.conf" );
+    std::ifstream stream1 ( "tests/pass.conf" );
 
-    // std::cout << unicore_config_parse ( stream , conf ) << std::endl;
+    std::cout << unicore_config_parse ( stream1 , conf ) << std::endl;
 
-    // // u_char *request = (u_char *)"GET /route/scripts/runtime/cgi/something.php/dir/something/PATH_INFO.html/\x3F?\x3F/name=yassir/?/?/// HTTP/1.1\r\n";
+    u_char *request = (u_char *)"GET /route/scripts/runtime/cgi/something.php/dir/something/PATH_INFO.html/\x3F?\x3F/name=yassir/?/?/// HTTP/1.1\r\n";
     // u_char *request = (u_char *)"GET /servlet?;jsessionid=1234&param=value/ HTTP/1.1 \r\n";
-    // unicore_buf_t b = { request , request , request + 100 };
+    unicore_buf_t b = { request , request , request + 107 };
 
-    // std::cout << unicore_http_parse_request_line ( &r , &b , conf );
+    std::cout << unicore_http_parse_request_line ( &r , &b , conf [ 0 ] );
 
-    // return 0;
+    return 0;
 
 
 
