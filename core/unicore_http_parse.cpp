@@ -22,6 +22,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
    (void)r;
    u_char ch, *p, primary_buf [ 512 ], secondary_buf [ 512 ];
    int primary_i = 0, secondary_i = 0, path_info_start, portion = 0;
+   bucket *bucket;
    std::memset ( primary_buf , 0 , 512 );
    std::memset ( secondary_buf , 0 , 512 );
    std::memset ( r , 0 , sizeof ( unicore_request_t ) );
@@ -170,22 +171,6 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             }
             break;
 
-            switch ( ch )
-            {
-
-               case SP:
-                  break;
-               case CR:
-                  state = CARRIAGE_RETURN;
-                  break;
-               case LF:
-                  state = LINE_FEED;
-                  break;
-               default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
-
-            }
-            break;
 
    /* start-line terminator is a single CRLF */
    /* a single LF is permitted but bare CR isn't */
@@ -425,7 +410,6 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
 
             }
 
-
             switch ( ch )
             {
 
@@ -433,10 +417,10 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
                   if ( portion == 1 )
                   {
 
-                     std::cout << "ROUTE " << "/" << "\n";
-                     r->route = (unicore_route_t *)get ( c.routes , (u_char *)"/" );
-                     if ( r->route == NULL )
+                     bucket = get ( c.routes , (u_char *)"/" );
+                     if ( bucket == NULL )
                         return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     r->route = ( unicore_route_t * )bucket->value;
 
                   }
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
@@ -466,10 +450,11 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
                   if ( portion == 1 )
                   {
 
-                     std::cout << "ROUTE " << "/" << "\n";
-                     r->route = (unicore_route_t *)get ( c.routes , (u_char *)"/" );
-                     if ( r->route == NULL )
+                     // std::cout << "ROUTE " << "/" << "\n";
+                     bucket = get ( c.routes , (u_char *)"/" );
+                     if ( bucket == NULL )
                         return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     r->route = ( unicore_route_t * )bucket->value;
 
                   }
                   r->cgi = 1;
@@ -523,25 +508,26 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             if ( portion == 1 )
             {
                
-               r->route = (unicore_route_t *)get ( c.routes , primary_buf );
+               bucket = get ( c.routes , primary_buf );
                /* if second hierarchy route exists then its part of route component 
                      and shouldn't be in SCRIPT_NAME which also uses primary_buf */
-               std::cout << "ROUTE " << primary_buf << "\n";
-               if ( r->route )
+               // std::cout << "ROUTE " << primary_buf << "\n";
+               if ( bucket )
                {
 
                   std::memset ( primary_buf , 0 , 512 );
                   primary_i = 0;
 
                }
-               if ( r->route == NULL )
+               else
                {
-                  std::cout << "ROUTE " << "/" << "\n";
-                  r->route = (unicore_route_t *)get ( c.routes , (u_char *)"/" );
-                  if ( r->route == NULL )
+                  // std::cout << "ROUTE " << "/" << "\n";
+                  bucket = get ( c.routes , (u_char *)"/" );
+                  if ( bucket == NULL )
                      return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
 
                }
+               r->route = ( unicore_route_t * )bucket->value;
                portion = 2;
 
             }
@@ -580,6 +566,15 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             break;
 
          case ORIGIN_FORM_QUESTION_MARK:
+            if ( r->route == NULL )
+            {
+
+               bucket = get ( c.routes , ( u_char * )"/" );
+               if ( bucket == NULL )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+               r->route = ( unicore_route_t * )bucket->value;
+
+            }
             if ( PCHAR( ch ) )
             {
 
@@ -594,6 +589,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             {
 
                case SP:
+                  // std::cout << "ROUTE " << primary_buf;
                   r->QUERY_STRING = new u_char [ secondary_i + 1 ];
                   for ( int i = 0 ; i < secondary_i ; i++ )
                      r->QUERY_STRING [ i ] = secondary_buf [ i ];
@@ -695,6 +691,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             break;
 
          case ORIGIN_FORM_VALIDATED_BY_SP:
+            std::cout << "ROOT " << r->route->root << "\n";
             if ( r->cgi == 0 and r->static_uri_path == NULL )
             {
 

@@ -23,59 +23,31 @@ int main ()
     //    (u_char *)"POST / HTTP/1.1\r\n",
     //    (u_char *)"DELETE / HTTP/1.1\r\n",
     //    (u_char *)"GET /$/$?///P/P?/PPP/?\x3F?//// HTTP/1.1\r\n",
-    //    (u_char *)"\r\n\r\n\r\n\r\n GET /?    HTTP/1.1       \r\n",
+    //    (u_char *)"\r\n\r\n\r\n\r\n GET /?    HTTP/1.1       \r\n", // test
     //    (u_char *)"DELETE /$/$$$$/$?PPPP/\x3F?/P/?//PPP????P HTTP/1.1\r\n",
-    //    (u_char *)"GET /? HTTP/1.1\r\n",
+    //    (u_char *)"GET /? HTTP/1.1\r\n", // test
     //    (u_char *)"GET / HTTP/1.1 \n",
     //    (u_char *)"GET /index.html HTTP/1.1\r\n",
     // };
 
-    // u_char *REQUEST_LINE_REJECTS[] = {
-    //     (u_char *)"GET / HTTP/1.2",
-    //     (u_char *)"GET / HTTP/1.2\r\n",
-    //     (u_char *)"  GET / HTTP/1.2\r\n\r\n",
-    //     (u_char *)"POST / HTTP/1..1\r\n",
-    //     (u_char *)"POST / HTTP/1 1\r\n",
-    //     (u_char *)"POST /$segment/$/$ HTTP/1..1\r\n",
-    //     (u_char *)"DELETE\r\n / HTTP/1.1\r\n",
-    //     (u_char *)"get / http/1.1\r\n",
-    //     (u_char *)"post / http/1.1\r\n",
-    //     (u_char *)"delete / http/1.1\r\n"
-    // };
+//     u_char *REQUEST_LINE_REJECTS[] = {
+//         (u_char *)"GET / HTTP/1.2",
+//         (u_char *)"GET / HTTP/1.2\r\n",
+//         (u_char *)"  GET / HTTP/1.2\r\n\r\n",
+//         (u_char *)"POST / HTTP/1..1\r\n",
+//         (u_char *)"POST / HTTP/1 1\r\n",
+//         (u_char *)"POST /$segment/$/$ HTTP/1..1\r\n",
+//         (u_char *)"DELETE\r\n / HTTP/1.1\r\n",
+//         (u_char *)"get / http/1.1\r\n",
+//         (u_char *)"post / http/1.1\r\n",
+//         (u_char *)"delete / http/1.1\r\n"
+//     };
 
     unicore_request_t r;
-    // r.headers = new ht;
-    // r.headers->buckets = new bucket [ M ];
-    // std::memset ( r.headers->buckets , 0 , M );
-    // unicore_buf_t b;
-    // std::cout << "\t\t\t\t\e[1;37mREQUEST-LINE\e[0m\n";
-    // std::cout << "ACCEPTS\n";
-    // for ( int i = 0; i < 14; i++ )
-    // {
-
-    //     b.start = REQUEST_LINE_ACCEPTS [ i ];
-    //     b.pos = REQUEST_LINE_ACCEPTS [ i ];
-    //     b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_ACCEPTS [ i ] );
-    //     if ( unicore_http_parse_request_line ( &r, &b ) == 1 )
-    //         std::cout << "\e[0;32mpass, ";
-    //     else
-    //         std::cout << "\e[0;31mfail, ";
-
-    // }
-
-    // std::cout << "\e[0m\nREJECTS\n";
-    // for ( int i = 0; i < 10; i++ )
-    // {
-
-    //     b.start = REQUEST_LINE_REJECTS [ i ];
-    //     b.pos = REQUEST_LINE_REJECTS [ i ];
-    //     b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_REJECTS [ i ] );
-    //     if ( unicore_http_parse_request_line ( &r, &b ) == -1 )
-    //         std::cout << "\e[0;32mpass, ";
-    //     else
-    //         std::cout << "\e[0;31mfail, ";
-
-    // }
+//     r.headers = new ht;
+//     r.headers->buckets = new bucket [ M ];
+//     std::memset ( r.headers->buckets , 0 , M );
+//     unicore_buf_t b;
 
 //     u_char *FIELD_LINES_ACCEPTS[] = {
 //         (u_char *)"\n",
@@ -220,191 +192,221 @@ int main ()
 //     else
 //         std::cout << "\e[0;31mfail, ";
 
-    std::cout << "\n\t\t\t\t\e[1;37mCONFIGURATION\e[0m\n";
-    char *passes[] = {
-        (char *)"tests/pass0.conf",
-        (char *)"tests/pass1.conf",
-        (char *)"tests/pass2.conf",
-        (char *)"tests/pass3.conf",
-        (char *)"tests/pass4.conf",
-        (char *)"tests/pass5.conf",
-        (char *)"tests/pass6.conf",
-        (char *)"tests/pass7.conf",
-        (char *)"tests/pass8.conf"
-    };
+//     std::cout << "\n\t\t\t\t\e[1;37mCONFIGURATION\e[0m\n";
+//     char *passes[] = {
+//         (char *)"tests/pass0.conf",
+//         (char *)"tests/pass1.conf",
+//         (char *)"tests/pass2.conf",
+//         (char *)"tests/pass3.conf",
+//         (char *)"tests/pass4.conf",
+//         (char *)"tests/pass5.conf",
+//         (char *)"tests/pass6.conf",
+//         (char *)"tests/pass7.conf",
+//         (char *)"tests/pass8.conf"
+//     };
 
     std::vector < unicore_config_t > conf;
-    for ( size_t i = 0 ; i < conf.size () ; i++ )
-        std::memset ( &conf [ i ] , 0 , sizeof ( unicore_config_t ) );
+//     for ( size_t i = 0 ; i < conf.size () ; i++ )
+//         std::memset ( &conf [ i ] , 0 , sizeof ( unicore_config_t ) );
 
-    for ( int i = 0 ; i < 9 ; i++ )
-    {
+//     for ( int i = 0 ; i < 9 ; i++ )
+//     {
 
-        std::ifstream stream ( passes [ i ] );
-        if ( unicore_config_parse ( stream , conf ) == 1 )
-            std::cout << "\e[0;32mpass, ";
-        else
-            std::cout << "\e[0;31mfail, ";
+//         std::ifstream stream ( passes [ i ] );
+//         if ( unicore_config_parse ( stream , conf ) == 1 )
+//             std::cout << "\e[0;32mpass, ";
+//         else
+//             std::cout << "\e[0;31mfail, ";
 
-    }
+//     }
 
-    std::cout << "\n\t\t\t\t\e[1;37mCONFIGURATION DATA\e[0m\n";
-    std::ifstream stream ( "tests/config_pass.conf" );
+//     std::cout << "\n\t\t\t\t\e[1;37mCONFIGURATION DATA\e[0m\n";
+//     std::ifstream stream ( "tests/config_pass.conf" );
 
     
-    std::vector < unicore_config_t > config;
+//     std::vector < unicore_config_t > config;
 
-	unicore_config_parse ( stream , config );
-	if ( !strcmp ( "HOST" , config [ 0 ].host ) )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-	if ( config [ 0 ].port == 8080 )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( config [ 0 ].max_client_message_size == 10737418240 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-	if ( !strcmp ( "server_name" , config [ 0 ].server_name ) )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-	if ( get ( config [ 0 ].error_pages , (u_char *)"nonexistent" ) == NULL )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-	if ( !strcmp ( (char *)get ( config [ 0 ].error_pages , (u_char *)"404" )->value , "404.html" ) )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-	if ( !strcmp ( (char *)get ( config [ 0 ].error_pages , (u_char *)"434" )->value , "/hellbound_errors/434.html" ) )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-	if ( get ( config [ 0 ].routes , (u_char *)"nonexistent" ) == NULL )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-	unicore_route_t *route = (unicore_route_t *)get ( config [ 0 ].routes , (u_char *)"/route" )->value;
-	if ( !strcmp ( route->root , "/root_dir" ) )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( !strcmp ( route->file_if_directory_request , "file" ) )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->upload_path == NULL )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->ROUTE_GET == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->ROUTE_POST == 0 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->ROUTE_DELETE == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->ROUTE_UPLOADS == 0 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->CGI_GET == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->CGI_POST == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->CGI_PYTHON == 0 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->CGI_PHP == 0 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->directory_listing == 0 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    route = (unicore_route_t *)get ( config [ 0 ].routes , (u_char *)"/" )->value;
-	if ( !strcmp ( route->root , "/" ) )
-		std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( !strcmp ( route->file_if_directory_request , "FILE" ) )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( !strcmp ( "uploads/videos" , route->upload_path ) )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->ROUTE_GET == 0 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->ROUTE_POST == 0 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->ROUTE_DELETE == 0 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->ROUTE_UPLOADS == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->CGI_GET == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->CGI_POST == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->CGI_PYTHON == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->CGI_PHP == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( route->directory_listing == 1 )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( get ( config [ 0 ].redirection_list , (u_char *)"shitdoesntexist" ) == NULL )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( !strcmp ( "/newurl/newshit" , (char *)get ( config [ 0 ].redirection_list , (u_char *)"/oldurl/smshit" )->value ) )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
-    if ( !strcmp ( "/oui" , (char *)get ( config [ 0 ].redirection_list , (u_char *)"/another" )->value ) )
-    	std::cout << "\e[0;32mpass, ";
-	else
-		std::cout << "\e[0;31mfail, ";
+// 	unicore_config_parse ( stream , config );
+// 	if ( !strcmp ( "HOST" , config [ 0 ].host ) )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+// 	if ( config [ 0 ].port == 8080 )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( config [ 0 ].max_client_message_size == 10737418240 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+// 	if ( !strcmp ( "server_name" , config [ 0 ].server_name ) )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+// 	if ( get ( config [ 0 ].error_pages , (u_char *)"nonexistent" ) == NULL )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+// 	if ( !strcmp ( (char *)get ( config [ 0 ].error_pages , (u_char *)"404" )->value , "404.html" ) )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+// 	if ( !strcmp ( (char *)get ( config [ 0 ].error_pages , (u_char *)"434" )->value , "/hellbound_errors/434.html" ) )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+// 	if ( get ( config [ 0 ].routes , (u_char *)"nonexistent" ) == NULL )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+// 	unicore_route_t *route = (unicore_route_t *)get ( config [ 0 ].routes , (u_char *)"/route" )->value;
+// 	if ( !strcmp ( route->root , "/root_dir" ) )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( !strcmp ( route->file_if_directory_request , "file" ) )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->upload_path == NULL )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->ROUTE_GET == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->ROUTE_POST == 0 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->ROUTE_DELETE == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->ROUTE_UPLOADS == 0 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->CGI_GET == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->CGI_POST == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->CGI_PYTHON == 0 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->CGI_PHP == 0 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->directory_listing == 0 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     route = (unicore_route_t *)get ( config [ 0 ].routes , (u_char *)"/" )->value;
+// 	if ( !strcmp ( route->root , "/" ) )
+// 		std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( !strcmp ( route->file_if_directory_request , "FILE" ) )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( !strcmp ( "uploads/videos" , route->upload_path ) )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->ROUTE_GET == 0 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->ROUTE_POST == 0 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->ROUTE_DELETE == 0 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->ROUTE_UPLOADS == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->CGI_GET == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->CGI_POST == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->CGI_PYTHON == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->CGI_PHP == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( route->directory_listing == 1 )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( get ( config [ 0 ].redirection_list , (u_char *)"shitdoesntexist" ) == NULL )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( !strcmp ( "/newurl/newshit" , (char *)get ( config [ 0 ].redirection_list , (u_char *)"/oldurl/smshit" )->value ) )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
+//     if ( !strcmp ( "/oui" , (char *)get ( config [ 0 ].redirection_list , (u_char *)"/another" )->value ) )
+//     	std::cout << "\e[0;32mpass, ";
+// 	else
+// 		std::cout << "\e[0;31mfail, ";
     
     std::ifstream stream1 ( "tests/pass.conf" );
 
-    std::cout << unicore_config_parse ( stream1 , conf ) << std::endl;
+    unicore_config_parse ( stream1 , conf );
+    
+//     std::cout << "\t\t\t\t\e[1;37mREQUEST-LINE\e[0m\n";
+//     std::cout << "ACCEPTS\n";
+//     for ( int i = 0; i < 14; i++ )
+//     {
 
-    u_char *request = (u_char *)"GET /route/scripts/runtime/cgi/something.php/dir/something/PATH_INFO.html/\x3F?\x3F/name=yassir/?/?/// HTTP/1.1\r\n";
+//         b.start = REQUEST_LINE_ACCEPTS [ i ];
+//         b.pos = REQUEST_LINE_ACCEPTS [ i ];
+//         b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_ACCEPTS [ i ] );
+//         if ( unicore_http_parse_request_line ( &r , &b , conf [ 0 ] ) == 1 )
+//             std::cout << "\e[0;32mpass, ";
+//         else
+//             std::cout << "\e[0;31mfail, ";
+
+//     }
+
+//     std::cout << "\e[0m\nREJECTS\n";
+//     for ( int i = 0; i < 10; i++ )
+//     {
+
+//         b.start = REQUEST_LINE_REJECTS [ i ];
+//         b.pos = REQUEST_LINE_REJECTS [ i ];
+//         b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_REJECTS [ i ] );
+//         if ( unicore_http_parse_request_line ( &r , &b , conf [ 0 ] ) == -1 )
+//             std::cout << "\e[0;32mpass, ";
+//         else
+//             std::cout << "\e[0;31mfail, ";
+
+//     }
+
+
+    u_char *request = (u_char *)"GET /.php/route/.py/extra/path.php?yes=no HTTP/1.1\r\n";
     // u_char *request = (u_char *)"GET /servlet?;jsessionid=1234&param=value/ HTTP/1.1 \r\n";
-    unicore_buf_t b = { request , request , request + 107 };
+    unicore_buf_t b = { request , request , request + 52 };
 
     std::cout << unicore_http_parse_request_line ( &r , &b , conf [ 0 ] );
 
