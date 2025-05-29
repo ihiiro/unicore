@@ -691,7 +691,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             break;
 
          case ORIGIN_FORM_VALIDATED_BY_SP:
-            std::cout << "ROOT " << r->route->root << "\n";
+            // std::cout << "ROOT " << r->route->root << "\n";
             if ( r->cgi == 0 and r->static_uri_path == NULL )
             {
 
@@ -702,11 +702,11 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
 
             }
             
-            std::cout << "SCRIPT_NAME " << r->SCRIPT_NAME << "\n";
-            std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
-            std::cout << "QUERY_STRING " << r->QUERY_STRING << "\n";
+            // std::cout << "SCRIPT_NAME " << r->SCRIPT_NAME << "\n";
+            // std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
+            // std::cout << "QUERY_STRING " << r->QUERY_STRING << "\n";
             if ( r->static_uri_path )
-               std::cout << "static path " << r->static_uri_path << "\n";
+               // std::cout << "static path " << r->static_uri_path << "\n";
             switch ( ch )
             {
 
