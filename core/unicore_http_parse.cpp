@@ -508,7 +508,9 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             if ( portion == 1 )
             {
                
-               bucket = get ( c.routes , primary_buf );
+               // std::cout << "PRIMARY BUF " << primary_buf;
+               // std::exit (1);
+               bucket = get ( c.routes , primary_buf ); // here
                /* if second hierarchy route exists then its part of route component 
                      and shouldn't be in SCRIPT_NAME which also uses primary_buf */
                // std::cout << "ROUTE " << primary_buf << "\n";
@@ -705,8 +707,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             // std::cout << "SCRIPT_NAME " << r->SCRIPT_NAME << "\n";
             // std::cout << "PATH_INFO " << r->PATH_INFO << "\n";
             // std::cout << "QUERY_STRING " << r->QUERY_STRING << "\n";
-            if ( r->static_uri_path )
-               // std::cout << "static path " << r->static_uri_path << "\n";
+            // if ( r->static_uri_path )
+            //    std::cout << "static path " << r->static_uri_path << "\n";
             switch ( ch )
             {
 
