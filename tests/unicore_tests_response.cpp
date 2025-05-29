@@ -58,19 +58,47 @@ int main ( )
     }
     // std::cout << "client ip int: " << peer_addr.sin_addr.s_addr;
     // std::cout << "\n";
-
-    u_char buf [ 4096 ];
-    memset ( buf , 0 , sizeof ( buf ) );
-
-
-
-    recv ( cfd , buf , 4096 , 0 );
     std::ifstream stream ( "tests/config_pass.conf" );
-    unicore_request_t r;
-    unicore_buf_t b = { buf , buf , buf + 4096 };
     std::vector < unicore_config_t > c; 
-
     unicore_config_parse ( stream , c );
+
+    while ( 1 )
+    {
+
+        u_char buf [ 4096 ];
+        memset ( buf , 0 , sizeof ( buf ) );
+
+
+
+        recv ( cfd , buf , 4096 , 0 );
+        unicore_request_t r;
+        std::memset ( &r , 0 , sizeof ( unicore_request_t ) );
+        unicore_buf_t b = { buf , buf , buf + 4096 };
+
+
+        if ( unicore_http_parse_request_line ( &r , &b , c [ 0 ] ) != -1 )
+            std::cout << "request line parsed\n";
+
+        std::cout << "ROOT " << r.route->root << "\n";
+        std::cout << "STATIC PATH => " << r.static_uri_path << "\n";
+        std::cout << "SCRIPT NAME => " << r.SCRIPT_NAME << "\n";
+        std::cout << "PATH INFO => " << r.PATH_INFO << "\n";
+        std::cout << "PATH TRANSLATED => " << r.PATH_TRANSLATED << "\n";
+        std::cout << "QUERY STRING => " << r.QUERY_STRING << "\n";
+        std::cout << "GATEWAY INTERFACE => " << r.GATEWAY_INTERFACE << "\n";
+        std::cout << "REQUEST METHOD => " << r.REQUEST_METHOD << "\n";
+        std::cout << "HTTP VERSION => " << r.http_version << "\n";
+        std::cout << "CGI => " << r.cgi << "\n";
+        std::cout << "CGI SCRIPT TYPE => " << r.cgi_script_type << "\n";
+
+        r.headers = new ht;
+        r.headers->buckets = new bucket [ M ];
+        std::memset ( r.headers->buckets , 0 , M );
+        if ( unicore_http_parse_field_lines ( &r , &b ) != -1 )
+            std::cout << "field lines parsed\n";
+
+    }
+    
 
     // bucket *rb = get ( c [ 0 ].routes , ( u_char * )"/routes" );
     // unicore_route_t *rr = (unicore_route_t *)rb->value;
@@ -78,20 +106,9 @@ int main ( )
     // std::cout << "root " << rr->root;
     // return 1;
 
-    if ( unicore_http_parse_request_line ( &r , &b , c [ 0 ] ) != -1 )
-        std::cout << "request line parsed\n";
-
-    std::cout << "ROOT " << r.route->root << "\n";
-    std::cout << "STATIC PATH => " << r.static_uri_path << "\n";
-    std::cout << "SCRIPT NAME => " << r.SCRIPT_NAME << "\n";
-    std::cout << "PATH INFO => " << r.PATH_INFO << "\n";
-    std::cout << "PATH TRANSLATED => " << r.PATH_TRANSLATED << "\n";
-    std::cout << "QUERY STRING => " << r.QUERY_STRING << "\n";
-    std::cout << "GATEWAY INTERFACE => " << r.GATEWAY_INTERFACE << "\n";
-    std::cout << "REQUEST METHOD => " << r.REQUEST_METHOD << "\n";
-    std::cout << "HTTP VERSION => " << r.http_version << "\n";
-    std::cout << "CGI => " << r.cgi << "\n";
-    std::cout << "CGI SCRIPT TYPE => " << r.cgi_script_type << "\n";
+    // std::cout << buf;
+    // std::cout << "\n";
+    
 
 
     // std::cout << send ( cfd , "HTTP/1.1 200 \r\ntransfer-encoding:chunked\r\n\r\n"

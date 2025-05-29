@@ -894,6 +894,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
          
    } state;
 
+   std::cout << "\n";
    state = START;
    for ( p = b->pos; p <= b->end ; p++ )
    {
@@ -1055,6 +1056,13 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
                   break;
                case HT:
                   state = FIELD_VALUE_OPTIONAL_HT;
+                  break;
+                  /*
+               addition patched for operagx request headers not 
+               being ABNF compliant
+               */
+               case CR:
+                  state = FIELD_LINE_CR;
                   break;
                default:
                   return UNICORE_INVALID_FIELD_LINES_ERROR;
