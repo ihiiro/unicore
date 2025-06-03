@@ -1,4 +1,4 @@
-CFLAGS = -std=c++98 #-Wall -Wextra -Werror
+CFLAGS = -std=c++98 -Wall -Wextra -Werror
 
 CFILES = tests/unicore_tests_parser.cpp \
 		core/unicore_http_parse.cpp \
@@ -37,15 +37,15 @@ core/%.o: core/%.cpp
 %.o: %.cpp
 	c++ -g $(CFLAGS) -c $<
 
-$(RESPONSE_TESTS): $(RESPONSE_OFILES) $(HEADERS) Makefile
-	c++ $(RESPONSE_OFILES) -o $@
+# $(RESPONSE_TESTS): $(RESPONSE_OFILES) $(HEADERS) Makefile
+# 	c++ $(RESPONSE_OFILES) -o $@
 
 $(PARSER_TESTS): $(OFILES) $(HEADERS) Makefile
 	c++ $(OFILES) -o $@
 
-# all: $(PARSER_TESTS)
+all: $(PARSER_TESTS)
 
-all: $(RESPONSE_TESTS)
+# all: $(RESPONSE_TESTS)
 
 clean:
 	rm -f $(OFILES)

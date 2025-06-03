@@ -894,7 +894,6 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
          
    } state;
 
-   std::cout << "\n";
    state = START;
    for ( p = b->pos; p <= b->end ; p++ )
    {
@@ -1235,5 +1234,435 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
    }
 
    return UNICORE_INVALID_FIELD_LINES_ERROR;
+
+}
+
+int unicore_http_parse_chunked_body ( char *read_from , char *write_to , bool &chunked )
+{
+
+   enum 
+   {
+
+      START = 0,
+      CHUNK_SIZE,
+      CHUNK_EXT_BWS_BEFORE_SEMI_COLON,
+      CHUNK_EXT_SEMI_COLON,
+      CHUNK_EXT_BWS_AFTER_SEMI_COLON,
+      CHUNK_EXT_NAME,
+      CHUNK_EXT_BWS_BEFORE_EQUALS,
+      CHUNK_EXT_EQUALS,
+      CHUNK_EXT_BWS_AFTER_EQUALS,
+      CHUNK_EXT_VALUE,
+      CHUNK_CR,
+      CHUNK_LF,
+      CHUNK_DATA,
+      CHUNK_FINAL_CR,
+      CHUNK_FINAL_LF,
+      LAST_CHUNK_ZERO,
+      LAST_CHUNK_EXT_BWS_BEFORE_SEMI_COLON,
+      LAST_CHUNK_EXT_BWS_AFTER_SEMI_COLON,
+      LAST_CHUNK_EXT_SEMI_COLON,
+      LAST_CHUNK_EXT_NAME,
+      LAST_CHUNK_EXT_BWS_BEFORE_EQUALS,
+      LAST_CHUNK_EXT_EQUALS,
+      LAST_CHUNK_EXT_BWS_AFTER_EQUALS,
+      LAST_CHUNK_EXT_VALUE,
+      LAST_CHUNK_CR,
+      LAST_CHUNK_LF,
+      TRAILER_SECTION,
+      CHUNKED_TOTAL_CR,
+      CHUNKED_TOTAL_LF
+
+   } state;
+
+   state = START;
+   for ( size_t i = 0 ; char ch = read_from [ i ] ; i++ )
+   {
+
+      switch ( state )
+      {
+
+         case START:
+            if ( ch == '0' )
+            {
+
+               i++;
+               for ( ; ch = read_from [ i ] ; i++ )
+               {
+
+                  if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
+                        ( ch >= 'a' and ch <= 'f' ) )
+                  {
+
+                     state = CHUNK_SIZE;
+                     break;
+
+                  }
+                  if ( ch != '0' )
+                     return -1;
+                  state = LAST_CHUNK_ZERO;
+
+               }
+
+            }
+            else if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
+                        ( ch >= 'a' and ch <= 'f' ) )
+               state = CHUNK_SIZE;
+            else
+               return -1;
+            break;
+            
+         case CHUNK_SIZE:
+            if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
+                        ( ch >= 'a' and ch <= 'f' ) )
+               break;
+            
+            switch ( ch )
+            {
+
+               case SP:
+               case HT:
+                  state = CHUNK_EXT_BWS_BEFORE_SEMI_COLON;
+                  break;
+               case ';':
+                  state = CHUNK_EXT_SEMI_COLON;
+               case CR:
+                  state = CHUNK_CR;
+                  break;
+               case LF:
+                  state = CHUNK_LF;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case CHUNK_EXT_BWS_BEFORE_SEMI_COLON:
+            if ( ch == SP or ch == HT )
+               break;
+            else if ( ch == ';' )
+               state = CHUNK_EXT_SEMI_COLON;
+            else
+               return -1;
+            break;
+
+         case CHUNK_EXT_SEMI_COLON:
+            if ( TCHAR( ch ) )
+            {
+
+               state = CHUNK_EXT_NAME;
+               break;
+
+            }
+
+
+            switch ( ch )
+            {
+
+               case SP:
+               case HT:
+                  state = CHUNK_EXT_BWS_AFTER_SEMI_COLON;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case CHUNK_EXT_BWS_AFTER_SEMI_COLON:
+            if ( ch == SP or ch == HT )
+               break;
+            else if ( TCHAR( ch ) )
+               state = CHUNK_EXT_NAME;
+            else
+               return -1;
+            break;
+
+         case CHUNK_EXT_NAME:
+            if ( TCHAR( ch ) )
+               break;
+
+            switch ( ch )
+            {
+
+               case SP:
+               case HT:
+                  state = CHUNK_EXT_BWS_BEFORE_EQUALS;
+                  break;
+               case '=':
+                  state = CHUNK_EXT_EQUALS;
+                  break;
+               case CR:
+                  state = CHUNK_CR;
+                  break;
+               case LF:
+                  state = CHUNK_LF;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case CHUNK_EXT_BWS_BEFORE_EQUALS:
+            if ( ch == SP or ch == HT )
+               break;
+            else if ( ch == '=' )
+               state = CHUNK_EXT_EQUALS;
+            else
+               return -1;
+            break;
+
+         case CHUNK_EXT_EQUALS:
+            if ( TCHAR( ch ) )
+               state = CHUNK_EXT_VALUE;
+            else if ( ch == SP or ch == HT )
+               state = CHUNK_EXT_BWS_AFTER_EQUALS;
+            else
+               return -1;
+            break;
+
+         case CHUNK_EXT_BWS_AFTER_EQUALS:
+            if ( ch == SP or ch == HT )
+               break;
+            else if ( TCHAR( ch ) )
+               state = CHUNK_EXT_VALUE;
+            else
+               return -1;
+            break;
+
+         case CHUNK_EXT_VALUE:
+            if ( TCHAR( ch ) )
+               break;
+            
+            switch ( ch )
+            {
+
+               case CR:
+                  state = CHUNK_CR;
+                  break;
+               case LF:
+                  state = CHUNK_LF;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case CHUNK_CR:
+            if ( ch == LF )
+               state = CHUNK_LF;
+            else
+               return -1;
+            break;
+
+         case CHUNK_LF:
+            state = CHUNK_DATA;
+            break;
+
+         case CHUNK_DATA:
+            switch ( ch )
+            {
+
+               case CR:
+                  state = CHUNK_FINAL_CR;
+                  break;
+               case LF:
+                  state = CHUNK_FINAL_LF;
+                  break;
+
+            }
+            break;
+
+         case CHUNK_FINAL_CR:
+            if ( ch == LF )
+               state = CHUNK_FINAL_LF;
+            else
+               return -1;
+            break;
+
+         case CHUNK_FINAL_LF:
+            if ( ch == '0' )
+            {
+
+               i++;
+               for ( ; ch = read_from [ i ] ; i++ )
+               {
+
+                  if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
+                        ( ch >= 'a' and ch <= 'f' ) )
+                  {
+
+                     state = CHUNK_SIZE;
+                     break;
+
+                  }
+                  if ( ch != '0' )
+                     return -1;
+                  state = LAST_CHUNK_ZERO;
+
+               }
+
+            }
+            else if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
+                        ( ch >= 'a' and ch <= 'f' ) )
+               state = CHUNK_SIZE;
+            else
+               return 1;
+            break;
+
+         case LAST_CHUNK_ZERO:
+            switch ( ch )
+            {
+
+               case SP:
+               case HT:
+                  state = LAST_CHUNK_EXT_BWS_BEFORE_SEMI_COLON;
+                  break;
+               case CR:
+                  state = LAST_CHUNK_CR;
+                  break;
+               case LF:
+                  state = LAST_CHUNK_LF;
+                  break;
+               case ';':
+                  state = LAST_CHUNK_EXT_SEMI_COLON;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case LAST_CHUNK_EXT_BWS_BEFORE_SEMI_COLON:
+            if ( ch == SP or ch == HT )
+               break;
+            else if ( ch == ';' )
+               state = LAST_CHUNK_EXT_SEMI_COLON;
+            else
+               return -1;
+            break;
+
+         case LAST_CHUNK_EXT_BWS_AFTER_SEMI_COLON:
+            if ( ch == SP or ch == HT )
+               break;
+            else if ( TCHAR( ch ) )
+               state = LAST_CHUNK_EXT_NAME;
+            else
+               return -1;
+            break;
+
+         case LAST_CHUNK_EXT_SEMI_COLON:
+            if ( TCHAR( ch ) )
+               state = LAST_CHUNK_EXT_NAME;
+            else if ( ch == SP or ch == HT )
+               state = LAST_CHUNK_EXT_BWS_AFTER_SEMI_COLON;
+            else
+               return -1;
+            break;
+
+         case LAST_CHUNK_EXT_NAME:
+            if ( TCHAR( ch ) )
+               break;
+            
+            switch ( ch )
+            {
+
+               case SP:
+               case HT:
+                  state = LAST_CHUNK_EXT_BWS_BEFORE_EQUALS;
+                  break;
+               case '=':
+                  state = LAST_CHUNK_EXT_EQUALS;
+                  break;
+               case CR:
+                  state = LAST_CHUNK_CR;
+                  break;
+               case LF:
+                  state = LAST_CHUNK_LF;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case LAST_CHUNK_EXT_BWS_BEFORE_EQUALS:
+            if ( ch == SP or ch == HT )
+               break;
+            else if ( ch == '=' )
+               state = LAST_CHUNK_EXT_EQUALS;
+            else
+               return -1;
+            break;
+
+         case LAST_CHUNK_EXT_EQUALS:
+            if ( ch == SP or ch == HT )
+               state = LAST_CHUNK_EXT_BWS_AFTER_EQUALS;
+            else if ( TCHAR( ch ) )
+               state = LAST_CHUNK_EXT_VALUE;
+            else
+               return -1;
+            break;
+
+         case LAST_CHUNK_EXT_BWS_AFTER_EQUALS:
+            if ( ch == SP or ch == HT )
+               break;
+            else if ( TCHAR( ch ) )
+               state = LAST_CHUNK_EXT_VALUE;
+            else
+               return -1;
+            break;
+
+         case LAST_CHUNK_EXT_VALUE:
+            if ( TCHAR( ch ) )
+               break;
+            else if ( ch == CR )
+               state = LAST_CHUNK_CR;
+            else if ( ch == LF )
+               state = LAST_CHUNK_LF;
+            else
+               return -1;
+            break;
+
+         case LAST_CHUNK_CR:
+            if ( ch == LF )
+               state = LAST_CHUNK_LF;
+            else
+               return -1;
+            break;
+
+         case LAST_CHUNK_LF:
+            if ( TCHAR( ch ) )
+               state = TRAILER_SECTION;
+            else if ( ch == CR )
+               state = CHUNKED_TOTAL_CR;
+            else if ( ch == LF )
+               state = CHUNKED_TOTAL_LF;
+            else
+               return -1;
+            break;
+
+         case TRAILER_SECTION:
+            // if parsing trailer succeeds then accept state
+            break;
+
+         case CHUNKED_TOTAL_CR:
+            if ( ch == LF )
+               state = CHUNKED_TOTAL_LF;
+            else
+               return -1;
+            break;
+         
+         case CHUNKED_TOTAL_LF:
+            return 1;
+
+      }
+
+   }
+
+   return -1;
 
 }
