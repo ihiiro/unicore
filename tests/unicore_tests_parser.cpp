@@ -431,13 +431,13 @@ will succeed because one CRLF terminates the field
         // b.pos = CHUNKED_MESSAGE_ACCEPTS [ i ];
         // b.end = b.start + std::strlen ( (const char *)CHUNKED_MESSAGE_ACCEPTS [ i ] );
         bool x = 0;
-        std::cout << "[";
-       /* if ( */ unicore_http_parse_chunked_body ( &r , CHUNKED_MESSAGE_ACCEPTS [ i ] , NULL , x ); /*== 1 ) */
-        std::cout << "]";
-       std::cout << "\n";
-            // std::cout << "\e[0;32mpass, ";
-        // else
-            // std::cout << "\e[0;31mfail, ";
+        // std::cout << "{";
+        if (  unicore_http_parse_chunked_body ( &r , CHUNKED_MESSAGE_ACCEPTS [ i ] , NULL , x ) == 1 )
+        // std::cout << "}";
+        // std::cout << "\n";
+            std::cout << "\e[0;32mpass, ";
+        else
+            std::cout << "\e[0;31mfail, ";
 
     }
 

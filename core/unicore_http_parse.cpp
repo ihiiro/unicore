@@ -1243,6 +1243,7 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
    ( void )write_to;
    ( void )chunked;
    unicore_buf_t b;
+   char ch;
    
    b.end = b.start + std::strlen ( read_from ); // read_from should be null terminated
    enum 
@@ -1281,36 +1282,15 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
    } state;
 
    state = START;
-   for ( size_t i = 0 ; char ch = read_from [ i ] ; i++ )
+   for ( size_t i = 0 ; ( ch = read_from [ i ] ) ; i++ )
    {
 
-      std::cout << ch;
       switch ( state )
       {
 
          case START:
             if ( ch == '0' )
-            {
-
-               i++;
-               for ( ; ( ch = read_from [ i ] ) ; i++ )
-               {
-
-                  if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
-                        ( ch >= 'a' and ch <= 'f' ) )
-                  {
-
-                     state = CHUNK_SIZE;
-                     break;
-
-                  }
-                  if ( ch != '0' )
-                     return -1;
-                  state = LAST_CHUNK_ZERO;
-
-               }
-
-            }
+               state = LAST_CHUNK_ZERO;
             else if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
                         ( ch >= 'a' and ch <= 'f' ) )
                state = CHUNK_SIZE;
@@ -1332,6 +1312,7 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
                   break;
                case ';':
                   state = CHUNK_EXT_SEMI_COLON;
+                  break;
                case CR:
                   state = CHUNK_CR;
                   break;
@@ -1491,27 +1472,7 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
 
          case CHUNK_FINAL_LF:
             if ( ch == '0' )
-            {
-
-               i++;
-               for ( ; ( ch = read_from [ i ] ) ; i++ )
-               {
-
-                  if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
-                        ( ch >= 'a' and ch <= 'f' ) )
-                  {
-
-                     state = CHUNK_SIZE;
-                     break;
-
-                  }
-                  if ( ch != '0' )
-                     return -1;
-                  state = LAST_CHUNK_ZERO;
-
-               }
-
-            }
+               state = LAST_CHUNK_ZERO;
             else if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
                         ( ch >= 'a' and ch <= 'f' ) )
                state = CHUNK_SIZE;
@@ -1520,12 +1481,23 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
             break;
 
          case LAST_CHUNK_ZERO:
+            if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
+                        ( ch >= 'a' and ch <= 'f' ) )
+            {
+
+               state = CHUNK_SIZE;
+               break;
+
+            }
+         
             switch ( ch )
             {
 
                case SP:
                case HT:
                   state = LAST_CHUNK_EXT_BWS_BEFORE_SEMI_COLON;
+                  break;
+               case '0':
                   break;
                case CR:
                   state = LAST_CHUNK_CR;
@@ -1674,6 +1646,8 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
 
    }
 
+   if ( state == CHUNKED_TOTAL_LF or state == CHUNK_FINAL_LF )
+      return 1;
    return -1;
 
 }
