@@ -15,6 +15,8 @@
 
 int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b 
             , unicore_config_t& c );
+
 int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b );
 
+// write_to to become std::string&
 int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , char *write_to , bool &chunked );

@@ -1284,6 +1284,7 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
    for ( size_t i = 0 ; char ch = read_from [ i ] ; i++ )
    {
 
+      std::cout << ch;
       switch ( state )
       {
 
@@ -1676,3 +1677,21 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
    return -1;
 
 }
+
+/*
+
+   client { chunked , received , buf }
+
+   parse_message_body ( client )
+      if transfer-encoding and content-length
+         error
+      else if transfer-encoding
+         client.chunked = 1
+         client.received := parse chunked ( client.received )
+         client.buf += client.received
+         if received last chunk
+            client.chunked = 0
+      else
+         naive fill
+
+*/
