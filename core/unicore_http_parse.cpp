@@ -1244,6 +1244,23 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
    ( void )chunked;
    unicore_buf_t b;
    char ch;
+   size_t chunk_size = 0;
+   int hex_count = 0;
+   u_int hex_dec [ ] = { 
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 ,
+      8 , 9 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 ,10 ,11 ,12 ,13 ,14 ,15 , 0 ,
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
+      0 ,10 ,11 ,12 ,13 ,14 ,15 , 0
+    };
    
    enum 
    {
@@ -1292,16 +1309,28 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
                state = LAST_CHUNK_ZERO;
             else if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
                         ( ch >= 'a' and ch <= 'f' ) )
+            {
+
                state = CHUNK_SIZE;
+               chunk_size = chunk_size * 16 + hex_dec [  ( int )ch ];
+               hex_count++;
+
+            }
             else
                return -1;
             break;
             
          case CHUNK_SIZE:
-            if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
-                        ( ch >= 'a' and ch <= 'f' ) )
+            if ( ( ( ch >= '0' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
+                        ( ch >= 'a' and ch <= 'f' ) ) and hex_count < 11 )
+            {
+
+               chunk_size = chunk_size * 16 + hex_dec [  ( int )ch ];
+               hex_count++;
                break;
-            
+
+            }
+         
             switch ( ch )
             {
 
@@ -1445,10 +1474,21 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
 
          case CHUNK_LF:
+            chunk_size--;
+            write_to.append ( 1 , ch );
             state = CHUNK_DATA;
             break;
 
          case CHUNK_DATA:
+            if ( chunk_size-- )
+            {
+
+               write_to.append ( 1 , ch );
+               break;
+
+            }
+            
+
             switch ( ch )
             {
 
@@ -1460,6 +1500,8 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
                   break;
 
             }
+            if ( chunk_size == 0 )
+               return -1;
             break;
 
          case CHUNK_FINAL_CR:
@@ -1474,17 +1516,26 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
                state = LAST_CHUNK_ZERO;
             else if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
                         ( ch >= 'a' and ch <= 'f' ) )
+            {
+
                state = CHUNK_SIZE;
+               chunk_size = chunk_size * 16 + hex_dec [  ( int )ch ];
+               hex_count++;
+
+            }
             else
                return 1;
             break;
 
          case LAST_CHUNK_ZERO:
+            chunk_size = 0;
             if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
                         ( ch >= 'a' and ch <= 'f' ) )
             {
 
                state = CHUNK_SIZE;
+               chunk_size = chunk_size * 16 + hex_dec [  ( int )ch ];
+               hex_count++;
                break;
 
             }
