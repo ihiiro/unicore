@@ -5,6 +5,8 @@
 #include "unicore_request.hpp"
 #include "unicore_config_parse.hpp"
 
+#include <string>
+
 #ifndef PYTHON
     #define PYTHON 0
 #endif
@@ -18,5 +20,4 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
 
 int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b );
 
-// write_to to become std::string&
-int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , char *write_to , bool &chunked );
+int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , std::string& write_to , bool &chunked );

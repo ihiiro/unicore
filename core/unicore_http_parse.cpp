@@ -1237,7 +1237,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
 
 }
 
-int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , char *write_to , bool &chunked )
+int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , std::string& write_to , bool &chunked )
 {
 
    ( void )write_to;
@@ -1245,7 +1245,6 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
    unicore_buf_t b;
    char ch;
    
-   b.end = b.start + std::strlen ( read_from ); // read_from should be null terminated
    enum 
    {
 
@@ -1626,11 +1625,10 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , c
          case TRAILER_SECTION:
             b.pos = ( u_char * )&read_from [ i ];
             b.start = b.pos;
-            if ( unicore_http_parse_field_lines ( r , &b ) )
+            b.end = b.start + std::strlen ( read_from ); // read_from should be null terminated
+            if ( unicore_http_parse_field_lines ( r , &b ) == 1 )
                return 1;
-            else
-               return -1;
-            break;
+            return -1;
 
          case CHUNKED_TOTAL_CR:
             if ( ch == LF )

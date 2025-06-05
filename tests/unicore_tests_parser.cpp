@@ -429,7 +429,8 @@ will succeed because one CRLF terminates the field
     {
 
         bool x = 0;
-        if (  unicore_http_parse_chunked_body ( &r , CHUNKED_MESSAGE_ACCEPTS [ i ] , NULL , x ) == 1 )
+        std::string y = "";
+        if (  unicore_http_parse_chunked_body ( &r , CHUNKED_MESSAGE_ACCEPTS [ i ] ,  y , x ) == 1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
