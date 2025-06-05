@@ -193,6 +193,7 @@ will succeed because one CRLF terminates the field
         std::cout << "\e[0;31mfail, ";
 
     std::cout << "\n\t\t\t\t\e[1;37mCONFIGURATION\e[0m\n";
+    std::cout << "ACCEPTS\n";
     char *passes[] = {
         (char *)"tests/pass0.conf",
         (char *)"tests/pass1.conf",
@@ -427,14 +428,8 @@ will succeed because one CRLF terminates the field
     for ( int i = 0; i < 16; i++ )
     {
 
-        // b.start = CHUNKED_MESSAGE_ACCEPTS [ i ];
-        // b.pos = CHUNKED_MESSAGE_ACCEPTS [ i ];
-        // b.end = b.start + std::strlen ( (const char *)CHUNKED_MESSAGE_ACCEPTS [ i ] );
         bool x = 0;
-        // std::cout << "{";
         if (  unicore_http_parse_chunked_body ( &r , CHUNKED_MESSAGE_ACCEPTS [ i ] , NULL , x ) == 1 )
-        // std::cout << "}";
-        // std::cout << "\n";
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
