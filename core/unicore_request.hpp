@@ -70,7 +70,7 @@ typedef struct
 
 // GET /ROOT/(PCHAR/PCHAR...)[ "?" query ] HTTP/1.1
 // upper case fields are CGI/1.1 variables (RFC 3875)
-typedef struct
+typedef struct 
 {
 
     ht              *headers;           /* hash table by field name */
