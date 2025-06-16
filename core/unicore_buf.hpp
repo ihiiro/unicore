@@ -5,6 +5,8 @@
 typedef struct
 {
     u_char          *pos;
+    u_char      *fdjskfjds;
+    int x;
     u_char          *start; /* start of buffer */
     u_char          *end;   /* end of buffer */
 } unicore_buf_t;
