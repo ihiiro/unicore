@@ -1,0 +1,4 @@
+*.tldr
+notes.txt
+*.o
+parser_tests
