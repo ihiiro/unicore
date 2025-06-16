@@ -93,6 +93,7 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 if ( HCHAR( ch ) )
                 {
 
+                    c.push_back ( ( unicore_config_t ){ } );
                     std::memset ( primary_buf , 0 , 512 );
                     i = 0;
                     primary_buf [ i++ ] = ch;
@@ -116,7 +117,6 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 break;
 
             case SERVER_BLOCK_SENTRY_HOST:
-                c.push_back ( ( unicore_config_t ){ } );
                 if ( HCHAR( ch ) )
                 {
 
@@ -343,6 +343,7 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 if ( HCHAR( ch ) )
                 {
 
+                    c.push_back ( ( unicore_config_t ){ } );
                     std::memset ( primary_buf , 0 , 512 );
                     i = 0;
                     primary_buf [ i++ ] = ch;
@@ -1171,6 +1172,7 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 if ( HCHAR( ch ) )
                 {
 
+                    c.push_back ( ( unicore_config_t ){ } );
                     std::memset ( primary_buf , 0 , 512 );
                     i = 0;
                     primary_buf [ i++ ] = ch;
