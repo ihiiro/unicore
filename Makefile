@@ -10,7 +10,7 @@ RESPONSE_CFILES = core/unicore_http_parse.cpp \
 		core/unicore_config_parse.cpp \
 		tests/unicore_tests_response.cpp
 
-HEADERS = core/unicore_defines.hpp \
+HEADERS = core/unicore_defines.hpp \ 
 			core/unicore_buf.hpp \
 			core/unicore_http_parse.hpp \
 			core/unicore_request.hpp \
