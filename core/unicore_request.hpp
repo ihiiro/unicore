@@ -74,6 +74,7 @@ typedef struct
 {
 
     ht              *headers;           /* hash table by field name */
+    u_char          *absolute_path;     /* origin-form without query part ( stored for redirection table lookup ) */
     u_char          *static_uri_path;   /* non-dynamic requests */
     unicore_route_t *route;
 

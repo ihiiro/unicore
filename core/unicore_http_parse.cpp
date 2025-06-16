@@ -20,8 +20,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
 
    (void)b;
    (void)r;
-   u_char ch, *p, primary_buf [ 512 ], secondary_buf [ 512 ];
-   int primary_i = 0, secondary_i = 0, path_info_start, portion = 0;
+   u_char ch, *p, primary_buf [ 512 ], secondary_buf [ 512 ], tertiary_buf [ 512 ];
+   int primary_i = 0, secondary_i = 0, tertiary_i = 0, path_info_start, portion = 0;
    bucket *bucket;
    std::memset ( primary_buf , 0 , 512 );
    std::memset ( secondary_buf , 0 , 512 );
@@ -372,6 +372,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
                case '/':
                   portion = 1;
                   primary_buf [ primary_i++ ] = ch;
+                  tertiary_buf [ tertiary_i++ ] = ch;
                   state = ORIGIN_FORM_FORWARD_SLASH;
                   break;
                default:
@@ -392,9 +393,10 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             if ( PCHAR(ch) )
             {
 
-               if ( primary_i > 510 )
+               if ( primary_i > 510 or tertiary_i > 510  )
                   return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
                primary_buf [ primary_i++ ] = ch;
+               tertiary_buf [ tertiary_i++ ] = ch;
                state = URI_SEGMENT;
                break;
 
@@ -440,12 +442,14 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             if ( PCHAR( ch ) )
             {
 
+               if ( tertiary_i > 510 )
+                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+               tertiary_buf [ tertiary_i++ ] = ch;
                if ( ( portion == 1 or portion == 2 ) and p [ 0 ] == '.' and ( 
                   ( p [ 1 ] and p [ 1 ] == 'p' and p [ 2 ] and p [ 2 ] == 'y' ) or
                   ( p [ 1 ] and p [ 1 ] == 'p' and p [ 2 ] and p [ 2 ] == 'h' and
                            p [ 3 ] and p [ 3 ] == 'p' ) ) )
                {
-
 
                   if ( portion == 1 )
                   {
@@ -510,8 +514,8 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
                
                // std::cout << "PRIMARY BUF " << primary_buf;
                // std::exit (1);
-               bucket = get ( c.routes , primary_buf ); // here
-               /* if second hierarchy route exists then its part of route component 
+               bucket = get ( c.routes , primary_buf );
+               /* if second hierarchy route exists then it is part of the route component 
                      and shouldn't be in SCRIPT_NAME which also uses primary_buf */
                // std::cout << "ROUTE " << primary_buf << "\n";
                if ( bucket )
@@ -551,9 +555,10 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
                   break;
                case '/':
-                  if ( primary_i > 510 )
+                  if ( primary_i > 510 or tertiary_i > 510 )
                      return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
                   primary_buf [ primary_i++ ] = ch;
+                  tertiary_buf [ tertiary_i++ ] = ch;
                   state = ORIGIN_FORM_FORWARD_SLASH;
                   break;
                case '?':
@@ -693,6 +698,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
             break;
 
          case ORIGIN_FORM_VALIDATED_BY_SP:
+
             // std::cout << "ROOT " << r->route->root << "\n";
             if ( r->cgi == 0 and r->static_uri_path == NULL )
             {
@@ -701,6 +707,18 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
                for ( int i = 0 ; i < primary_i ; i++ )
                   r->static_uri_path [ i ] = primary_buf [ i ];
                r->static_uri_path [ primary_i ] = '\0';
+
+            }
+
+            if ( r->absolute_path == NULL )
+            {
+
+               r->absolute_path = new u_char [ tertiary_i + 1 ];
+               for ( int i = 0 ; i < tertiary_i ; i++ )
+                  r->absolute_path [ i ] = tertiary_buf [ i ];
+               r->absolute_path [ tertiary_i ] = '\0';
+
+               // std::cout << "ABSOLUTE PATH " << r->absolute_path << "?\n";
 
             }
             
