@@ -3,7 +3,7 @@
 #include <sys/types.h>
 
 typedef struct
-{
+{ 
     u_char          *pos;
     u_char      *fdjskfjds;
     int x;
