@@ -16,8 +16,9 @@ int main(int argc, char *argv[])
 	WebServer webServer(path);
 	if (!webServer.init())
 	{
-		std::cerr << "Failed to initialize web server." << std::endl;
+		std::cerr << "Web server failed" << std::endl;
 		return 1;
 	}
+
     return 0;
 }
