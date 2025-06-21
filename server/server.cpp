@@ -1,5 +1,11 @@
 #include "server.hpp"
 
+server::server(const server &other)
+    : sockfd(other.sockfd), listen_sockfd(other.listen_sockfd), failed(other.failed),
+      port(other.port), host(other.host), info(other.info)
+{
+}
+
 int create_and_bind_socket(int port, const char* ip)
 {
     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -48,7 +54,7 @@ WebServer::WebServer(const std::string &configPath) :  config_file(configPath)
 }
 
 server::server(const std::string &host, const size_t &port, const unicore_config_t &info)
-    : info(info), failed(false), listen_sockfd(-1), port(port), host(host)
+    : failed(false), listen_sockfd(-1), port(port), host(host) ,info(info)
 {
     std::cout << "Server created for " << host << ":" << port << std::endl;
     failed = false;
@@ -75,13 +81,15 @@ int WebServer::init()
     std::vector<unicore_config_t> config;
     std::ifstream configFile(config_file);
 
+    memset(events, 0, sizeof(events));
+
     if (!configFile.is_open())
     {
         std::cerr << "Error opening configuration file: " << config_file << std::endl;
         return 0;
     }
 
-    if (!unicore_config_parse(configFile, config))
+    if (unicore_config_parse(configFile, config) == -1)
     {
         std::cerr << "Error parsing configuration file: " << config_file << std::endl;
         return 0;
@@ -100,21 +108,20 @@ int WebServer::init()
     {
         const unicore_config_t &info = *it;
         std::string host = info.host;
-        server *srv = new server(host, info.port, info);
-        if (srv->failed)
+        server srv =server(host, info.port, info);
+        if (srv.failed)
         {
             std::cerr << "Failed to create server for " << host << ":" << info.port << std::endl;
             continue;
         }
-        servers.push_back(*srv);
+        servers.push_back(srv);
         struct kevent event;
-        EV_SET(&event, srv->listen_sockfd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, &servers[i]);
+        EV_SET(&event, srv.listen_sockfd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, &servers[i]);
         if (kevent(kq, &event, 1, nullptr, 0, nullptr) < 0)
         {
             std::cerr << "Error registering listen socket with kqueue" << std::endl;
             return -1;
         }
-        delete srv;
         i++;
     }
     return this->run();
@@ -173,8 +180,13 @@ int WebServer::run()
                 else if (event.ident == static_cast<uintptr_t>(srv->sockfd))
                 {
                     std::cout << "Handling read event on fd " << event.ident << std::endl;
+                    unicore_buf_t buf_req;
                     char buf[4096];
+                    buf_req.pos = ( u_char * )buf;
+                    buf_req.start = buf_req.pos;
+
                     ssize_t bytes = recv(event.ident, buf, sizeof(buf), 0);
+                    buf_req.end = buf_req.pos + bytes;
                     if (bytes <= 0)
                     {
                         if (bytes < 0)
@@ -186,9 +198,45 @@ int WebServer::run()
                     }
                     else
                     {
-                        std::cout << "Received " << bytes << " bytes: ";
-                        std::cout.write(buf, bytes);
+                        // std::cout << "Received " << bytes << " bytes: ";
+                        // std::cout.write(buf, bytes);
+                        unicore_request_t request;
+                        if ( srv->info.routes == NULL )
+                        {
+                            std::cerr << "bad";
+                            std::exit(1);
+                        }
+                        if ( unicore_http_parse_request_line ( &request , &buf_req , srv->info ) == 1 )
+                        {
+
+                            request.headers = new ht;
+                            request.headers->buckets = new bucket [ M ];
+                            std::memset ( request.headers->buckets , 0 , M );
+                            if ( unicore_http_parse_field_lines ( &request , &buf_req ) == 1 )
+                                std::cout << "parsed request-line and field-lines successfully" << std::endl;
+
+                        }
+                        http_response_t response;
+
+                        response = build_http_response(request, 0, 0, srv->info);
+                        std::string response_str = format_http_response(response);
+                        ssize_t sent_bytes = send(event.ident, response_str.c_str(), response_str.size(), 0);
+                        if (sent_bytes < 0)
+                        {
+                            std::cerr << "Error sending response on fd " << event.ident << std::endl;
+                        }
+                        else
+                        {
+                            std::cout << "Sent " << sent_bytes << " bytes in response." << std::endl;
+                        }
+
+
+
+//request               
+//rsponse
+//send
                         std::cout << std::endl;
+                        close(event.ident);
                     }
                 }
                 else

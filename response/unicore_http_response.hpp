@@ -1,7 +1,7 @@
 
 #pragma once
-#include "unicore_request.hpp"
-#include "unicore_config_parse.hpp"
+#include "../core/unicore_request.hpp"
+#include "../core/unicore_config_parse.hpp"
 #include <map>
 #include <ostream>
 #include <fstream>

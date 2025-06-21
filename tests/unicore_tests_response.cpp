@@ -58,12 +58,18 @@ int main ( )
     }
     // std::cout << "client ip int: " << peer_addr.sin_addr.s_addr;
     // std::cout << "\n";
-    std::ifstream stream ( "tests/config_pass.conf" );
+    std::ifstream stream ( "tests/pass.conf" );
     std::vector < unicore_config_t > c; 
-    unicore_config_parse ( stream , c );
-
-    while ( 1 )
+    if ( unicore_config_parse ( stream , c ) == -1 )
     {
+
+        std::cout << "bad conf\n";
+        std::exit(1);
+
+    }
+
+    // while ( 1 )
+    // {
 
         u_char buf [ 4096 ];
         memset ( buf , 0 , sizeof ( buf ) );
@@ -97,7 +103,7 @@ int main ( )
         if ( unicore_http_parse_field_lines ( &r , &b ) != -1 )
             std::cout << "field lines parsed\n";
 
-    }
+    // }
     
 
     // bucket *rb = get ( c [ 0 ].routes , ( u_char * )"/routes" );

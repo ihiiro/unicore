@@ -15,12 +15,12 @@
 # include <arpa/inet.h>
 # include "../core/unicore_http_parse.hpp"
 # include "../core/unicore_defines.hpp"
+#include "../response/unicore_http_response.hpp"
 
 class	server
 {
 	private:
 		bool				running;
-		unicore_config_t	info;
 
 	public:
 		int					sockfd;
@@ -28,7 +28,9 @@ class	server
 		bool				failed;
 		size_t				port;
 		std::string			host;
+		unicore_config_t	info;
 		server(const std::string& host, const size_t& port, const unicore_config_t& info);
+		server(const server& other);
 		~server();
 };
 

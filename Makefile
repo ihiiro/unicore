@@ -3,18 +3,22 @@ CFLAGS = -std=c++98 #-Wall -Wextra -Werror
 CFILES = main.cpp server/server.cpp \
 		core/unicore_http_parse.cpp \
 		core/unicore_hash_table.cpp \
-		core/unicore_config_parse.cpp
+		core/unicore_config_parse.cpp \
+		response/unicore_http_response.cpp 
+
 
 RESPONSE_CFILES = core/unicore_http_parse.cpp \
 		core/unicore_hash_table.cpp \
 		core/unicore_config_parse.cpp \
-		tests/unicore_tests_response.cpp
+		tests/unicore_tests_response.cpp \
+
 
 HEADERS = core/unicore_defines.hpp server/server.hpp \
 			core/unicore_buf.hpp \
 			core/unicore_http_parse.hpp \
 			core/unicore_request.hpp \
-			core/unicore_config_parse.hpp
+			core/unicore_config_parse.hpp \
+			response/unicore_http_response.hpp 
 
 PARSER_TESTS = parser_tests
 
@@ -28,6 +32,9 @@ RESPONSE_OFILES = $(RESPONSE_CFILES:.cpp=.o)
 
 OFILES = $(CFILES:.cpp=.o)
 
+response/%.o: response/%.cpp
+	c++ -g $(CFLAGS) -c $< -o $@
+
 tests/%.o: tests/%.cpp
 	c++ -g $(CFLAGS) -c $< -o $@
 
@@ -35,19 +42,19 @@ core/%.o: core/%.cpp
 	c++ -g $(CFLAGS) -c $< -o $@
 
 server/%.o: server/%.cpp
-	c++ -g $(CFLAGS) -c $< -o $@
+	c++  -g $(CFLAGS) -c $< -o $@
 
 %.o: %.cpp
 	c++ -g $(CFLAGS) -c $<
 
-# $(RESPONSE_TESTS): $(RESPONSE_OFILES) $(HEADERS) Makefile
-# 	c++ $(RESPONSE_OFILES) -o $@
+$(RESPONSE_TESTS): $(RESPONSE_OFILES) $(HEADERS) Makefile
+	c++ $(RESPONSE_OFILES) -o $@
 
 $(PARSER_TESTS): $(OFILES) $(HEADERS) Makefile
-	c++ $(OFILES) -o $@
+	c++ -g $(CFLAGS) $(OFILES) -o $@
 
 $(NAME): $(OFILES) $(HEADERS) Makefile
-	c++ $(OFILES) ${CFLAGS} -o $@
+	c++ -g $(OFILES) ${CFLAGS} -o $@
 
 all: $(NAME)
 

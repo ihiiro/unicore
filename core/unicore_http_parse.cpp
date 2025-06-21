@@ -514,6 +514,7 @@ int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b
                
                // std::cout << "PRIMARY BUF " << primary_buf;
                // std::exit (1);
+               std::cout << "ROUTE " << primary_buf << "\n";
                bucket = get ( c.routes , primary_buf );
                /* if second hierarchy route exists then it is part of the route component 
                      and shouldn't be in SCRIPT_NAME which also uses primary_buf */
