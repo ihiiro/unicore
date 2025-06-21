@@ -200,13 +200,15 @@ int WebServer::run()
                     {
                         // std::cout << "Received " << bytes << " bytes: ";
                         // std::cout.write(buf, bytes);
+                        int req_line;
                         unicore_request_t request;
                         if ( srv->info.routes == NULL )
                         {
                             std::cerr << "bad";
                             std::exit(1);
                         }
-                        if ( unicore_http_parse_request_line ( &request , &buf_req , srv->info ) == 1 )
+                        req_line = unicore_http_parse_request_line ( &request , &buf_req , srv->info );
+                        if (  req_line == 1 )
                         {
 
                             request.headers = new ht;
@@ -218,8 +220,9 @@ int WebServer::run()
                         }
                         http_response_t response;
 
-                        response = build_http_response(request, 0, 0, srv->info);
+                        response = build_http_response(request, req_line, 0, srv->info);
                         std::string response_str = format_http_response(response);
+                        // std::cout << "Response: " << response_str << std::endl;
                         ssize_t sent_bytes = send(event.ident, response_str.c_str(), response_str.size(), 0);
                         if (sent_bytes < 0)
                         {

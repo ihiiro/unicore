@@ -103,7 +103,7 @@ http_response_t    build_http_response(unicore_request_t &r, int req_line, int f
     std::cout << "uri_req: " << uri_req << "\n";
     std::ifstream file(uri_req.c_str());
 
-    if (!file.is_open())
+    if (!file.is_open() && req_line == -1)
     {
         response.status_code = 404; // Not Found
         response.reason_phrase = status_codes[404];
@@ -114,11 +114,13 @@ http_response_t    build_http_response(unicore_request_t &r, int req_line, int f
     }
     else
     {
+        std::cout << "response entred \n";
         bucket = get(config.redirection_list, r.static_uri_path);
         int path_type = check_path_type(uri_req);
         //redirect or not
         if (bucket && bucket->value != NULL)
         {
+            std::cout << "Redirecting to: " << (char *)bucket->value << "\n";
             response.status_code = 301; // Moved Permanently
             response.reason_phrase = status_codes[301];
             response.headers["Location"] = (char *)bucket->value;
@@ -172,18 +174,18 @@ http_response_t    build_http_response(unicore_request_t &r, int req_line, int f
                         response.headers["Connection"] = "close";
                     }
                 }
-                else if (r.REQUEST_METHOD == POST && r.route->ROUTE_POST)
-                {
-                    // Handle POST request
-                }
-                else if (r.REQUEST_METHOD == POST && !r.route->ROUTE_POST )
-                {
-                    // Handle POST request but route does not support it
-                }
-                else if (r.REQUEST_METHOD == DELETE && r.route->ROUTE_DELETE)
-                {
-                    // Handle DELETE request
-                }
+                // else if (r.REQUEST_METHOD == POST && r.route->ROUTE_POST)
+                // {
+                //     // Handle POST request
+                // }
+                // else if (r.REQUEST_METHOD == POST && !r.route->ROUTE_POST )
+                // {
+                //     // Handle POST request but route does not support it
+                // }
+                // else if (r.REQUEST_METHOD == DELETE && r.route->ROUTE_DELETE)
+                // {
+                //     // Handle DELETE request
+                // }
                 else
                 {
                     response.status_code = 405; // Method Not Allowed
@@ -195,6 +197,8 @@ http_response_t    build_http_response(unicore_request_t &r, int req_line, int f
                 }
             }
         }
+        //print the response
+
     }
     return response;
 }
