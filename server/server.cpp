@@ -61,7 +61,7 @@ WebServer::WebServer(const std::string &configPath) :  config_file(configPath)
 server::server(const std::string &host, const size_t &port, const unicore_config_t &info)
     : failed(false), listen_sockfd(-1), port(port), host(host) ,info(info)
 {
-    std::cout << "Server created for " << host << ":" << port << std::endl;
+    std::cerr << "Server created for " << host << ":" << port << std::endl;
     failed = false;
 
     listen_sockfd = create_and_bind_socket(port, host.c_str());
@@ -152,6 +152,7 @@ bool WebServer::check_all_failed() const
 
 int WebServer::run()
 {
+    int counter = 0;
     if (servers.empty() || check_all_failed())
     {
         std::cerr << "No servers initialized. Exiting." << std::endl;
@@ -168,6 +169,7 @@ int WebServer::run()
 
         for (int i = 0; i < num_events; ++i)
         {
+            std::cerr << "Event " << i << " of " << num_events << std::endl;
             struct kevent &event = events[i];
 
             if (event.filter == EVFILT_READ)
@@ -195,34 +197,49 @@ int WebServer::run()
                         continue;
                     }
 
-                    std::cout << "Accepted connection on " << srv->host << ":" << srv->port << std::endl;
+                    std::cerr << "Accepted connection on " << srv->host << ":" << srv->port << std::endl;
                 }
                 else if (event.ident == static_cast<uintptr_t>(srv->sockfd))
                 {
-                    std::cout << "Handling read event on fd " << event.ident << std::endl;
-                    std::cerr << "Listen socket fd: " << srv->listen_sockfd << std::endl;
-                    std::cerr << "Socket fd: " << srv->sockfd << std::endl;
-                    std::cerr << "Server: " << srv->host << ":" << srv->port << std::endl;
+                    std::cerr << "Handling read event on fd " << event.ident << std::endl;
                     unicore_buf_t buf_req;
-                    char buf[4096];
+                    u_char buf[1048576];
+                    std::memset(buf, 0, sizeof(buf));
                     buf_req.pos = ( u_char * )buf;
                     buf_req.start = buf_req.pos;
-
-                    ssize_t bytes = recv(event.ident, buf, sizeof(buf), 0);
+                    ssize_t bytes;
+                    while ((bytes = recv(event.ident, buf, 1048576, 0)) != 0)
+                    {
+                        // std::cerr << "Received " << bytes << " counter is " << counter << " bytes: " << std::endl;
+                        write(STDOUT_FILENO, buf, bytes);
+                        if (bytes > 1048576)
+                        {
+                            std::cerr << "Received too much data on fd " << event.ident << std::endl;
+                            close(event.ident);
+                            break;
+                        }
+                        // if (bytes <= 0)
+                        // {
+                        //     std::cerr << "Error peeking data on fd " << event.ident << std::endl;
+                        //     close(event.ident);
+                        //     break;
+                        // }
+                        buf_req.pos += bytes;
+                    }
                     buf_req.end = buf_req.pos + bytes;
                     if (bytes <= 0)
                     {
                         if (bytes < 0)
                             std::cerr << "Read error on fd " << event.ident << std::endl;
                         else
-                            std::cout << "Client disconnected on fd " << event.ident << std::endl;
+                            std::cerr << "Client disconnected on fd " << event.ident << std::endl;
 
                         close(event.ident);
                     }
                     else
                     {
-                        // std::cout << "Received " << bytes << " bytes: ";
-                        // std::cout.write(buf, bytes);
+                        counter++;
+                        std::cerr << std::endl;
                         int req_line;
                         unicore_request_t request;
                         if ( srv->info.routes == NULL )
@@ -238,30 +255,30 @@ int WebServer::run()
                             request.headers->buckets = new bucket [ M ];
                             std::memset ( request.headers->buckets , 0 , M );
                             if ( unicore_http_parse_field_lines ( &request , &buf_req ) == 1 )
-                                std::cout << "parsed request-line and field-lines successfully" << std::endl;
+                                std::cerr << "parsed request-line and field-lines successfully" << std::endl;
 
                         }
-                        http_response_t response;
+                        // http_response_t response;
 
-                        response = build_http_response(request, req_line, 0, srv->info);
-                        std::string response_str = format_http_response(response);
-                        // std::cout << "Response: " << response_str << std::endl;
-                        ssize_t sent_bytes = send(event.ident, response_str.c_str(), response_str.size(), 0);
-                        if (sent_bytes < 0)
-                        {
-                            std::cerr << "Error sending response on fd " << event.ident << std::endl;
-                        }
-                        else
-                        {
-                            std::cout << "Sent " << sent_bytes << " bytes in response." << std::endl;
-                        }
+                        // response = build_http_response(request, req_line, 0, srv->info);
+                        // std::string response_str = format_http_response(response);
+                        // std::cerr << "Response: " << response_str << std::endl;
+                        // ssize_t sent_bytes = send(event.ident, response_str.c_str(), response_str.size(), 0);
+                        // if (sent_bytes < 0)
+                        // {
+                        //     std::cerr << "Error sending response on fd " << event.ident << std::endl;
+                        // }
+                        // else
+                        // {
+                        //     std::cerr << "Sent " << sent_bytes << " bytes in response." << std::endl;
+                        // }
 
 
 
 //request               
 //rsponse
 //send
-                        std::cout << std::endl;
+                        std::cerr << std::endl;
                         close(event.ident);
                         close(srv->sockfd);
                         srv->sockfd = -1;
@@ -269,14 +286,11 @@ int WebServer::run()
                 }
                 else
                 {
-                    std::cerr << "Unhandled read event on fd " << event.ident << std::endl;
-                    std::cerr << "Listen socket fd: " << srv->listen_sockfd << std::endl;
-                    std::cerr << "Socket fd: " << srv->sockfd << std::endl;
-                    std::cerr << "Server: " << srv->host << ":" << srv->port << std::endl;
-                    close(event.ident);
-                    close(srv->sockfd);
-                    srv->sockfd = -1;
-                    
+                    std::cerr << "Unknown socket event on fd " << event.ident << std::endl;
+                    std::cerr << "entered here with counter " << counter << std::endl;
+                    // close(event.ident);
+                    // close(srv->sockfd);
+                    // srv->sockfd = -1;
                 }
             }
             else
