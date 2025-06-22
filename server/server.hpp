@@ -41,6 +41,7 @@ class   WebServer
 		struct kevent		events[1024];
 		std::string			config_file;
 		std::vector<server>	servers;
+		bool				check_all_failed() const;
 
 	public:
 		WebServer(const std::string& config_file);

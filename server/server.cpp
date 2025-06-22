@@ -20,18 +20,22 @@ int create_and_bind_socket(int port, const char* ip)
 
     sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(port);
-    // inet_pton(AF_INET, ip, &addr.sin_addr);
 
-    // if (connect(socketfd, (struct sockaddr*)&addr, sizeof(addr)) < 0 && errno != EINPROGRESS)
-    // {
-    //     std::cerr << "Not reachable: " << strerror(errno) << std::endl;
-    //     close(socketfd);
-    //     return -1;
-    // }
-    // else
-    //     std::cout << "Reachable!" << std::endl;
+    if (inet_pton(AF_INET, ip, &addr.sin_addr) <= 0 && ip != std::string("localhost"))
+    {
+        std::cerr << "Invalid IP address: " << ip << std::endl;
+        close(socketfd);
+        return -1;
+    }
+    if (ip == std::string("localhost"))
+    {
+        addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    }
+    else
+    {
+        addr.sin_addr.s_addr = inet_addr(ip);
+    }
 
     int flags = fcntl(socketfd, F_GETFL, 0);
     int result = fcntl(socketfd, F_SETFL, flags | O_NONBLOCK);
@@ -44,6 +48,7 @@ int create_and_bind_socket(int port, const char* ip)
     if (bind(socketfd, (sockaddr*)&addr, sizeof(addr)) < 0)
     {
         std::cerr << "Error binding socket to port " << port << std::endl;
+        std::cerr << "Error: " << strerror(errno) << std::endl;
         return -1;
     }
     return socketfd;
@@ -135,8 +140,23 @@ server::~server()
 {
 }
 
+bool WebServer::check_all_failed() const
+{
+    for (std::vector<server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
+    {
+        if (!it->failed)
+            return false;
+    }
+    return true;
+}
+
 int WebServer::run()
 {
+    if (servers.empty() || check_all_failed())
+    {
+        std::cerr << "No servers initialized. Exiting." << std::endl;
+        return 0;
+    }
     while (true)
     {
         int num_events = kevent(kq, nullptr, 0, events, 1024, nullptr);
