@@ -200,6 +200,9 @@ int WebServer::run()
                 else if (event.ident == static_cast<uintptr_t>(srv->sockfd))
                 {
                     std::cout << "Handling read event on fd " << event.ident << std::endl;
+                    std::cerr << "Listen socket fd: " << srv->listen_sockfd << std::endl;
+                    std::cerr << "Socket fd: " << srv->sockfd << std::endl;
+                    std::cerr << "Server: " << srv->host << ":" << srv->port << std::endl;
                     unicore_buf_t buf_req;
                     char buf[4096];
                     buf_req.pos = ( u_char * )buf;
@@ -260,11 +263,20 @@ int WebServer::run()
 //send
                         std::cout << std::endl;
                         close(event.ident);
+                        close(srv->sockfd);
+                        srv->sockfd = -1;
                     }
                 }
                 else
                 {
                     std::cerr << "Unhandled read event on fd " << event.ident << std::endl;
+                    std::cerr << "Listen socket fd: " << srv->listen_sockfd << std::endl;
+                    std::cerr << "Socket fd: " << srv->sockfd << std::endl;
+                    std::cerr << "Server: " << srv->host << ":" << srv->port << std::endl;
+                    close(event.ident);
+                    close(srv->sockfd);
+                    srv->sockfd = -1;
+                    
                 }
             }
             else
