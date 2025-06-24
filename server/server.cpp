@@ -120,9 +120,9 @@ int WebServer::init()
             continue;
         }
         servers.push_back(srv);
-        struct kevent event;
-        EV_SET(&event, srv.listen_sockfd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, &servers[i]);
-        if (kevent(kq, &event, 1, nullptr, 0, nullptr) < 0)
+        struct kevent listen_event;
+        EV_SET(&listen_event, srv.listen_sockfd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, &servers[i]);
+        if (kevent(kq, &listen_event, 1, NULL, 0, NULL) < 0)
         {
             std::cerr << "Error registering listen socket with kqueue" << std::endl;
             return -1;
@@ -152,7 +152,6 @@ bool WebServer::check_all_failed() const
 
 int WebServer::run()
 {
-    int counter = 0;
     if (servers.empty() || check_all_failed())
     {
         std::cerr << "No servers initialized. Exiting." << std::endl;
@@ -160,11 +159,11 @@ int WebServer::run()
     }
     while (true)
     {
-        int num_events = kevent(kq, nullptr, 0, events, 1024, nullptr);
+        int num_events = kevent(kq, NULL, 0, events, 10240, NULL);
         if (num_events < 0)
         {
             std::cerr << "Error in kevent" << std::endl;
-            break;
+            continue ;
         }
 
         for (int i = 0; i < num_events; ++i)
@@ -174,11 +173,11 @@ int WebServer::run()
 
             if (event.filter == EVFILT_READ)
             {
-                server *srv = static_cast<server *>(event.udata);
+                server *srv = static_cast<server*>(event.udata);
 
                 if (event.ident == static_cast<uintptr_t>(srv->listen_sockfd))
                 {
-                    srv->sockfd = accept(srv->listen_sockfd, nullptr, nullptr);
+                    srv->sockfd = accept(srv->listen_sockfd, NULL, NULL);
                     if (srv->sockfd < 0)
                     {
                         std::cerr << "Error accepting connection on " << srv->host << ":" << srv->port << std::endl;
@@ -189,8 +188,10 @@ int WebServer::run()
                     fcntl(srv->sockfd, F_SETFL, flags | O_NONBLOCK);
 
                     struct kevent client_event;
-                    EV_SET(&client_event, srv->sockfd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, srv);
-                    if (kevent(kq, &client_event, 1, nullptr, 0, nullptr) == -1)
+                    listening_conn conn(srv->sockfd, srv->info);
+                    connections[srv->sockfd] = conn;
+                    EV_SET(&client_event, srv->sockfd, EVFILT_READ, EV_ADD | EV_ENABLE , 0, 0, &connections[srv->sockfd]);
+                    if (kevent(kq, &client_event, 1, NULL, 0, NULL) == -1)
                     {
                         std::cerr << "Failed to register client socket" << std::endl;
                         close(srv->sockfd);
@@ -203,27 +204,21 @@ int WebServer::run()
                 {
                     std::cerr << "Handling read event on fd " << event.ident << std::endl;
                     unicore_buf_t buf_req;
-                    u_char buf[1048576];
+                    char buf[1024];
                     std::memset(buf, 0, sizeof(buf));
                     buf_req.pos = ( u_char * )buf;
                     buf_req.start = buf_req.pos;
                     ssize_t bytes;
-                    while ((bytes = recv(event.ident, buf, 1048576, 0)) != 0)
+                    while ((bytes = recv(event.ident, buf, 1024, 0)) != 0)
                     {
                         // std::cerr << "Received " << bytes << " counter is " << counter << " bytes: " << std::endl;
                         write(STDOUT_FILENO, buf, bytes);
-                        if (bytes > 1048576)
+                        if (bytes > 1024)
                         {
                             std::cerr << "Received too much data on fd " << event.ident << std::endl;
                             close(event.ident);
                             break;
                         }
-                        // if (bytes <= 0)
-                        // {
-                        //     std::cerr << "Error peeking data on fd " << event.ident << std::endl;
-                        //     close(event.ident);
-                        //     break;
-                        // }
                         buf_req.pos += bytes;
                     }
                     buf_req.end = buf_req.pos + bytes;
@@ -238,8 +233,6 @@ int WebServer::run()
                     }
                     else
                     {
-                        counter++;
-                        std::cerr << std::endl;
                         int req_line;
                         unicore_request_t request;
                         if ( srv->info.routes == NULL )
@@ -257,6 +250,10 @@ int WebServer::run()
                             if ( unicore_http_parse_field_lines ( &request , &buf_req ) == 1 )
                                 std::cerr << "parsed request-line and field-lines successfully" << std::endl;
 
+                        }
+                        else if (req_line == 0)
+                        {
+                            //request not done yet
                         }
                         // http_response_t response;
 
@@ -287,7 +284,6 @@ int WebServer::run()
                 else
                 {
                     std::cerr << "Unknown socket event on fd " << event.ident << std::endl;
-                    std::cerr << "entered here with counter " << counter << std::endl;
                     // close(event.ident);
                     // close(srv->sockfd);
                     // srv->sockfd = -1;

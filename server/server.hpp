@@ -1,21 +1,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include <string>
-# include <memory>
-# include <iostream>
-# include <cstring>
-# include <fcntl.h>
-# include <unistd.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <sys/types.h>
-# include <sys/event.h>
-# include <sys/time.h>
-# include <arpa/inet.h>
-# include "../core/unicore_http_parse.hpp"
-# include "../core/unicore_defines.hpp"
-#include "../response/unicore_http_response.hpp"
+# include "connection.hpp"
 
 class	server
 {
@@ -38,9 +24,10 @@ class   WebServer
 {
 	private:
 		int					kq;
-		struct kevent		events[1024];
+		struct kevent		events[10240];
 		std::string			config_file;
 		std::vector<server>	servers;
+		std::map<int, connection> connections;
 		bool				check_all_failed() const;
 
 	public:
