@@ -377,13 +377,16 @@ will succeed because one CRLF terminates the field
 
     std::cout << "\n\t\t\t\t\e[1;37mREQUEST-LINE\e[0m\n";
     std::cout << "ACCEPTS\n";
+    fsm_state_t fsm_state;
     for ( int i = 0; i < 14; i++ )
     {
 
+        std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+        fsm_state.r = new unicore_request_t;
         b.start = REQUEST_LINE_ACCEPTS [ i ];
         b.pos = REQUEST_LINE_ACCEPTS [ i ];
         b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_ACCEPTS [ i ] );
-        if ( unicore_http_parse_request_line ( &r , &b , conf [ 0 ] ) == 1 )
+        if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
@@ -394,10 +397,12 @@ will succeed because one CRLF terminates the field
     for ( int i = 0; i < 10; i++ )
     {
 
+        std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+        fsm_state.r = new unicore_request_t;
         b.start = REQUEST_LINE_REJECTS [ i ];
         b.pos = REQUEST_LINE_REJECTS [ i ];
         b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_REJECTS [ i ] );
-        if ( unicore_http_parse_request_line ( &r , &b , conf [ 0 ] ) == -1 )
+        if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == -1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";

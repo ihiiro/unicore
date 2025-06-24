@@ -15,7 +15,29 @@
     #define PHP 1
 #endif
 
-int unicore_http_parse_request_line ( unicore_request_t *r , unicore_buf_t *b 
+typedef struct
+{
+
+    u_char              *p;
+    bucket              *bucket;
+    unicore_request_t   *r;
+
+    u_char              ch;
+    u_char              primary_buf [ 512 ];
+    u_char              secondary_buf [ 512 ];
+    u_char              tertiary_buf [ 512 ];
+
+    int                 primary_i;
+    int                 secondary_i;
+    int                 tertiary_i;
+
+    int                 path_info_start;
+    int                 portion;
+    int                 state;
+
+} fsm_state_t;
+
+int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b 
             , unicore_config_t& c );
 
 int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b );
