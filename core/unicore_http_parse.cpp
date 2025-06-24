@@ -59,7 +59,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
 
    } state;
 
-   state = ( enum state )fsm_state.state; // ==> state = STATE
+   state = ( enum state )fsm_state.state;
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
       fsm_state.ch = *fsm_state.p;
@@ -73,6 +73,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             fsm_state.secondary_i = 0;
             fsm_state.tertiary_i = 0;
             fsm_state.portion = 0;
+            fsm_state.r = new unicore_request_t;
             std::memset ( fsm_state.r , 0 , sizeof ( unicore_request_t ) );
             fsm_state.r->SCRIPT_NAME = (u_char *)"";
             fsm_state.r->PATH_INFO = (u_char *)"";
@@ -868,7 +869,15 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
 
    }
 
-   return UNICORE_INVALID_REQUEST_LINE_ERROR;
+   if ( state == LINE_FEED )
+   {
+
+      b->pos = fsm_state.p;
+      return UNICORE_VALID_REQUEST_LINE_SUCCESS;
+
+   }
+   fsm_state.state = state;
+   return UNICORE_INCOMPLETE_REQUEST_LINE;
 
 }
 

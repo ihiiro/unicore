@@ -382,10 +382,9 @@ will succeed because one CRLF terminates the field
     {
 
         std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
-        fsm_state.r = new unicore_request_t;
         b.start = REQUEST_LINE_ACCEPTS [ i ];
         b.pos = REQUEST_LINE_ACCEPTS [ i ];
-        b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_ACCEPTS [ i ] );
+        b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_ACCEPTS [ i ] ) - 1;
         if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
             std::cout << "\e[0;32mpass, ";
         else
@@ -398,10 +397,9 @@ will succeed because one CRLF terminates the field
     {
 
         std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
-        fsm_state.r = new unicore_request_t;
         b.start = REQUEST_LINE_REJECTS [ i ];
         b.pos = REQUEST_LINE_REJECTS [ i ];
-        b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_REJECTS [ i ] );
+        b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_REJECTS [ i ] ) - 1;
         if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == -1 )
             std::cout << "\e[0;32mpass, ";
         else
