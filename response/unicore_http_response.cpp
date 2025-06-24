@@ -82,10 +82,8 @@ static std::map<std::string, std::string>& mime_types() {
 
 
 //unicore_config_t unicore_request_t soket
-
-http_response_t    build_http_response(unicore_request_t &r, int req_line, int field_line, unicore_config_t &config)
+void     build_http_response(unicore_request_t &r, int req_line, int field_line, unicore_config_t &config, client_t &client)
 {
-    http_response_t response;
     std::string extension = (char *)r.static_uri_path;
     size_t pos = extension.find_last_of('.');
     if (pos != std::string::npos) {
@@ -94,10 +92,8 @@ http_response_t    build_http_response(unicore_request_t &r, int req_line, int f
     bucket *bucket;
     std::map<int, std::string> &status_codes = get_all_errors();
     std::map<std::string, std::string> &mime_types_map = mime_types();
-    response.http_version = "HTTP/1.1";
-    //checking for route existence int config later
+    client.response.http_version = "HTTP/1.1";
     std::string a = std::string ( r.route->root );
-    // std::cout << "root path: " << a << "\n";
     std::string b = (char *)r.static_uri_path;
     std::string uri_req = "." + a + b;
     std::cout << "uri_req: " << uri_req << "\n";
@@ -105,29 +101,26 @@ http_response_t    build_http_response(unicore_request_t &r, int req_line, int f
 
     if (!file.is_open() || req_line == -1)
     {
-        response.status_code = 404; // Not Found
-        response.reason_phrase = status_codes[404];
-        response.body = "File not found: " + uri_req + "\n";
-        response.headers["Content-Type"] = "text/plain";
-        response.headers["Content-Length"] = std::to_string(response.body.size());
-        response.headers["Connection"] = "close";
+        client.response.status_code = 404; // Not Found
+        client.response.reason_phrase = status_codes[404];
+        client.response.body = "File not found: " + uri_req + "\n";
+        client.response.headers["Content-Type"] = "text/plain";
+        client.response.headers["Content-Length"] = std::to_string(client.response.body.size());
     }
     else
     {
-        std::cout << "response entred \n";
+        std::cout << "client.response entred \n";
         bucket = get(config.redirection_list, r.static_uri_path);
         int path_type = check_path_type(uri_req);
-        //redirect or not
         if (bucket && bucket->value != NULL)
         {
             std::cout << "Redirecting to: " << (char *)bucket->value << "\n";
-            response.status_code = 301; // Moved Permanently
-            response.reason_phrase = status_codes[301];
-            response.headers["Location"] = (char *)bucket->value;
-            response.body = "Redirecting to: " + std::string((char *)bucket->value) + "\n";
-            response.headers["Content-Type"] = "text/plain";
-            response.headers["Content-Length"] = std::to_string(response.body.size());
-            response.headers["Connection"] = "close";
+            client.response.status_code = 301; // Moved Permanently
+            client.response.reason_phrase = status_codes[301];
+            client.response.headers["Location"] = (char *)bucket->value;
+            client.response.body = "Redirecting to: " + std::string((char *)bucket->value) + "\n";
+            client.response.headers["Content-Type"] = "text/plain";
+            client.response.headers["Content-Length"] = std::to_string(client.response.body.size());
         }
         else
         {
@@ -143,35 +136,34 @@ http_response_t    build_http_response(unicore_request_t &r, int req_line, int f
                         file.open(uri_req.c_str());
                         if (!file.is_open())
                         {
-                            response.status_code = 404; // Not Found
-                            response.reason_phrase = status_codes[404];
-                            response.body = "Directory index not found: " + uri_req + "\n";
-                            response.headers["Content-Type"] = "text/plain";
-                            response.headers["Content-Length"] = std::to_string(response.body.size());
-                            response.headers["Connection"] = "close";
+                            client.response.status_code = 404; // Not Found
+                            client.response.reason_phrase = status_codes[404];
+                            client.response.body = "Directory index not found: " + uri_req + "\n";
+                            client.response.headers["Content-Type"] = "text/plain";
+                            client.response.headers["Content-Length"] = std::to_string(client.response.body.size());
+                            client.response.headers["Connection"] = "close";
                         }
                         else
                         {
                             std::ostringstream ss;
                             ss << file.rdbuf();
-                            response.body = ss.str();
-                            response.status_code = 200;
-                            response.reason_phrase = status_codes[200];
-                            response.headers["Content-Type"] = mime_types_map[extension]; // or detect via file extension
-                            response.headers["Content-Length"] = std::to_string(response.body.size());
-                            response.headers["Connection"] = "close";
+                            client.response.body = ss.str();
+                            client.response.status_code = 200;
+                            client.response.reason_phrase = status_codes[200];
+                            client.response.headers["Content-Type"] = mime_types_map[extension]; // or detect via file extension
+                            client.response.headers["Content-Length"] = std::to_string(client.response.body.size());
+                            client.response.headers["Connection"] = "close";
                         }
                     }
                     else if (path_type == 1)
                     {
                         std::ostringstream ss;
                         ss << file.rdbuf();
-                        response.body = ss.str();
-                        response.status_code = 200;
-                        response.reason_phrase = status_codes[200];
-                        response.headers["Content-Type"] = mime_types_map[extension]; // or detect via file extension
-                        response.headers["Content-Length"] = std::to_string(response.body.size());
-                        response.headers["Connection"] = "close";
+                        client.response.body = ss.str();
+                        client.response.status_code = 200;
+                        client.response.reason_phrase = status_codes[200];
+                        client.response.headers["Content-Type"] = mime_types_map[extension]; // or detect via file extension
+                        client.response.headers["Content-Length"] = std::to_string(client.response.body.size());
                     }
                 }
                 // else if (r.REQUEST_METHOD == POST && r.route->ROUTE_POST)
@@ -188,29 +180,25 @@ http_response_t    build_http_response(unicore_request_t &r, int req_line, int f
                 // }
                 else
                 {
-                    response.status_code = 405; // Method Not Allowed
-                    response.reason_phrase = status_codes[405];
-                    response.body = "Method not allowed for this route.\n";
-                    response.headers["Content-Type"] = "text/plain";
-                    response.headers["Content-Length"] = std::to_string(response.body.size());
-                    response.headers["Connection"] = "close";
+                    client.response.status_code = 405; // Method Not Allowed
+                    client.response.reason_phrase = status_codes[405];
+                    client.response.body = "Method not allowed for this route.\n";
+                    client.response.headers["Content-Type"] = "text/plain";
+                    client.response.headers["Content-Length"] = std::to_string(client.response.body.size());
                 }
             }
         }
-        //print the response
-
     }
-    return response;
+    return;
 }
 
-std::string format_http_response(http_response_t &response) {
+void    format_http_response(client_t &client) {
     std::ostringstream oss;
-    oss << response.http_version << " " << response.status_code << " " << response.reason_phrase << "\r\n";
-//c++98
-    for (std::map<std::string, std::string>::const_iterator it = response.headers.begin(); it != response.headers.end(); ++it) {
+    oss << client.response.http_version << " " << client.response.status_code << " " << client.response.reason_phrase << "\r\n";
+    for (std::map<std::string, std::string>::const_iterator it = client.response.headers.begin(); it != client.response.headers.end(); ++it) {
         oss << it->first << ": " << it->second << "\r\n";
     }
     oss << "\r\n"; // End of headers
-    oss << response.body; // Body content
-    return oss.str();
+    oss << client.response.body; // Body content
+    client.buffer = (u_char *)oss.str().c_str();
 }
