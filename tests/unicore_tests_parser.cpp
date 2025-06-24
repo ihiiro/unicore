@@ -440,6 +440,42 @@ will succeed because one CRLF terminates the field
 
     }
 
+    std::cout << "\n\t\t\t\t\e[1;37mFREEZABLE-REQUEST-LINE-FSM\e[0m\n";
+    // "\r\n\r\n\r\n\r\n GET /?    HTTP/1.1       \r\n"
+    u_char *rl0 = ( u_char * )"\r\n\r\n\r\n\r\n ";
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    b.start = rl0;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )rl0 ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 2 and fsm_state.state == 3 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *rl1 = ( u_char * )"GET /?    HTTP/1";
+    b.start = rl1;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )rl1 ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 2 and fsm_state.state == 31 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *rl2 = ( u_char * )".1       \r";
+    b.start = rl2;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )rl2 ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 2 and fsm_state.state == 4 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *rl3 = ( u_char * )"\n";
+    b.start = rl3;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )rl3 ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 and fsm_state.state == 5 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
     // u_char *request = (u_char *)"GET /route/.py/extrapath/shithtml/?name=yes HTTP/1.1\r\n";
     // // u_char *request = (u_char *)"GET /servlet?;jsessionid=1234&param=value/ HTTP/1.1 \r\n";
     // unicore_buf_t bb = { request , request , request + 54 };

@@ -873,6 +873,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
    {
 
       b->pos = fsm_state.p;
+      fsm_state.state = state;
       return UNICORE_VALID_REQUEST_LINE_SUCCESS;
 
    }
