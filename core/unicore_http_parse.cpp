@@ -1327,16 +1327,13 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 
 }
 
-int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , std::string& write_to , bool &chunked )
+int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
 {
 
-   ( void )write_to;
-   ( void )chunked;
-   unicore_buf_t b;
-   char ch;
-   size_t chunk_size = 0;
-   int hex_count = 0;
-   u_int hex_dec [ ] = { 
+   // ( void )chunked;
+   // size_t chunk_size = 0;
+   // int hex_count = 0;
+   static const u_int hex_dec [ ] = {
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
@@ -1352,7 +1349,7 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
       0 ,10 ,11 ,12 ,13 ,14 ,15 , 0
     };
    
-   enum 
+   enum state
    {
 
       START = 0,
@@ -1387,23 +1384,23 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
 
    } state;
 
-   state = START;
-   for ( size_t i = 0 ; ( ch = read_from [ i ] ) ; i++ )
+   state = ( enum state )fsm_state.state;
+   for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
 
       switch ( state )
       {
 
          case START:
-            if ( ch == '0' )
+            if ( fsm_state.ch == '0' )
                state = LAST_CHUNK_ZERO;
-            else if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
-                        ( ch >= 'a' and ch <= 'f' ) )
+            else if ( ( fsm_state.ch >= '1' and fsm_state.ch <= '9' ) or ( fsm_state.ch >= 'A' and fsm_state.ch <= 'F' ) or
+                        ( fsm_state.ch >= 'a' and fsm_state.ch <= 'f' ) )
             {
 
                state = CHUNK_SIZE;
-               chunk_size = chunk_size * 16 + hex_dec [  ( int )ch ];
-               hex_count++;
+               fsm_state.chunk_size = fsm_state.chunk_size * 16 + hex_dec [  ( int )fsm_state.ch ];
+               fsm_state.hex_count++;
 
             }
             else
@@ -1411,17 +1408,17 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
             
          case CHUNK_SIZE:
-            if ( ( ( ch >= '0' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
-                        ( ch >= 'a' and ch <= 'f' ) ) and hex_count < 11 )
+            if ( ( ( fsm_state.ch >= '0' and fsm_state.ch <= '9' ) or ( fsm_state.ch >= 'A' and fsm_state.ch <= 'F' ) or
+                        ( fsm_state.ch >= 'a' and fsm_state.ch <= 'f' ) ) and fsm_state.hex_count < 11 )
             {
 
-               chunk_size = chunk_size * 16 + hex_dec [  ( int )ch ];
-               hex_count++;
+               fsm_state.chunk_size = fsm_state.chunk_size * 16 + hex_dec [  ( int )fsm_state.ch ];
+               fsm_state.hex_count++;
                break;
 
             }
          
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
@@ -1444,16 +1441,16 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
 
          case CHUNK_EXT_BWS_BEFORE_SEMI_COLON:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            else if ( ch == ';' )
+            else if ( fsm_state.ch == ';' )
                state = CHUNK_EXT_SEMI_COLON;
             else
                return -1;
             break;
 
          case CHUNK_EXT_SEMI_COLON:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
             {
 
                state = CHUNK_EXT_NAME;
@@ -1462,7 +1459,7 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             }
 
 
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
@@ -1476,19 +1473,19 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
 
          case CHUNK_EXT_BWS_AFTER_SEMI_COLON:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            else if ( TCHAR( ch ) )
+            else if ( TCHAR( fsm_state.ch ) )
                state = CHUNK_EXT_NAME;
             else
                return -1;
             break;
 
          case CHUNK_EXT_NAME:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
                break;
 
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
@@ -1511,37 +1508,37 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
 
          case CHUNK_EXT_BWS_BEFORE_EQUALS:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            else if ( ch == '=' )
+            else if ( fsm_state.ch == '=' )
                state = CHUNK_EXT_EQUALS;
             else
                return -1;
             break;
 
          case CHUNK_EXT_EQUALS:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
                state = CHUNK_EXT_VALUE;
-            else if ( ch == SP or ch == HT )
+            else if ( fsm_state.ch == SP or fsm_state.ch == HT )
                state = CHUNK_EXT_BWS_AFTER_EQUALS;
             else
                return -1;
             break;
 
          case CHUNK_EXT_BWS_AFTER_EQUALS:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            else if ( TCHAR( ch ) )
+            else if ( TCHAR( fsm_state.ch ) )
                state = CHUNK_EXT_VALUE;
             else
                return -1;
             break;
 
          case CHUNK_EXT_VALUE:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
                break;
             
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case CR:
@@ -1557,29 +1554,29 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
 
          case CHUNK_CR:
-            if ( ch == LF )
+            if ( fsm_state.ch == LF )
                state = CHUNK_LF;
             else
                return -1;
             break;
 
          case CHUNK_LF:
-            chunk_size--;
-            write_to.append ( 1 , ch );
+            fsm_state.chunk_size--;
+            // write_to.append ( 1 , ch );
             state = CHUNK_DATA;
             break;
 
          case CHUNK_DATA:
-            if ( chunk_size-- )
+            if ( fsm_state.chunk_size-- )
             {
 
-               write_to.append ( 1 , ch );
+               // write_to.append ( 1 , ch );
                break;
 
             }
             
 
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case CR:
@@ -1590,27 +1587,27 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
                   break;
 
             }
-            if ( chunk_size == 0 )
+            if ( fsm_state.chunk_size == 0 )
                return -1;
             break;
 
          case CHUNK_FINAL_CR:
-            if ( ch == LF )
+            if ( fsm_state.ch == LF )
                state = CHUNK_FINAL_LF;
             else
                return -1;
             break;
 
          case CHUNK_FINAL_LF:
-            if ( ch == '0' )
+            if ( fsm_state.ch == '0' )
                state = LAST_CHUNK_ZERO;
-            else if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
-                        ( ch >= 'a' and ch <= 'f' ) )
+            else if ( ( fsm_state.ch >= '1' and fsm_state.ch <= '9' ) or ( fsm_state.ch >= 'A' and fsm_state.ch <= 'F' ) or
+                        ( fsm_state.ch >= 'a' and fsm_state.ch <= 'f' ) )
             {
 
                state = CHUNK_SIZE;
-               chunk_size = chunk_size * 16 + hex_dec [  ( int )ch ];
-               hex_count++;
+               fsm_state.chunk_size = fsm_state.chunk_size * 16 + hex_dec [  ( int )fsm_state.ch ];
+               fsm_state.hex_count++;
 
             }
             else
@@ -1618,19 +1615,19 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
 
          case LAST_CHUNK_ZERO:
-            chunk_size = 0;
-            if ( ( ch >= '1' and ch <= '9' ) or ( ch >= 'A' and ch <= 'F' ) or
-                        ( ch >= 'a' and ch <= 'f' ) )
+            fsm_state.chunk_size = 0;
+            if ( ( fsm_state.ch >= '1' and fsm_state.ch <= '9' ) or ( fsm_state.ch >= 'A' and fsm_state.ch <= 'F' ) or
+                        ( fsm_state.ch >= 'a' and fsm_state.ch <= 'f' ) )
             {
 
                state = CHUNK_SIZE;
-               chunk_size = chunk_size * 16 + hex_dec [  ( int )ch ];
-               hex_count++;
+               fsm_state.chunk_size = fsm_state.chunk_size * 16 + hex_dec [  ( int )fsm_state.ch ];
+               fsm_state.hex_count++;
                break;
 
             }
          
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
@@ -1655,37 +1652,37 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
 
          case LAST_CHUNK_EXT_BWS_BEFORE_SEMI_COLON:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            else if ( ch == ';' )
+            else if ( fsm_state.ch == ';' )
                state = LAST_CHUNK_EXT_SEMI_COLON;
             else
                return -1;
             break;
 
          case LAST_CHUNK_EXT_BWS_AFTER_SEMI_COLON:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            else if ( TCHAR( ch ) )
+            else if ( TCHAR( fsm_state.ch ) )
                state = LAST_CHUNK_EXT_NAME;
             else
                return -1;
             break;
 
          case LAST_CHUNK_EXT_SEMI_COLON:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
                state = LAST_CHUNK_EXT_NAME;
-            else if ( ch == SP or ch == HT )
+            else if ( fsm_state.ch == SP or fsm_state.ch == HT )
                state = LAST_CHUNK_EXT_BWS_AFTER_SEMI_COLON;
             else
                return -1;
             break;
 
          case LAST_CHUNK_EXT_NAME:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
                break;
             
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
@@ -1708,72 +1705,73 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             break;
 
          case LAST_CHUNK_EXT_BWS_BEFORE_EQUALS:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            else if ( ch == '=' )
+            else if ( fsm_state.ch == '=' )
                state = LAST_CHUNK_EXT_EQUALS;
             else
                return -1;
             break;
 
          case LAST_CHUNK_EXT_EQUALS:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                state = LAST_CHUNK_EXT_BWS_AFTER_EQUALS;
-            else if ( TCHAR( ch ) )
+            else if ( TCHAR( fsm_state.ch ) )
                state = LAST_CHUNK_EXT_VALUE;
             else
                return -1;
             break;
 
          case LAST_CHUNK_EXT_BWS_AFTER_EQUALS:
-            if ( ch == SP or ch == HT )
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            else if ( TCHAR( ch ) )
+            else if ( TCHAR( fsm_state.ch ) )
                state = LAST_CHUNK_EXT_VALUE;
             else
                return -1;
             break;
 
          case LAST_CHUNK_EXT_VALUE:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
                break;
-            else if ( ch == CR )
+            else if ( fsm_state.ch == CR )
                state = LAST_CHUNK_CR;
-            else if ( ch == LF )
+            else if ( fsm_state.ch == LF )
                state = LAST_CHUNK_LF;
             else
                return -1;
             break;
 
          case LAST_CHUNK_CR:
-            if ( ch == LF )
+            if ( fsm_state.ch == LF )
                state = LAST_CHUNK_LF;
             else
                return -1;
             break;
 
          case LAST_CHUNK_LF:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
                state = TRAILER_SECTION;
-            else if ( ch == CR )
+            else if ( fsm_state.ch == CR )
                state = CHUNKED_TOTAL_CR;
-            else if ( ch == LF )
+            else if ( fsm_state.ch == LF )
                state = CHUNKED_TOTAL_LF;
             else
                return -1;
             break;
 
          case TRAILER_SECTION:
-            b.pos = ( u_char * )&read_from [ i ];
-            b.start = b.pos;
-            b.end = b.start + std::strlen ( read_from ); // ====> b.start + ( READ_SIZE - 1 )
-            // if ( unicore_http_parse_field_lines ( r , &b ) == 1 )
+            // b.pos = ( u_char * )&read_from [ i ];
+            // b.start = b.pos;
+            // b.end = b.start + std::strlen ( read_from ); // ====> b.start + ( READ_SIZE - 1 )
+            // if ( unicore_http_parse_field_lines ( fsm_state , b ) == 1 )
             //    return 1;
-            (void)r;
-            return -1;
+            // (void)r;
+            // return -1;
+            break; // guard rail (remove later)
 
          case CHUNKED_TOTAL_CR:
-            if ( ch == LF )
+            if ( fsm_state.ch == LF )
                state = CHUNKED_TOTAL_LF;
             else
                return -1;

@@ -417,38 +417,40 @@ will succeed because one CRLF terminates the field
 
     }
 
-    // std::cout << "\n\t\t\t\t\e[1;37mCHUNKED-MESSAGE\e[0m\n";
-    // char *CHUNKED_MESSAGE_ACCEPTS[] = {
-    //    ( char * )"0\r\n\r\n",
-    //    ( char * )"000000\r\n\r\n",
-    //    ( char * )"000\n\n",
-    //    ( char * )"0\n\r\n",
-    //    ( char * )"0000   \t;  tchar \t=TCHAR\n\n",
-    //    ( char * )"0000;tchar\t=tcharTCHAR\r\n\r\n",
-    //    ( char * )"0000;ttttttttttt\r\n\r\n",
-    //    ( char * )"0;ttt\t=tchar\r\n\r\n",
-    //    ( char * )"0000a\nis10octets\r\n",
-    //    ( char * )"0000c\r\nis11octets_\r\n",
-    //    ( char * )"00000c;pp\t=tit\r\nndis12octets\r\n",
-    //    ( char * )"00000C;pp\t=tit\r\nndis12octets\n",
-    //    ( char * )"00000C;pp\t=tit\nndis12octets\n",
-    //    ( char * )"A \t\t\t\t ;             \t\t\tthis\t=that\n0123456789\n",
-    //    ( char * )"A \t\t\t\t ;             this\t =\tthat\r\n0123456789\n",
-    //    ( char * )"A \t\t\t\t ;             this\r\n0123456789\n",
-    // };
+    std::cout << "\n\t\t\t\t\e[1;37mCHUNKED-MESSAGE\e[0m\n";
+    u_char *CHUNKED_MESSAGE_ACCEPTS[] = {
+       ( u_char * )"0\r\n\r\n",
+       ( u_char * )"000000\r\n\r\n",
+       ( u_char * )"000\n\n",
+       ( u_char * )"0\n\r\n",
+       ( u_char * )"0000   \t;  tchar \t=TCHAR\n\n",
+       ( u_char * )"0000;tchar\t=tcharTCHAR\r\n\r\n",
+       ( u_char * )"0000;ttttttttttt\r\n\r\n",
+       ( u_char * )"0;ttt\t=tchar\r\n\r\n",
+       ( u_char * )"0000a\nis10octets\r\n",
+       ( u_char * )"0000c\r\nis11octets_\r\n",
+       ( u_char * )"00000c;pp\t=tit\r\nndis12octets\r\n",
+       ( u_char * )"00000C;pp\t=tit\r\nndis12octets\n",
+       ( u_char * )"00000C;pp\t=tit\nndis12octets\n",
+       ( u_char * )"A \t\t\t\t ;             \t\t\tthis\t=that\n0123456789\n",
+       ( u_char * )"A \t\t\t\t ;             this\t =\tthat\r\n0123456789\n",
+       ( u_char * )"A \t\t\t\t ;             this\r\n0123456789\n",
+    };
 
-    // std::cout << "ACCEPTS\n";
-    // for ( int i = 0; i < 16; i++ )
-    // {
+    std::cout << "ACCEPTS\n";
+    for ( int i = 0; i < 16; i++ )
+    {
 
-    //     bool x = 0;
-    //     std::string y = "";
-    //     if (  unicore_http_parse_chunked_body ( &r , CHUNKED_MESSAGE_ACCEPTS [ i ] ,  y , x ) == 1 )
-    //         std::cout << "\e[0;32mpass, ";
-    //     else
-    //         std::cout << "\e[0;31mfail, ";
+        std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+        b.start = CHUNKED_MESSAGE_ACCEPTS [ i ];
+        b.pos = b.start;
+        b.end = b.start + std::strlen ( ( char * )CHUNKED_MESSAGE_ACCEPTS [ i ]) - 1;
+        if (  unicore_http_parse_chunked_body ( fsm_state , &b ) == 1 )
+            std::cout << "\e[0;32mpass, ";
+        else
+            std::cout << "\e[0;31mfail, ";
 
-    // }
+    }
 
     std::cout << "\n\t\t\t\t\e[1;37mFREEZABLE-REQUEST-LINE-FSM\e[0m\n";
     // "\r\n\r\n\r\n\r\n GET /?    HTTP/1.1       \r\n"
