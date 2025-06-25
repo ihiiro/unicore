@@ -1,5 +1,6 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
+# define BUFFER_READ 50000
 
 # include "connection.hpp"
 

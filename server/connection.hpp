@@ -25,7 +25,7 @@ class connection
         std::string buffer;
 
         connection(int fd);
-        ~connection();
+        virtual ~connection();
 
         void reset();
 };

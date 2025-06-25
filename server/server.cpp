@@ -202,18 +202,20 @@ int WebServer::run()
                 }
                 else if (event.ident == static_cast<uintptr_t>(srv->sockfd))
                 {
+                    connection *conn = static_cast<connection *>(event.udata);
+                    
                     std::cerr << "Handling read event on fd " << event.ident << std::endl;
                     unicore_buf_t buf_req;
-                    char buf[1024];
+                    char buf[BUFFER_READ];
                     std::memset(buf, 0, sizeof(buf));
                     buf_req.pos = ( u_char * )buf;
                     buf_req.start = buf_req.pos;
                     ssize_t bytes;
-                    while ((bytes = recv(event.ident, buf, 1024, 0)) != 0)
+                    while ((bytes = recv(event.ident, buf, BUFFER_READ, 0)) != 0)
                     {
                         // std::cerr << "Received " << bytes << " counter is " << counter << " bytes: " << std::endl;
                         write(STDOUT_FILENO, buf, bytes);
-                        if (bytes > 1024)
+                        if (bytes > BUFFER_READ)
                         {
                             std::cerr << "Received too much data on fd " << event.ident << std::endl;
                             close(event.ident);
@@ -241,15 +243,14 @@ int WebServer::run()
                             std::exit(1);
                         }
                         req_line = unicore_http_parse_request_line ( &request , &buf_req , srv->info );
-                        if (  req_line == 1 )
+                        if (req_line == 1)
                         {
-
                             request.headers = new ht;
                             request.headers->buckets = new bucket [ M ];
                             std::memset ( request.headers->buckets , 0 , M );
                             if ( unicore_http_parse_field_lines ( &request , &buf_req ) == 1 )
                                 std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-
+                            
                         }
                         else if (req_line == 0)
                         {
@@ -275,10 +276,6 @@ int WebServer::run()
 //request               
 //rsponse
 //send
-                        std::cerr << std::endl;
-                        close(event.ident);
-                        close(srv->sockfd);
-                        srv->sockfd = -1;
                     }
                 }
                 else
