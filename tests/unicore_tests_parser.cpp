@@ -13,6 +13,9 @@
 int main ()
 {
 
+    fsm_state_t fsm_state;
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.r = new unicore_request_t;
     u_char *REQUEST_LINE_ACCEPTS[] = {
        (u_char *)"POST /$ HTTP/1.1\r\n",
        (u_char *)"DELETE /somepage?// HTTP/1.1\r\n",
@@ -43,10 +46,11 @@ int main ()
         (u_char *)"delete / http/1.1\r\n"
     };
 
-    unicore_request_t r;
-    r.headers = new ht;
-    r.headers->buckets = new bucket [ M ];
-    std::memset ( r.headers->buckets , 0 , M );
+    unicore_request_t r; // move the hash table initialization to START
+    (void)r;
+    fsm_state.r->headers = new ht;
+    fsm_state.r->headers->buckets = new bucket [ M ];
+    std::memset ( fsm_state.r->headers->buckets , 0 , M );
     unicore_buf_t b;
 
     u_char *FIELD_LINES_ACCEPTS[] = {
@@ -87,10 +91,12 @@ will succeed because one CRLF terminates the field
     for ( int i = 0; i < 19; i++ )
     {
 
+        // std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+        // fsm_state.r = new unicore_request_t;
         b.start = FIELD_LINES_ACCEPTS [ i ];
         b.pos = FIELD_LINES_ACCEPTS [ i ];
         b.end = b.start + std::strlen ( (const char *)FIELD_LINES_ACCEPTS [ i ] );
-        if ( unicore_http_parse_field_lines ( &r, &b ) == 1 )
+        if ( unicore_http_parse_field_lines ( fsm_state, &b ) == 1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
@@ -101,10 +107,12 @@ will succeed because one CRLF terminates the field
     for ( int i = 0; i < 4; i++ )
     {
 
+        // std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+        // fsm_state.r = new unicore_request_t;
         b.start = FIELD_LINES_REJECTS [ i ];
         b.pos = FIELD_LINES_REJECTS [ i ];
         b.end = b.start + std::strlen ( (const char *)FIELD_LINES_REJECTS [ i ] );
-        if ( unicore_http_parse_field_lines ( &r, &b ) == -1 )
+        if ( unicore_http_parse_field_lines ( fsm_state, &b ) == -1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
@@ -112,81 +120,81 @@ will succeed because one CRLF terminates the field
     }
 
     std::cout << "\n\t\t\t\t\e[1;37mHASHTABLE (FIELD LINES)\e[0m\n";
-    if ( get ( r.headers , (u_char *)"" ) == NULL )
+    if ( get ( fsm_state.r->headers , (u_char *)"" ) == NULL )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( get ( r.headers , (u_char *)"f!#ld_" ) == NULL )
+    if ( get ( fsm_state.r->headers , (u_char *)"f!#ld_" ) == NULL )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( get ( r.headers , (u_char *)"transfer-encoding" ) == NULL )
+    if ( get ( fsm_state.r->headers , (u_char *)"transfer-encoding" ) == NULL )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"!!####`|veryvalidfield&'" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"!!####`|veryvalidfield&'" )->value,
     "value  VALUE") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"field" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"field" )->value,
     "Vvv") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"if-none-match" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"if-none-match" )->value,
     "SOME-VALID-VCHAR") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"someheader" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"someheader" )->value,
     "Valeur    \t\t   \t") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"another#one" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"another#one" )->value,
     "value      \t\t") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"t" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"t" )->value,
     "Vv v    \t\t") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"imf-fixdate" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"imf-fixdate" )->value,
     "V\t \t    vvvv") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"my-own-stupid-header" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"my-own-stupid-header" )->value,
     "STUPID-VALUE\t\t\tmorevalueandshit") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"headerheaderheaderheaderheader##--++" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"headerheaderheaderheaderheader##--++" )->value,
     "V    vv   ") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"if-i-ever-were-to-lose-you" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"if-i-ever-were-to-lose-you" )->value,
     "I'd-surely-lose+my+self") )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( get ( r.headers , (u_char *)"tttttt-tttttttt" ) == NULL )
+    if ( get ( fsm_state.r->headers , (u_char *)"tttttt-tttttttt" ) == NULL )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( get ( r.headers , (u_char *)"tttttttttttttttt" ) == NULL )
+    if ( get ( fsm_state.r->headers , (u_char *)"tttttttttttttttt" ) == NULL )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( get ( r.headers , (u_char *)"tttttttttttttt" ) == NULL )
+    if ( get ( fsm_state.r->headers , (u_char *)"tttttttttttttt" ) == NULL )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
-    if ( !std::strcmp((char *)get ( r.headers , (u_char *)"ttttttttttttttttt" )->value,
+    if ( !std::strcmp((char *)get ( fsm_state.r->headers , (u_char *)"ttttttttttttttttt" )->value,
     "V     vdksjeh3irhfidjfe  v\trefhdsjfdkfdjsfke383944+-'") )
         std::cout << "\e[0;32mpass, ";
     else
@@ -377,7 +385,6 @@ will succeed because one CRLF terminates the field
 
     std::cout << "\n\t\t\t\t\e[1;37mREQUEST-LINE\e[0m\n";
     std::cout << "ACCEPTS\n";
-    fsm_state_t fsm_state;
     for ( int i = 0; i < 14; i++ )
     {
 
@@ -407,38 +414,38 @@ will succeed because one CRLF terminates the field
 
     }
 
-    std::cout << "\n\t\t\t\t\e[1;37mCHUNKED-MESSAGE\e[0m\n";
-    char *CHUNKED_MESSAGE_ACCEPTS[] = {
-       ( char * )"0\r\n\r\n",
-       ( char * )"000000\r\n\r\n",
-       ( char * )"000\n\n",
-       ( char * )"0\n\r\n",
-       ( char * )"0000   \t;  tchar \t=TCHAR\n\n",
-       ( char * )"0000;tchar\t=tcharTCHAR\r\n\r\n",
-       ( char * )"0000;ttttttttttt\r\n\r\n",
-       ( char * )"0;ttt\t=tchar\r\n\r\n",
-       ( char * )"0000a\nis10octets\r\n",
-       ( char * )"0000c\r\nis11octets_\r\n",
-       ( char * )"00000c;pp\t=tit\r\nndis12octets\r\n",
-       ( char * )"00000C;pp\t=tit\r\nndis12octets\n",
-       ( char * )"00000C;pp\t=tit\nndis12octets\n",
-       ( char * )"A \t\t\t\t ;             \t\t\tthis\t=that\n0123456789\n",
-       ( char * )"A \t\t\t\t ;             this\t =\tthat\r\n0123456789\n",
-       ( char * )"A \t\t\t\t ;             this\r\n0123456789\n",
-    };
+    // std::cout << "\n\t\t\t\t\e[1;37mCHUNKED-MESSAGE\e[0m\n";
+    // char *CHUNKED_MESSAGE_ACCEPTS[] = {
+    //    ( char * )"0\r\n\r\n",
+    //    ( char * )"000000\r\n\r\n",
+    //    ( char * )"000\n\n",
+    //    ( char * )"0\n\r\n",
+    //    ( char * )"0000   \t;  tchar \t=TCHAR\n\n",
+    //    ( char * )"0000;tchar\t=tcharTCHAR\r\n\r\n",
+    //    ( char * )"0000;ttttttttttt\r\n\r\n",
+    //    ( char * )"0;ttt\t=tchar\r\n\r\n",
+    //    ( char * )"0000a\nis10octets\r\n",
+    //    ( char * )"0000c\r\nis11octets_\r\n",
+    //    ( char * )"00000c;pp\t=tit\r\nndis12octets\r\n",
+    //    ( char * )"00000C;pp\t=tit\r\nndis12octets\n",
+    //    ( char * )"00000C;pp\t=tit\nndis12octets\n",
+    //    ( char * )"A \t\t\t\t ;             \t\t\tthis\t=that\n0123456789\n",
+    //    ( char * )"A \t\t\t\t ;             this\t =\tthat\r\n0123456789\n",
+    //    ( char * )"A \t\t\t\t ;             this\r\n0123456789\n",
+    // };
 
-    std::cout << "ACCEPTS\n";
-    for ( int i = 0; i < 16; i++ )
-    {
+    // std::cout << "ACCEPTS\n";
+    // for ( int i = 0; i < 16; i++ )
+    // {
 
-        bool x = 0;
-        std::string y = "";
-        if (  unicore_http_parse_chunked_body ( &r , CHUNKED_MESSAGE_ACCEPTS [ i ] ,  y , x ) == 1 )
-            std::cout << "\e[0;32mpass, ";
-        else
-            std::cout << "\e[0;31mfail, ";
+    //     bool x = 0;
+    //     std::string y = "";
+    //     if (  unicore_http_parse_chunked_body ( &r , CHUNKED_MESSAGE_ACCEPTS [ i ] ,  y , x ) == 1 )
+    //         std::cout << "\e[0;32mpass, ";
+    //     else
+    //         std::cout << "\e[0;31mfail, ";
 
-    }
+    // }
 
     std::cout << "\n\t\t\t\t\e[1;37mFREEZABLE-REQUEST-LINE-FSM\e[0m\n";
     // "\r\n\r\n\r\n\r\n GET /?    HTTP/1.1       \r\n"

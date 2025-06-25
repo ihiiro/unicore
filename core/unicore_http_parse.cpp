@@ -882,15 +882,10 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
 
 }
 
-int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
+int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 {
 
-   (void)b;
-   (void)r;
-   u_char primary_buf [ 512 ], ch, *p, *key, *value;//, *strt = NULL;
-   int primary_i;
-   int i;
-   u_char  lowcase[] =
+   static const u_char  lowcase[] =
         "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
         "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
         "\0abcdefghijklmnopqrstuvwxyz\0\0\0\0\0"
@@ -920,27 +915,30 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
    } state;
 
    state = START;
-   for ( p = b->pos; p <= b->end ; p++ )
+   for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
 
-      ch = *p;
+      fsm_state.ch = *fsm_state.p;
 
       switch ( state )
       {
 
          case START:
-            if ( TCHAR( ch ) )
+            // fsm_state.r->headers = new ht;
+            // fsm_state.r->headers->buckets = new bucket [ M ];
+            // std::memset ( fsm_state.r->headers->buckets , 0 , M );
+            if ( TCHAR( fsm_state.ch ) )
             {
 
                // strt = p
-               std::memset ( primary_buf , 0 , 512 );
-               primary_i = 0;
-               primary_buf [ primary_i++ ] = ch;
+               std::memset ( fsm_state.primary_buf , 0 , 512 );
+               fsm_state.primary_i = 0;
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_NAME_TCHAR;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case CR:
@@ -956,16 +954,16 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_NAME_TCHAR:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
             {
 
-               if ( primary_i > 510 )
+               if ( fsm_state.primary_i > 510 )
                   return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
+               fsm_state.primary_buf [fsm_state. primary_i++ ] = fsm_state.ch;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case ':':
@@ -985,33 +983,33 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
 
             */
             // len = p - strt - 1;
-            key = new u_char [ primary_i + 1 ];
-            if ( !key )
+            fsm_state.key = new u_char [ fsm_state.primary_i + 1 ];
+            if ( !fsm_state.key )
                std::exit ( 1 );
-            i = 0;
-            for (; i < primary_i ; i++ )
+            // i = 0;
+            for ( int i = 0; i < fsm_state.primary_i ; i++ )
             {
 
-               key [ i ] = lowcase [ primary_buf [ i ] ];
-               if ( !key [ i ] )
-                  key [ i ] = primary_buf [ i ];
+               fsm_state.key [ i ] = lowcase [ fsm_state.primary_buf [ i ] ];
+               if ( !fsm_state.key [ i ] )
+                  fsm_state.key [ i ] = fsm_state.primary_buf [ i ];
 
             }
-            key [ i ] = '\0';
+            fsm_state.key [ fsm_state.primary_i ] = '\0';
             // strt = NULL;
-            primary_i = 0;
+            fsm_state.primary_i = 0;
 
-            if ( VCHAR( ch ) )
+            if ( VCHAR( fsm_state.ch ) )
             {
 
                // strt = p;
-               std::memset ( primary_buf , 0 , 512 );
-               primary_buf [ primary_i++ ] = ch;
+               std::memset ( fsm_state.primary_buf , 0 , 512 );
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_FIRST_VCHAR;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
@@ -1028,18 +1026,18 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_LINE_OWS_AFTER_COLON:
-            if ( VCHAR( ch ) )
+            if ( VCHAR( fsm_state.ch ) )
             {
 
                // strt = p;
-               std::memset ( primary_buf , 0 , 512 );
-               primary_i = 0;
-               primary_buf [ primary_i++ ] = ch;
+               std::memset ( fsm_state.primary_buf , 0 , 512 );
+               fsm_state.primary_i = 0;
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_FIRST_VCHAR;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                /* OWS */
@@ -1056,25 +1054,25 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_VALUE_FIRST_VCHAR:
-            if ( VCHAR( ch ) )
+            if ( VCHAR( fsm_state.ch ) )
             {
 
-               if ( primary_i > 510 )
+               if ( fsm_state.primary_i > 510 )
                   return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_VCHAR;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                /* OWS, look here to remove trailing whitespace from field value */
                case SP:
                case HT:
-                  if ( primary_i > 510 )
+                  if ( fsm_state.primary_i > 510 )
                      return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION;
                   break;
                case CR:
@@ -1087,29 +1085,29 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_VALUE_OPTIONAL_FIRST_VCHAR:
-            if ( VCHAR( ch ) )
+            if ( VCHAR( fsm_state.ch ) )
             {
 
-               if ( primary_i > 510 )
+               if ( fsm_state.primary_i > 510 )
                   return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
-                  if ( primary_i > 510 )
+                  if ( fsm_state.primary_i > 510 )
                      return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_VALUE_OPTIONAL_SP;
                   break;
                case HT:
-                  if ( primary_i > 510 )
+                  if ( fsm_state.primary_i > 510 )
                      return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_VALUE_OPTIONAL_HT;
                   break;
                   /*
@@ -1126,10 +1124,10 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_VALUE_OPTIONAL_SP:
-            if ( primary_i > 510 )
+            if ( fsm_state.primary_i > 510 )
                return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-            primary_buf [ primary_i++ ] = ch;
-            if ( VCHAR( ch ) )
+            fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
+            if ( VCHAR( fsm_state.ch ) )
             {
 
                state = FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION;
@@ -1137,7 +1135,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
 
             }
 
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
@@ -1152,17 +1150,17 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_VALUE_OPTIONAL_HT:
-            if ( primary_i > 510 )
+            if ( fsm_state.primary_i > 510 )
                return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-            primary_buf [ primary_i++ ] = ch;
-            if ( VCHAR( ch ) )
+            fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
+            if ( VCHAR( fsm_state.ch ) )
             {
 
                state = FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case SP:
@@ -1177,24 +1175,24 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION:
-            if ( VCHAR( ch ) )
+            if ( VCHAR( fsm_state.ch ) )
             {
             
-               if ( primary_i > 510 )
+               if ( fsm_state.primary_i > 510 )
                   return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                /* OWS, look here to remove trailing whitespace from field value */
                case SP:
                case HT:
-                  if ( primary_i > 510 )
+                  if ( fsm_state.primary_i > 510 )
                      return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION;
                   break;
                case CR:
@@ -1207,25 +1205,25 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION:
-            if ( VCHAR( ch ) )
+            if ( VCHAR( fsm_state.ch ) )
             {
 
-               if ( primary_i > 510 )
+               if ( fsm_state.primary_i > 510 )
                   return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-               primary_buf [ primary_i++ ] = ch;
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_VCHAR;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                /* OWS, look here to remove trailing whitespace from field value */
                case SP:
                case HT:
-                  if ( primary_i > 510 )
+                  if ( fsm_state.primary_i > 510 )
                      return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-                  primary_buf [ primary_i++ ] = ch;
+                  fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   break;
                case CR:
                   state = FIELD_LINE_CR;
@@ -1238,26 +1236,25 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
 
          case FIELD_LINE_CR:
             
-            if ( primary_i )
+            if ( fsm_state.primary_i )
             {
 
                // len = p - strt - 1;
                // std::cout << "value primary_buf=" << primary_buf << "|" << "\n";
-               value = new u_char [ primary_i + 1 ];
-               if ( !value )
+               fsm_state.value = new u_char [ fsm_state.primary_i + 1 ];
+               if ( !fsm_state.value )
                   std::exit ( 1 );
-               i = 0;
-               for (; i < primary_i ; i++ )
-                  value [ i ] = primary_buf [ i ];
-               value [ i ] = '\0';
-               insert ( r->headers , key , value );
+               for ( int i = 0 ; i < fsm_state.primary_i ; i++ )
+                  fsm_state.value [ i ] = fsm_state.primary_buf [ i ];
+               fsm_state.value [ fsm_state.primary_i ] = '\0';
+               insert ( fsm_state.r->headers , fsm_state.key , fsm_state.value );
                // strt = NULL;
-               primary_i = 0;
+               fsm_state.primary_i = 0;
                
             }
             else
-               delete key;
-            switch ( ch )
+               delete fsm_state.key;
+            switch ( fsm_state.ch )
             {
 
                case LF:
@@ -1270,18 +1267,18 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case FIELD_LINE_LF:
-            if ( TCHAR( ch ) )
+            if ( TCHAR( fsm_state.ch ) )
             {
 
                // strt = p;
-               std::memset ( primary_buf , 0 , 512 );
-               primary_i = 0;
-               primary_buf [ primary_i++ ] = ch;
+               std::memset ( fsm_state.primary_buf , 0 , 512 );
+               fsm_state.primary_i = 0;
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_NAME_TCHAR;
                break;
 
             }
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case CR:
@@ -1297,7 +1294,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case CARRIAGE_RETURN:
-            switch ( ch )
+            switch ( fsm_state.ch )
             {
 
                case LF:
@@ -1310,7 +1307,7 @@ int unicore_http_parse_field_lines ( unicore_request_t *r , unicore_buf_t *b )
             break;
 
          case LINE_FEED:
-            b->pos = p;
+            b->pos = fsm_state.p;
             return UNICORE_VALID_FIELD_LINES_SUCCESS;
 
       }
@@ -1761,8 +1758,9 @@ int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , s
             b.pos = ( u_char * )&read_from [ i ];
             b.start = b.pos;
             b.end = b.start + std::strlen ( read_from ); // ====> b.start + ( READ_SIZE - 1 )
-            if ( unicore_http_parse_field_lines ( r , &b ) == 1 )
-               return 1;
+            // if ( unicore_http_parse_field_lines ( r , &b ) == 1 )
+            //    return 1;
+            (void)r;
             return -1;
 
          case CHUNKED_TOTAL_CR:
