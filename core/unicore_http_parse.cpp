@@ -1388,6 +1388,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
 
+      fsm_state.ch = *fsm_state.p;
       switch ( state )
       {
 
@@ -1785,8 +1786,15 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    }
 
    if ( state == CHUNKED_TOTAL_LF or state == CHUNK_FINAL_LF )
+   {
+
+      b->pos = fsm_state.p;
+      fsm_state.state = state;
       return 1;
-   return -1;
+      
+   }
+   fsm_state.state = state;
+   return 2;
 
 }
 
