@@ -41,6 +41,8 @@ typedef struct
     
     int                 hex_count;
 
+    int                 chunked_trailers_fsm_return;
+
     bool                chunked;
 
 } fsm_state_t;
@@ -49,6 +51,4 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
 int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b );
 
-
 int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b );
-// int unicore_http_parse_chunked_body ( unicore_request_t *r , char *read_from , std::string& write_to , bool &chunked );

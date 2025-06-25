@@ -1761,15 +1761,13 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                return -1;
             break;
 
-         case TRAILER_SECTION:
-            // b.pos = ( u_char * )&read_from [ i ];
-            // b.start = b.pos;
-            // b.end = b.start + std::strlen ( read_from ); // ====> b.start + ( READ_SIZE - 1 )
-            // if ( unicore_http_parse_field_lines ( fsm_state , b ) == 1 )
-            //    return 1;
-            // (void)r;
-            // return -1;
-            break; // guard rail (remove later)
+         case TRAILER_SECTION: // untested
+            fsm_state.chunked_trailers_fsm_return = unicore_http_parse_field_lines ( fsm_state , b );
+            if ( fsm_state.chunked_trailers_fsm_return == 2 )
+               break;
+            else if ( fsm_state.chunked_trailers_fsm_return == 1 )
+               return 1;
+            return -1;
 
          case CHUNKED_TOTAL_CR:
             if ( fsm_state.ch == LF )

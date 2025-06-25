@@ -452,6 +452,58 @@ will succeed because one CRLF terminates the field
 
     }
 
+    std::cout << "\n\t\t\t\t\e[1;37mFREEZABLE-CHUNKED-FSM\e[0m\n";
+    // "A \t\t\t\t ;             this\r\n0123456789\n"
+    u_char *chunked0 = ( u_char * )"A \t\t\t\t ;";
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    b.start = chunked0;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )chunked0 ) - 1;
+    if ( unicore_http_parse_chunked_body ( fsm_state , &b ) == 2 and fsm_state.state == 3 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *chunked1 = ( u_char * )"           ";
+    b.start = chunked1;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )chunked1 ) - 1;
+    if ( unicore_http_parse_chunked_body ( fsm_state , &b ) == 2 and fsm_state.state == 4 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *chunked2 = ( u_char * )"  ";
+    b.start = chunked2;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )chunked2 ) - 1;
+    if ( unicore_http_parse_chunked_body ( fsm_state , &b ) == 2 and fsm_state.state == 4 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *chunked3 = ( u_char * )"this\r\n01234";
+    b.start = chunked3;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )chunked3 ) - 1;
+    if ( unicore_http_parse_chunked_body ( fsm_state , &b ) == 2 and fsm_state.state == 12 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *chunked4 = ( u_char * )"56789";
+    b.start = chunked4;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )chunked4 ) - 1;
+    if ( unicore_http_parse_chunked_body ( fsm_state , &b ) == 2 and fsm_state.state == 12 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *chunked5 = ( u_char * )"\n";
+    b.start = chunked5;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )chunked5 ) - 1;
+    if ( unicore_http_parse_chunked_body ( fsm_state , &b ) == 1 and fsm_state.state == 14 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
     std::cout << "\n\t\t\t\t\e[1;37mFREEZABLE-REQUEST-LINE-FSM\e[0m\n";
     // "\r\n\r\n\r\n\r\n GET /?    HTTP/1.1       \r\n"
     u_char *rl0 = ( u_char * )"\r\n\r\n\r\n\r\n ";
