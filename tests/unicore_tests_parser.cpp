@@ -95,11 +95,12 @@ will succeed because one CRLF terminates the field
         // fsm_state.r = new unicore_request_t;
         b.start = FIELD_LINES_ACCEPTS [ i ];
         b.pos = FIELD_LINES_ACCEPTS [ i ];
-        b.end = b.start + std::strlen ( (const char *)FIELD_LINES_ACCEPTS [ i ] );
+        b.end = b.start + std::strlen ( (const char *)FIELD_LINES_ACCEPTS [ i ] ) - 1;
         if ( unicore_http_parse_field_lines ( fsm_state, &b ) == 1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
+        fsm_state.state = 0;
 
     }
 
@@ -109,13 +110,15 @@ will succeed because one CRLF terminates the field
 
         // std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
         // fsm_state.r = new unicore_request_t;
+        int validator = ( i == 0 ) ? -1 : 2;
         b.start = FIELD_LINES_REJECTS [ i ];
         b.pos = FIELD_LINES_REJECTS [ i ];
-        b.end = b.start + std::strlen ( (const char *)FIELD_LINES_REJECTS [ i ] );
-        if ( unicore_http_parse_field_lines ( fsm_state, &b ) == -1 )
+        b.end = b.start + std::strlen ( (const char *)FIELD_LINES_REJECTS [ i ] ) - 1;
+        if ( unicore_http_parse_field_lines ( fsm_state, &b ) == validator )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
+        fsm_state.state = 0;
 
     }
 
@@ -479,6 +482,70 @@ will succeed because one CRLF terminates the field
     b.pos = b.start;
     b.end = b.start + std::strlen ( ( char * )rl3 ) - 1;
     if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 and fsm_state.state == 5 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    std::cout << "\n\t\t\t\t\e[1;37mFREEZABLE-FIELD-LINES-FSM\e[0m\n";
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.r = new unicore_request_t;
+    fsm_state.r->headers = new ht;
+    fsm_state.r->headers->buckets = new bucket [ M ];
+    std::memset ( fsm_state.r->headers->buckets , 0 , M );
+    // "!!####`|veryvalidfield&'B:value  VALUE\r\nFIELD: Vvv\r\n\r\n"
+    u_char *fl0 = ( u_char * )"!!####";
+    b.start = fl0;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )fl0 ) - 1;
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 2 and fsm_state.state == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *fl1 = ( u_char * )"`|veryvalidfield&'B:";
+    b.start = fl1;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )fl1 ) - 1;
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 2 and fsm_state.state == 2 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *fl2 = ( u_char * )"value  VALUE\r\n";
+    b.start = fl2;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )fl2 ) - 1;
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 2 and fsm_state.state == 11 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *fl3 = ( u_char * )"FIELD";
+    b.start = fl3;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )fl3 ) - 1;
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 2 and fsm_state.state == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *fl4 = ( u_char * )":";
+    b.start = fl4;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )fl4 ) - 1;
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 2 and fsm_state.state == 2 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *fl5 = ( u_char * )" ";
+    b.start = fl5;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )fl5 ) - 1;
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 2 and fsm_state.state == 3 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    u_char *fl6 = ( u_char * )"Vvv\r\n\r\n";
+    b.start = fl6;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )fl6 ) - 1;
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 and fsm_state.state == 13 )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";

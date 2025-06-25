@@ -39,8 +39,7 @@ typedef struct
 
 } fsm_state_t;
 
-int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b 
-            , unicore_config_t& c );
+int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b , unicore_config_t& c );
 
 int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b );
 

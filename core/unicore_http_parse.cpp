@@ -895,7 +895,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
         "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
         "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
    
-   enum
+   enum state
    {
          START = 0,
          FIELD_NAME_TCHAR,
@@ -914,7 +914,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
          
    } state;
 
-   state = START;
+   state = ( enum state )fsm_state.state;
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
 
@@ -1314,7 +1314,16 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 
    }
 
-   return UNICORE_INVALID_FIELD_LINES_ERROR;
+   if ( state == LINE_FEED )
+   {
+
+      b->pos = fsm_state.p;
+      fsm_state.state = state;
+      return UNICORE_VALID_FIELD_LINES_SUCCESS;
+
+   }
+   fsm_state.state = state;
+   return UNICORE_INCOMPLETE_FIELD_LINES;
 
 }
 
