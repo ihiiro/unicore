@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <cstdlib>
 
+#include <unistd.h>
+
 
 #include <iostream>
 
@@ -62,6 +64,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
    state = ( enum state )fsm_state.state;
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
+
       fsm_state.ch = *fsm_state.p;
 
       switch ( state )
@@ -1564,6 +1567,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
          case CHUNK_LF:
             fsm_state.chunk_size--;
             // write_to.append ( 1 , ch );
+            // std::cout << fsm_state.ch;
             state = CHUNK_DATA;
             break;
 
@@ -1571,6 +1575,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.chunk_size-- )
             {
 
+               // std::cout << fsm_state.ch;
                // write_to.append ( 1 , ch );
                break;
 
@@ -1616,6 +1621,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             break;
 
          case LAST_CHUNK_ZERO:
+            fsm_state.chunked = 0;
             fsm_state.chunk_size = 0;
             if ( ( fsm_state.ch >= '1' and fsm_state.ch <= '9' ) or ( fsm_state.ch >= 'A' and fsm_state.ch <= 'F' ) or
                         ( fsm_state.ch >= 'a' and fsm_state.ch <= 'f' ) )

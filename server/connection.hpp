@@ -17,6 +17,9 @@
 # include "../core/unicore_http_parse.hpp"
 # include "../core/unicore_defines.hpp"
 # include "../response/unicore_http_response.hpp"
+# include "server.hpp"
+
+class server;
 
 class connection
 {
@@ -24,18 +27,33 @@ class connection
         int         sockfd;
         std::string buffer;
 
+    public:
+        connection();
         connection(int fd);
         virtual ~connection();
 
         void reset();
 };
 
+class server_conn : public connection
+{
+    public:
+        server	*srv;
+
+        server_conn();
+        server_conn(int fd, server* srv);
+        server_conn(const server_conn& other);
+        ~server_conn();
+};
+
 class listening_conn : public connection
 {
     public:
-        unicore_request_t request;
-        unicore_config_t info;
+        fsm_state_t         state;
+        unicore_config_t    info;
+        listening_conn();
         listening_conn(int fd, const unicore_config_t& info);
+        listening_conn(const listening_conn& other);
         ~listening_conn();
 };
 

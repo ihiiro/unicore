@@ -4,6 +4,8 @@
 
 # include "connection.hpp"
 
+class connection;
+
 class	server
 {
 	private:
@@ -25,10 +27,11 @@ class   WebServer
 {
 	private:
 		int					kq;
-		struct kevent		events[10240];
 		std::string			config_file;
+		struct kevent		events[10240];
 		std::vector<server>	servers;
-		std::map<int, connection> connections;
+		std::map<int, connection *> connections;
+		bool				connection_exists(const server& srv) const;
 		bool				check_all_failed() const;
 
 	public:
