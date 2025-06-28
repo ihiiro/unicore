@@ -1,7 +1,5 @@
 #include "connection.hpp"
 
-<<<<<<< HEAD
-=======
 listening_conn::listening_conn()
     : connection(), info(), state()
 {
@@ -95,4 +93,3 @@ server_conn::server_conn(const server_conn& other)
 server_conn::~server_conn()
 {
 }
->>>>>>> server_branch
