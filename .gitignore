@@ -2,3 +2,4 @@
 notes.txt
 *.o
 parser_tests
+.vscode

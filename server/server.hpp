@@ -1,7 +1,10 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
+# define BUFFER_READ 50000
 
 # include "connection.hpp"
+
+class connection;
 
 class	server
 {
@@ -24,10 +27,11 @@ class   WebServer
 {
 	private:
 		int					kq;
-		struct kevent		events[10240];
 		std::string			config_file;
+		struct kevent		events[10240];
 		std::vector<server>	servers;
-		std::map<int, connection> connections;
+		std::map<int, connection *> connections;
+		bool				connection_exists(const server& srv) const;
 		bool				check_all_failed() const;
 
 	public:
