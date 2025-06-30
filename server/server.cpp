@@ -50,9 +50,6 @@ int create_and_bind_socket(int port, const char* ip)
     return socketfd;
 }
 
-WebServer::WebServer(const std::string &configPath) :  config_file(configPath)
-{
-}
 
 server::server(const std::string &host, const size_t &port, const unicore_config_t &info)
     : failed(false), listen_sockfd(-1), port(port), host(host) ,info(info)
@@ -75,6 +72,14 @@ server::server(const std::string &host, const size_t &port, const unicore_config
         failed = true;
         return;
     }
+}
+
+server::~server()
+{
+}
+
+WebServer::WebServer(const std::string &configPath) :  config_file(configPath)
+{
 }
 
 int WebServer::init()
@@ -133,10 +138,6 @@ WebServer::~WebServer()
 {
 }
 
-server::~server()
-{
-}
-
 bool WebServer::check_all_failed() const
 {
     for (std::vector<server>::const_iterator it = servers.begin(); it != servers.end(); ++it)
@@ -145,6 +146,29 @@ bool WebServer::check_all_failed() const
             return false;
     }
     return true;
+}
+
+void    WebServer::check_events_timeout()
+{
+    for (std::map<int, connection *>::iterator it = connections.begin(); it != connections.end(); ++it)
+    {
+        connection *conn = it->second;
+        if (conn->has_timed_out())
+        {
+            conn->update_last_activity();
+            std::cerr << "Connection timeout for fd " << it->first << std::endl;
+            conn->reset();
+            struct kevent tmp_event;
+            EV_SET(&tmp_event, it->first, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+            if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+            {
+                std::cerr << "Error unregistering socket from kqueue" << std::endl;
+            }
+            close(it->first);
+            delete conn;
+            connections.erase(it);
+        }
+    }
 }
 
 int WebServer::run()
@@ -260,15 +284,13 @@ int WebServer::run()
 
                         // }
 
-                        if ( conn->state.chunked == true )
+                        if (conn->state.chunked == true)
                         {
-
-                            int valid = unicore_http_parse_chunked_body ( conn->state , &buf_req ) ;
-                            if ( valid == 2 or valid == 1 )
+                            int valid = unicore_http_parse_chunked_body(conn->state , &buf_req);
+                            if (valid == 2 || valid == 1)
                                 std::cerr << "chunked parsed successfully\n";
                             else
                                 std::cerr << "chunked failed miserably\n";
-                        
                         }
                         req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
                         if (req_line == 1)
@@ -278,14 +300,11 @@ int WebServer::run()
                             std::memset(conn->state.r->headers->buckets, 0, M * sizeof(bucket));
                             if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                 std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-                            if ( !strcmp ( ( char * )get ( conn->state.r->headers , (u_char *)"transfer-encoding" )->value , "chunked" ) )
+                            if (!strcmp((char *)get(conn->state.r->headers, (u_char *)"transfer-encoding")->value , "chunked"))
                             {
-
                                 conn->state.chunked = true;
-                                unicore_http_parse_chunked_body ( conn->state , &buf_req );
-
+                                unicore_http_parse_chunked_body(conn->state , &buf_req);
                             }
-                            
                         }
                         else if (req_line == 2)
                         {
@@ -319,6 +338,7 @@ int WebServer::run()
             {
                 std::cerr << "Unhandled event type: " << event.filter << std::endl;
             }
+            check_events_timeout();
         }
     }
     close(kq);

@@ -31,8 +31,8 @@ class   WebServer
 		struct kevent		events[10240];
 		std::vector<server>	servers;
 		std::map<int, connection *> connections;
-		bool				connection_exists(const server& srv) const;
 		bool				check_all_failed() const;
+		void				check_events_timeout();
 
 	public:
 		WebServer(const std::string& config_file);

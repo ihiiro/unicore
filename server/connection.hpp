@@ -24,15 +24,19 @@ class server;
 class connection
 {
     protected:
-        int         sockfd;
-        std::string buffer;
+        int                                     sockfd;
+        std::string                             buffer;
+        std::chrono::steady_clock::time_point   last_activity;
 
     public:
         connection();
         connection(int fd);
+		connection(const connection& other);
         virtual ~connection();
 
-        void reset();
+        void	update_last_activity();
+		bool	has_timed_out() const;
+        void	reset();
 };
 
 class server_conn : public connection

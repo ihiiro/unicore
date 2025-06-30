@@ -59,21 +59,23 @@ client_conn::~client_conn()
 
 connection::connection() : sockfd(-1)
 {
+    last_activity = std::chrono::steady_clock::now();
+    buffer.clear();
 }
 
 connection::connection(int fd) : sockfd(fd)
+{
+    last_activity = std::chrono::steady_clock::now();
+    buffer.clear();
+}
+
+connection::connection(const connection& other)
+    : sockfd(other.sockfd), buffer(other.buffer), last_activity(other.last_activity)
 {
 }
 
 connection::~connection()
 {
-}
-
-void connection::reset()
-{
-    buffer.clear();
-    sockfd = -1;
-    std::cerr << "Connection reset on fd " << sockfd << std::endl;
 }
 
 server_conn::server_conn() : connection(), srv(nullptr)
@@ -92,4 +94,24 @@ server_conn::server_conn(const server_conn& other)
 
 server_conn::~server_conn()
 {
+}
+
+void connection::update_last_activity()
+{
+    last_activity = std::chrono::steady_clock::now();
+}
+
+bool connection::has_timed_out() const
+{
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    std::chrono::duration<double> duration = now - last_activity;
+    return duration.count() > 5;
+}
+
+void connection::reset()
+{
+    buffer.clear();
+    sockfd = -1;
+    std::cerr << "Connection reset on fd " << sockfd << std::endl;
+    last_activity = std::chrono::steady_clock::now();
 }
