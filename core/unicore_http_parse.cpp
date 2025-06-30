@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <cstdlib>
 
+#include <unistd.h>
+
 
 #include <iostream>
 
@@ -62,6 +64,8 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
    state = ( enum state )fsm_state.state;
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
+
+      fsm_state.state = state;
       fsm_state.ch = *fsm_state.p;
 
       switch ( state )
@@ -75,6 +79,9 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             fsm_state.portion = 0;
             fsm_state.r = new unicore_request_t;
             std::memset ( fsm_state.r , 0 , sizeof ( unicore_request_t ) );
+            fsm_state.r->headers = new ht;
+            fsm_state.r->headers->buckets = new bucket[M];
+            std::memset( fsm_state.r->headers->buckets , 0 , M * sizeof(bucket) );
             fsm_state.r->SCRIPT_NAME = (u_char *)"";
             fsm_state.r->PATH_INFO = (u_char *)"";
             fsm_state.r->PATH_TRANSLATED = (u_char *)"";
@@ -186,6 +193,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
 
          case LINE_FEED:
             b->pos = fsm_state.p;
+            fsm_state.state = 0;
             return UNICORE_VALID_REQUEST_LINE_SUCCESS;
 
          case REQUEST_LINE_START_GET:
@@ -871,9 +879,9 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
 
    if ( state == LINE_FEED )
    {
-
+   
       b->pos = fsm_state.p;
-      fsm_state.state = state;
+      fsm_state.state = 0;
       return UNICORE_VALID_REQUEST_LINE_SUCCESS;
 
    }
@@ -918,6 +926,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
 
+      fsm_state.state = state;
       fsm_state.ch = *fsm_state.p;
 
       switch ( state )
@@ -959,7 +968,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 
                if ( fsm_state.primary_i > 510 )
                   return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
-               fsm_state.primary_buf [fsm_state. primary_i++ ] = fsm_state.ch;
+               fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                break;
 
             }
@@ -1308,6 +1317,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 
          case LINE_FEED:
             b->pos = fsm_state.p;
+            fsm_state.state = 0;
             return UNICORE_VALID_FIELD_LINES_SUCCESS;
 
       }
@@ -1318,7 +1328,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
    {
 
       b->pos = fsm_state.p;
-      fsm_state.state = state;
+      fsm_state.state = 0;
       return UNICORE_VALID_FIELD_LINES_SUCCESS;
 
    }
@@ -1332,7 +1342,6 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
    // ( void )chunked;
    // size_t chunk_size = 0;
-   // int hex_count = 0;
    static const u_int hex_dec [ ] = {
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
@@ -1389,6 +1398,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    {
 
       fsm_state.ch = *fsm_state.p;
+      fsm_state.state = state;
       switch ( state )
       {
 
@@ -1458,7 +1468,6 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                break;
 
             }
-
 
             switch ( fsm_state.ch )
             {
@@ -1563,33 +1572,47 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
          case CHUNK_LF:
             fsm_state.chunk_size--;
+            fsm_state.hex_count = 0;
             // write_to.append ( 1 , ch );
+            // std::cout << fsm_state.ch;
             state = CHUNK_DATA;
             break;
 
          case CHUNK_DATA:
-            if ( fsm_state.chunk_size-- )
+            if ( fsm_state.chunk_size )
             {
 
+               // std::cout << fsm_state.ch;
+               fsm_state.chunk_size--;
                // write_to.append ( 1 , ch );
                break;
 
             }
             
 
-            switch ( fsm_state.ch )
+            if ( fsm_state.ch == CR )
             {
 
-               case CR:
-                  state = CHUNK_FINAL_CR;
-                  break;
-               case LF:
-                  state = CHUNK_FINAL_LF;
-                  break;
+               state = CHUNK_FINAL_CR;
+               break;
 
             }
+            if ( fsm_state.ch == LF )
+            {
+
+               state = CHUNK_FINAL_LF;
+               break;
+
+            }
+
             if ( fsm_state.chunk_size == 0 )
+            {
+
+               // std::cout << "failed at CHUNK_DATA at char[" << ( int )fsm_state.ch << "]\n";
                return -1;
+
+
+            }
             break;
 
          case CHUNK_FINAL_CR:
@@ -1612,10 +1635,11 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
             }
             else
-               return 1;
+               return 2;
             break;
 
          case LAST_CHUNK_ZERO:
+            fsm_state.chunked = 0;
             fsm_state.chunk_size = 0;
             if ( ( fsm_state.ch >= '1' and fsm_state.ch <= '9' ) or ( fsm_state.ch >= 'A' and fsm_state.ch <= 'F' ) or
                         ( fsm_state.ch >= 'a' and fsm_state.ch <= 'f' ) )
@@ -1766,7 +1790,13 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.chunked_trailers_fsm_return == 2 )
                break;
             else if ( fsm_state.chunked_trailers_fsm_return == 1 )
+            {
+
+               b->pos = fsm_state.p;
+               fsm_state.state = 0;
                return 1;
+
+            }
             return -1;
 
          case CHUNKED_TOTAL_CR:
@@ -1777,21 +1807,23 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             break;
          
          case CHUNKED_TOTAL_LF:
+            b->pos = fsm_state.p;
+            fsm_state.state = 0;
             return 1;
 
       }
 
    }
 
-   if ( state == CHUNKED_TOTAL_LF or state == CHUNK_FINAL_LF )
+   fsm_state.state = state;
+   if ( state == CHUNKED_TOTAL_LF )
    {
 
       b->pos = fsm_state.p;
-      fsm_state.state = state;
+      fsm_state.state = 0;
       return 1;
-      
+
    }
-   fsm_state.state = state;
    return 2;
 
 }

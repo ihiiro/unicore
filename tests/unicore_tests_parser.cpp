@@ -441,11 +441,16 @@ will succeed because one CRLF terminates the field
     for ( int i = 0; i < 16; i++ )
     {
 
+        int validator;
+        if ( i < 8 )
+            validator = 1;
+        else
+            validator = 2;
         std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
         b.start = CHUNKED_MESSAGE_ACCEPTS [ i ];
         b.pos = b.start;
         b.end = b.start + std::strlen ( ( char * )CHUNKED_MESSAGE_ACCEPTS [ i ]) - 1;
-        if (  unicore_http_parse_chunked_body ( fsm_state , &b ) == 1 )
+        if (  unicore_http_parse_chunked_body ( fsm_state , &b ) == validator )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
@@ -499,7 +504,7 @@ will succeed because one CRLF terminates the field
     b.start = chunked5;
     b.pos = b.start;
     b.end = b.start + std::strlen ( ( char * )chunked5 ) - 1;
-    if ( unicore_http_parse_chunked_body ( fsm_state , &b ) == 1 and fsm_state.state == 14 )
+    if ( unicore_http_parse_chunked_body ( fsm_state , &b ) == 2 and fsm_state.state == 14 )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
@@ -535,7 +540,7 @@ will succeed because one CRLF terminates the field
     b.start = rl3;
     b.pos = b.start;
     b.end = b.start + std::strlen ( ( char * )rl3 ) - 1;
-    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 and fsm_state.state == 5 )
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 and fsm_state.state == 0 )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
@@ -599,7 +604,7 @@ will succeed because one CRLF terminates the field
     b.start = fl6;
     b.pos = b.start;
     b.end = b.start + std::strlen ( ( char * )fl6 ) - 1;
-    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 and fsm_state.state == 13 )
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 and fsm_state.state == 0 )
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
