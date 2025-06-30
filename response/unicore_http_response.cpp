@@ -101,7 +101,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         if (!file.is_open())
         {
             const u_char* error = (u_char *)"404";
-            bucket = get(client.info.error_pages, error);
+            // bucket = get(client.info.error_pages, error);
             if (bucket)
                 client.filename = (char *)bucket->value;
             response.status_code = 404;
@@ -120,7 +120,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         else
         {
             const u_char *error = (u_char *)"403";
-            bucket = get(client.info.error_pages, error);
+            // bucket = get(client.info.error_pages, error);
             if (bucket)
                 client.filename = (char *)bucket->value;
             response.status_code = 403;
@@ -131,7 +131,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     else
     {
         const u_char *error = (u_char *)"404";
-        bucket = get(client.info.error_pages, error);
+        // bucket = get(client.info.error_pages, error);
         if (bucket)
             client.filename = (char *)bucket->value;
         response.status_code = 404;
@@ -165,7 +165,7 @@ void     build_http_response(client_conn &client, int req_line)
         root = client.request.route->root;
         // static_uri_path = (char *)client.request.static_uri_path;
         //check if redirections
-        bucket = get(client.info.redirection_list, client.request.static_uri_path);
+        // bucket = get(client.info.redirection_list, client.request.static_uri_path);
         if (bucket)
         {
             static_uri_path = (char *)bucket->value;

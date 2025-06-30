@@ -16,14 +16,13 @@
 # include <arpa/inet.h>
 # include "../core/unicore_http_parse.hpp"
 # include "../core/unicore_defines.hpp"
-# include "../response/unicore_http_response.hpp"
 # include "server.hpp"
 
 class server;
 
 class connection
 {
-    protected:
+    public:
         int         sockfd;
         std::string buffer;
 
@@ -60,10 +59,10 @@ class listening_conn : public connection
 class client_conn : public connection
 {
     public:
+        bool                chunked;
         long				offset;
 		std::string 		filename;
 		unicore_request_t	request;
-
         client_conn(int fd);
         ~client_conn();
 };

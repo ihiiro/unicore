@@ -20,6 +20,6 @@ typedef struct http_response
     std::string body;
 }   http_response_t;
 
-void   build_http_response(client_conn &client, int req_line);
+void   build_http_response( client_conn &client, int req_line);
 void   format_http_response(client_conn &client, http_response_t &response);
 
