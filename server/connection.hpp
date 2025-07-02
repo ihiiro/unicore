@@ -22,16 +22,20 @@ class server;
 
 class connection
 {
-    public:
-        int         sockfd;
-        std::string buffer;
+    protected:
+        int                                     sockfd;
+        std::string                             buffer;
+        std::chrono::steady_clock::time_point   last_activity;
 
     public:
         connection();
         connection(int fd);
+		connection(const connection& other);
         virtual ~connection();
 
-        void reset();
+        void	update_last_activity();
+		bool	has_timed_out() const;
+        void	reset();
 };
 
 class server_conn : public connection
@@ -50,6 +54,7 @@ class listening_conn : public connection
     public:
         fsm_state_t         state;
         unicore_config_t    info;
+
         listening_conn();
         listening_conn(int fd, const unicore_config_t& info);
         listening_conn(const listening_conn& other);
@@ -62,8 +67,11 @@ class client_conn : public connection
         bool                chunked;
         long				offset;
 		std::string 		filename;
+        unicore_config_t    info;
 		unicore_request_t	request;
-        client_conn(int fd);
+
+        std::string&        getBuffer();
+        client_conn(int fd, const unicore_config_t& info);
         ~client_conn();
 };
 

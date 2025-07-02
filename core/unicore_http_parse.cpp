@@ -1582,7 +1582,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.chunk_size )
             {
 
-               std::cout << fsm_state.ch;
+               // std::cout << fsm_state.ch;
                fsm_state.chunk_size--;
                // write_to.append ( 1 , ch );
                break;
