@@ -131,7 +131,8 @@ int WebServer::init()
         }
         i++;
     }
-    return this->run();
+    int result = this->run();
+    return result;
 }
 
 WebServer::~WebServer()
@@ -150,24 +151,27 @@ bool WebServer::check_all_failed() const
 
 void    WebServer::check_events_timeout()
 {
+    std::vector<int> to_remove;
     for (std::map<int, connection *>::iterator it = connections.begin(); it != connections.end(); ++it)
     {
-        connection *conn = it->second;
+        connection *conn = dynamic_cast<server_conn *>(it->second);
+        if (conn)
+            continue;
+        else
+            conn = it->second;
         if (conn->has_timed_out())
-        {
-            conn->update_last_activity();
-            std::cerr << "Connection timeout for fd " << it->first << std::endl;
-            conn->reset();
-            struct kevent tmp_event;
-            EV_SET(&tmp_event, it->first, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-            if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-            {
-                std::cerr << "Error unregistering socket from kqueue" << std::endl;
-            }
-            close(it->first);
-            delete conn;
-            connections.erase(it);
-        }
+            to_remove.push_back(it->first);
+    }
+    for (std::vector<int>::iterator it = to_remove.begin(); it != to_remove.end(); ++it)
+    {
+        int fd = *it;
+        std::cerr << "Removing connection " << fd << " due to timeout" << std::endl;
+        connections.erase(fd);
+        struct kevent tmp_event;
+        EV_SET(&tmp_event, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+        if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+            std::cerr << "Error unregistering socket from kqueue" << std::endl;
+        close(fd);
     }
 }
 
@@ -239,10 +243,9 @@ int WebServer::run()
                     unicore_buf_t buf_req;
                     char buf[BUFFER_READ];
                     std::memset(buf, 0, sizeof(buf));
-                    // buf_req.pos = (u_char *)buf;
-                    // buf_req.start = buf_req.pos;
                     ssize_t bytes;
                     bytes = recv(event.ident, buf, BUFFER_READ, 0);
+                    conn->update_last_activity();
                     // std::cerr << "Received " << bytes << " counter is " << counter << " bytes: " << std::endl;
                     // write(STDOUT_FILENO, buf, bytes);
                     if (bytes > BUFFER_READ)
@@ -287,52 +290,68 @@ int WebServer::run()
                         if (conn->state.chunked == true)
                         {
                             int valid = unicore_http_parse_chunked_body(conn->state , &buf_req);
-                            if (valid == 2 || valid == 1)
+                            if (valid == 2)
+                            {
+                                // std::cerr << "state=" << conn->state.state << std::endl;
                                 std::cerr << "chunked parsed successfully\n";
+                            
+                            }
+                            else if (valid == 1)
+                            {
+                                std::cerr << "request finished\n";
+                                connections.erase(event.ident);
+                                connections[event.ident] = new client_conn(event.ident, conn->info);
+                                delete conn;
+                                struct kevent tmp_event;
+                                EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
+                                if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                                    std::cerr << "Error registering write event for chunked request" << std::endl;
+                            }
                             else
                                 std::cerr << "chunked failed miserably\n";
                         }
-                        req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
-                        if (req_line == 1)
+                        else
                         {
-                            conn->state.r->headers = new ht;
-                            conn->state.r->headers->buckets = new bucket[M];
-                            std::memset(conn->state.r->headers->buckets, 0, M * sizeof(bucket));
-                            if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
-                                std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-                            if (!strcmp((char *)get(conn->state.r->headers, (u_char *)"transfer-encoding")->value , "chunked"))
+                            req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
+                            if (req_line == 1)
                             {
-                                conn->state.chunked = true;
-                                unicore_http_parse_chunked_body(conn->state , &buf_req);
+                                conn->state.r->headers = new ht;
+                                conn->state.r->headers->buckets = new bucket[M];
+                                std::memset(conn->state.r->headers->buckets, 0, M * sizeof(bucket));
+                                if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
+                                    std::cerr << "parsed request-line and field-lines successfully" << std::endl;
+                                if (!strcmp((char *)get(conn->state.r->headers, (u_char *)"transfer-encoding")->value , "chunked"))
+                                {
+                                    std::cerr << "chunked transfer-encoding detected" << std::endl;
+                                    conn->state.chunked = true;
+                                    unicore_http_parse_chunked_body(conn->state , &buf_req);
+                                }
+                            }
+                            else if (req_line == 2)
+                            {
+                                //request not done yet
+                            }
+                            else if (req_line < 0)
+                            {
+                                std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
+                                // std::cout << conn->state.tertiary_buf;
+                                // EV_SET(&event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                                continue;
                             }
                         }
-                        else if (req_line == 2)
-                        {
-                            //request not done yet
-                        }
-                        else if (req_line < 0)
-                        {
-                            std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
-                            // std::cout << conn->state.tertiary_buf;
-                            // EV_SET(&event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-                            continue;
-                        }
-                        // http_response_t response;
-
-                        // response = build_http_response(request, req_line, 0, srv->info);
-                        // std::string response_str = format_http_response(response);
-                        // std::cerr << "Response: " << response_str << std::endl;
-                        // ssize_t sent_bytes = send(event.ident, response_str.c_str(), response_str.size(), 0);
-                        // if (sent_bytes < 0)
-                        // {
-                        //     std::cerr << "Error sending response on fd " << event.ident << std::endl;
-                        // }
-                        // else
-                        // {
-                        //     std::cerr << "Sent " << sent_bytes << " bytes in response." << std::endl;
-                        // }
                     }
                 }
+            }
+            else if (event.filter == EVFILT_WRITE)
+            {
+                client_conn *conn = dynamic_cast<client_conn *>(connections[event.ident]);
+                if (!conn)
+                {
+                    std::cerr << "Unknown connection type for write event on fd " << event.ident << std::endl;
+                    continue;
+                }
+                std::cerr << "Handling write event on fd " << event.ident << std::endl;
+                
             }
             else
             {

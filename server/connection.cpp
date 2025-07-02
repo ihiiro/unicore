@@ -9,28 +9,13 @@ listening_conn::listening_conn()
 listening_conn::listening_conn(int fd, const unicore_config_t& info)
     : connection(fd), info(info)
 {
-    // std::memset(&state, 0, sizeof(state));
-    // state.r = new unicore_request_t;
-    // state.r->headers = new ht;
-    // state.r->headers->buckets = new bucket[M];
-    // std::memset(state.r->headers->buckets, 0, M * sizeof(bucket));
 }
 
 listening_conn::listening_conn(const listening_conn& other)
     : connection(other.sockfd), info(other.info), state(other.state)
 {
-    if (other.state.r)
-    {
-        // state.r = new unicore_request_t;
-        // *state.r = *other.state.r;
-        // state.r->headers = new ht;
-        // state.r->headers->buckets = new bucket[M];
-        // std::memcpy(state.r->headers->buckets, other.state.r->headers->buckets, M * sizeof(bucket));
-    }
-    else
-    {
+    if (!other.state.r)
         state.r = NULL;
-    }
 }
 
 listening_conn::~listening_conn()
@@ -43,9 +28,14 @@ listening_conn::~listening_conn()
     }
 }
 
-client_conn::client_conn(int fd)
-    : connection(fd), offset(0)
+client_conn::client_conn(int fd, const unicore_config_t& info)
+    : connection(fd), offset(0), filename(""), info(info)
 {
+}
+
+std::string& client_conn::getBuffer()
+{
+    return buffer;
 }
 
 client_conn::~client_conn()
@@ -105,13 +95,13 @@ bool connection::has_timed_out() const
 {
     std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
     std::chrono::duration<double> duration = now - last_activity;
-    return duration.count() > 5;
+    return duration.count() > 10;
 }
 
 void connection::reset()
 {
+    std::cerr << "Connection reset on fd " << sockfd << std::endl;
     buffer.clear();
     sockfd = -1;
-    std::cerr << "Connection reset on fd " << sockfd << std::endl;
     last_activity = std::chrono::steady_clock::now();
 }
