@@ -10,6 +10,8 @@
 #include <iostream>
 #include "../server/server.hpp"
 
+class client_conn;
+
 
 typedef struct http_response
 {

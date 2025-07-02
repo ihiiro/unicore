@@ -17,7 +17,7 @@
 # include "../core/unicore_http_parse.hpp"
 # include "../core/unicore_defines.hpp"
 # include "server.hpp"
-
+#include "../response/unicore_http_response.hpp"
 class server;
 
 class connection
@@ -64,6 +64,7 @@ class listening_conn : public connection
 class client_conn : public connection
 {
     public:
+        int                 request_line;
         bool                chunked;
         long				offset;
 		std::string 		filename;
@@ -71,7 +72,7 @@ class client_conn : public connection
 		unicore_request_t	request;
 
         std::string&        getBuffer();
-        client_conn(int fd, const unicore_config_t& info);
+        client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request);
         ~client_conn();
 };
 

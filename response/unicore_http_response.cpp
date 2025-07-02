@@ -1,5 +1,16 @@
 #include "../response/unicore_http_response.hpp"
 
+std::streamsize get_file_size(const std::string& filename)
+{
+    std::ifstream file(filename.c_str(), std::ios::binary | std::ios::ate);
+    if (!file)
+        return -1;
+
+    std::streamsize size = file.tellg();
+    file.close();
+    return size;
+}
+
 std::string  check_path_type(const std::string& path) {
     struct stat path_stat;
     if (stat(path.c_str(), &path_stat) != 0) {
@@ -131,7 +142,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     else
     {
         const u_char *error = (u_char *)"404";
-        // bucket = get(client.info.error_pages, error);
+        bucket = get(client.info.error_pages, error);
         if (bucket)
             client.filename = (char *)bucket->value;
         response.status_code = 404;
@@ -142,6 +153,11 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
 
 void     build_http_response(client_conn &client, int req_line)
 {
+
+    //print client.request
+    // std::cout << "Building HTTP response for request line: " << req_line << std::endl;
+    // std::cout << "Request Method: " << client.request.REQUEST_METHOD << std::endl;
+    // std::cout << "Request URI: " << client.request.static_uri_path << std::endl;
     http_response_t response;
     if (!client.chunked)
     {
@@ -165,8 +181,8 @@ void     build_http_response(client_conn &client, int req_line)
         root = client.request.route->root;
         // static_uri_path = (char *)client.request.static_uri_path;
         //check if redirections
-        // bucket = get(client.info.redirection_list, client.request.static_uri_path);
-        if (bucket)
+        bucket = get(client.info.redirection_list, client.request.static_uri_path);
+        if (bucket && bucket->value)
         {
             static_uri_path = (char *)bucket->value;
             response.status_code = 301;
@@ -202,21 +218,31 @@ void     build_http_response(client_conn &client, int req_line)
 void format_http_response(client_conn &client, http_response_t &response)
 {
     std::ostringstream oss;
-    client.buffer.clear();
+    std::string &buffer = client.getBuffer();
+    buffer.clear();
     const std::size_t CHUNK_SIZE = 1024;
 
     // First-time response (headers)
+    std::cerr << "client.chunked: " << client.chunked << std::endl;
     if (!client.chunked)
     {
+        std::cout << "not chunked" << std::endl;
+        std::ifstream file(client.filename.c_str(), std::ios::binary);
         oss << response.http_version << " " << response.status_code << " " << response.reason_phrase << "\r\n";
         for (std::map<std::string, std::string>::iterator it = response.headers.begin(); it != response.headers.end(); ++it) {
             oss << it->first << ": " << it->second << "\r\n";
         }
 
-        if (client.filename.size() < CHUNK_SIZE)
+        std::streamsize file_size = get_file_size(client.filename);
+        if (file_size >= 0 && file_size < CHUNK_SIZE)
         {
+            std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
             oss << "Content-Length: " << client.filename.size() << "\r\n\r\n";
-            oss << client.filename;
+            std::ifstream file(client.filename.c_str(), std::ios::binary);
+            oss << file.rdbuf();
+            file.close();
+            oss << "\r\n"; // End of body
+            client.offset = -1337;
         }
         else
         {
@@ -228,6 +254,7 @@ void format_http_response(client_conn &client, http_response_t &response)
     // Handle chunked body transfer
     if (client.chunked)
     {
+        std::cout << "chunked transfer" << std::endl;
         std::ifstream file(client.filename.c_str(), std::ios::binary);
         if (file.is_open())
         {
@@ -246,13 +273,15 @@ void format_http_response(client_conn &client, http_response_t &response)
             // End of file
             if (file.eof() || bytes_read == 0)
             {
+                std::cerr << "End of file reached, sending final chunk." << std::endl;
                 oss << "0\r\n\r\n"; // Terminate chunked stream
                 client.chunked = false; // Optional: reset chunked flag
+                client.offset = -1337; // Reset offset for next request
             }
 
             client.offset += bytes_read;
         }
     }
 
-    client.buffer = oss.str();
+    client.getBuffer() = oss.str();
 }

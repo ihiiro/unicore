@@ -300,7 +300,7 @@ int WebServer::run()
                             {
                                 std::cerr << "request finished\n";
                                 connections.erase(event.ident);
-                                connections[event.ident] = new client_conn(event.ident, conn->info);
+                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                 delete conn;
                                 struct kevent tmp_event;
                                 EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
@@ -315,6 +315,7 @@ int WebServer::run()
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
                             if (req_line == 1)
                             {
+                                int valid = 0;
                                 conn->state.r->headers = new ht;
                                 conn->state.r->headers->buckets = new bucket[M];
                                 std::memset(conn->state.r->headers->buckets, 0, M * sizeof(bucket));
@@ -324,8 +325,21 @@ int WebServer::run()
                                 {
                                     std::cerr << "chunked transfer-encoding detected" << std::endl;
                                     conn->state.chunked = true;
-                                    unicore_http_parse_chunked_body(conn->state , &buf_req);
+                                    valid = unicore_http_parse_chunked_body(conn->state , &buf_req);
                                 }
+                                if (valid == 1)
+                                {
+                                    std::cerr << "request finished\n";
+                                    connections.erase(event.ident);
+                                    connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
+                                    delete conn;
+                                    struct kevent tmp_event;
+                                    EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
+                                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                                        std::cerr << "Error registering write event for request" << std::endl;
+                                }
+                                else
+                                    std::cerr << "request not finished yet\n";
                             }
                             else if (req_line == 2)
                             {
@@ -351,7 +365,48 @@ int WebServer::run()
                     continue;
                 }
                 std::cerr << "Handling write event on fd " << event.ident << std::endl;
-                
+                //handling  response
+                build_http_response(*conn, conn->request_line);
+                //printing response
+                std::string response = conn->getBuffer();
+                std::cerr << "Response: \n" << response << std::endl;
+                std::cerr << "response.size() = " << response.size() << std::endl;
+                ssize_t bytes_sent = send(event.ident, response.c_str(), response.size(), 0);
+                conn->update_last_activity();
+                if (conn->offset != -1337)
+                    conn->offset += bytes_sent;
+                if (bytes_sent < 0)
+                {
+                    std::cerr << "Error sending response on fd " << event.ident << std::endl;
+                    close(event.ident);
+                    connections.erase(event.ident);
+                    continue;
+                }
+                else if (bytes_sent == 0)
+                {
+                    std::cerr << "Client disconnected on fd " << event.ident << std::endl;
+                    close(event.ident);
+                    connections.erase(event.ident);
+                    continue;
+                }
+                else
+                {
+                    std::cerr << "Sent " << bytes_sent << " bytes to client on fd " << event.ident << std::endl;
+                }
+                if (conn->offset == -1337)
+                {
+                    struct kevent tmp_event;
+                    connections.erase(event.ident);
+                    // delete conn;
+                    EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                    {
+                        std::cerr << "Error unregistering socket from kqueue" << std::endl;
+                    }
+                    close(event.ident);
+                    continue ;
+                }
+
             }
             else
             {
