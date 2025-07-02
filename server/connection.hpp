@@ -55,6 +55,7 @@ class listening_conn : public connection
     public:
         fsm_state_t         state;
         unicore_config_t    info;
+
         listening_conn();
         listening_conn(int fd, const unicore_config_t& info);
         listening_conn(const listening_conn& other);
@@ -66,9 +67,11 @@ class client_conn : public connection
     public:
         long				offset;
 		std::string 		filename;
+        unicore_config_t    info;
 		unicore_request_t	request;
 
-        client_conn(int fd);
+        std::string&        getBuffer();
+        client_conn(int fd, const unicore_config_t& info);
         ~client_conn();
 };
 

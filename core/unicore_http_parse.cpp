@@ -64,6 +64,8 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
    state = ( enum state )fsm_state.state;
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
    {
+
+      fsm_state.state = state;
       fsm_state.ch = *fsm_state.p;
 
       switch ( state )
@@ -1580,6 +1582,8 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.chunk_size )
             {
 
+               // std::cout << fsm_state.ch;
+               fsm_state.chunk_size--;
                // write_to.append ( 1 , ch );
                break;
 
