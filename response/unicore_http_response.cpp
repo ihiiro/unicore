@@ -278,8 +278,6 @@ void format_http_response(client_conn &client, http_response_t &response)
                 client.chunked = false; // Optional: reset chunked flag
                 client.offset = -1337; // Reset offset for next request
             }
-
-            client.offset += bytes_read;
         }
     }
 
