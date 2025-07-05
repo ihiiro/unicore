@@ -1574,7 +1574,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             fsm_state.chunk_size--;
             fsm_state.hex_count = 0;
             // write_to.append ( 1 , ch );
-            // std::cout << fsm_state.ch;
+            std::cout << fsm_state.ch;
             state = CHUNK_DATA;
             break;
 

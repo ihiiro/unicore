@@ -28,8 +28,8 @@ listening_conn::~listening_conn()
     }
 }
 
-client_conn::client_conn(int fd, const unicore_config_t& info)
-    : connection(fd), offset(0), filename(""), info(info)
+client_conn::client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request)
+    : connection(fd), offset(0), filename(""), info(info), request_line(request_line), request(request), chunked(false)
 {
 }
 

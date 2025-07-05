@@ -8,6 +8,11 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <iostream>
+#include "../server/server.hpp"
+
+class client_conn;
+
+
 typedef struct http_response
 {
     std::string http_version;
@@ -17,6 +22,6 @@ typedef struct http_response
     std::string body;
 }   http_response_t;
 
-http_response_t    build_http_response(unicore_request_t &r, int req_line, int field_line, unicore_config_t &config);
-std::string format_http_response(http_response_t &response);
+void   build_http_response( client_conn &client, int req_line);
+void   format_http_response(client_conn &client, http_response_t &response);
 

@@ -17,12 +17,13 @@ RESPONSE_CFILES = core/unicore_http_parse.cpp \
 		tests/unicore_tests_response.cpp \
 
 
-HEADERS = core/unicore_defines.hpp server/server.hpp server/connection.cpp \
+HEADERS = core/unicore_defines.hpp server/server.hpp \
 			core/unicore_buf.hpp \
 			core/unicore_http_parse.hpp \
 			core/unicore_request.hpp \
 			core/unicore_config_parse.hpp \
-			response/unicore_http_response.hpp 
+			response/unicore_http_response.hpp \
+			server/connection.hpp \
 
 PARSER_TESTS = parser_tests
 
