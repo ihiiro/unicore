@@ -113,8 +113,8 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         {
             const u_char* error = (u_char *)"404";
             // bucket = get(client.info.error_pages, error);
-            if (bucket)
-                client.filename = (char *)bucket->value;
+            // if (bucket)
+            client.filename = "./test_dir/404.html";
             response.status_code = 404;
             response.reason_phrase = "Not Found";
             response.headers["Content-Type"] = "text/html";
@@ -132,8 +132,8 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         {
             const u_char *error = (u_char *)"403";
             // bucket = get(client.info.error_pages, error);
-            if (bucket)
-                client.filename = (char *)bucket->value;
+            // if (bucket)
+            //     client.filename = (char *)bucket->value;
             response.status_code = 403;
             response.reason_phrase = "Forbidden";
             response.headers["Content-Type"] = "text/html";
@@ -142,45 +142,76 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     else
     {
         const u_char *error = (u_char *)"404";
-        bucket = get(client.info.error_pages, error);
-        if (bucket)
-            client.filename = (char *)bucket->value;
+        // bucket = get(client.info.error_pages, error);
+        // if (bucket)
+        client.filename = "./test_dir/404.html";
         response.status_code = 404;
         response.reason_phrase = "Not Found";
         response.headers["Content-Type"] = "text/html";
     }
 }
 
+void    deletemethod(client_conn &client, http_response_t &response)
+{
+    bucket *bucket;
+    std::string path, root, static_uri_path;
+    root = client.request.route->root;
+    static_uri_path = (char *)client.request.static_uri_path;
+    path = "." + root + static_uri_path;
+    //check if file exists
+    std::string type = check_path_type(path);
+    if(type == "file")
+    {
+        if (remove(path.c_str()) == 0)
+        {
+            response.status_code = 204;
+            response.reason_phrase = "No Content";
+            response.headers["Content-Type"] = "text/html";
+            response.body = "<html><body><h1>File deleted successfully</h1></body></html>";
+            response.headers["Content-Length"] = std::to_string(response.body.size());
+        }
+        else
+        {
+            response.status_code = 500;
+            response.reason_phrase = "Internal Server Error";
+            response.headers["Content-Type"] = "text/html";
+            response.body = "<html><body><h1>Error deleting file</h1></body></html>";
+            response.headers["Content-Length"] = std::to_string(response.body.size());
+        }
+    }
+    else if (type == "directory")
+    {
+        response.status_code = 403;
+        response.reason_phrase = "Forbidden";
+        response.headers["Content-Type"] = "text/html";
+        response.body = "<html><body><h1>Cannot delete a directory</h1></body></html>";
+    }
+    else
+    {
+        const u_char *error = (u_char *)"404";
+        bucket = get(client.info.error_pages, error);
+        if (bucket)
+            client.filename = "./test_dir/404.html";
+        response.status_code = 404;
+        response.reason_phrase = "Not Found";
+        response.headers["Content-Type"] = "text/html";
+    }
+}
 void     build_http_response(client_conn &client, int req_line)
 {
-
-    //print client.request
-    // std::cout << "Building HTTP response for request line: " << req_line << std::endl;
-    // std::cout << "Request Method: " << client.request.REQUEST_METHOD << std::endl;
-    // std::cout << "Request URI: " << client.request.static_uri_path << std::endl;
     http_response_t response;
     if (!client.chunked)
     {
         std::map<std::string, std::string> &mime_types_map = mime_types();
         std::map<int, std::string> &status_codes = get_all_errors();
         bucket          *bucket;
-        // std::string path;
         std::string root;
         std::string static_uri_path;
 
 
 
-
-
-
-
-
-
         response.http_version = "HTTP/1.1";
-        //set the path
         root = client.request.route->root;
-        // static_uri_path = (char *)client.request.static_uri_path;
-        //check if redirections
         bucket = get(client.info.redirection_list, client.request.static_uri_path);
         if (bucket && bucket->value)
         {
@@ -200,8 +231,8 @@ void     build_http_response(client_conn &client, int req_line)
                     getmethod(client, response, status_codes, mime_types_map);
                 // else if (method == POST && client.request.route->ROUTE_POST)
                 //     postmethod(client, response);
-                // else if (method == DELETE && client.request.route->ROUTE_DELETE)
-                //     deletemethod(client, response);
+                else if (method == DELETE && client.request.route->ROUTE_DELETE)
+                    deletemethod(client, response);
                 else
                 {
                     response.status_code = 405;
@@ -221,43 +252,60 @@ void format_http_response(client_conn &client, http_response_t &response)
     std::string &buffer = client.getBuffer();
     buffer.clear();
     const std::size_t CHUNK_SIZE = 1024;
+    std::cout << "client.filename: ' " << client.filename << "'"<< std::endl;
 
     // First-time response (headers)
     std::cerr << "client.chunked: " << client.chunked << std::endl;
     if (!client.chunked)
     {
         std::cout << "not chunked" << std::endl;
-        std::ifstream file(client.filename.c_str(), std::ios::binary);
+        if (client.filename != "")
+        {
+            std::cout << "client.filename: " << client.filename<<" not empty " << std::endl;
+            std::ifstream file(client.filename.c_str(), std::ios::binary);
+            if (!file.is_open())
+                std::cout << "could not open file: " << client.filename << std::endl;
+        }
         oss << response.http_version << " " << response.status_code << " " << response.reason_phrase << "\r\n";
         for (std::map<std::string, std::string>::iterator it = response.headers.begin(); it != response.headers.end(); ++it) {
             oss << it->first << ": " << it->second << "\r\n";
         }
-
-        std::streamsize file_size = get_file_size(client.filename);
-        if (file_size >= 0 && file_size < CHUNK_SIZE)
+        if (client.filename != "")
         {
-            std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
-            oss << "Content-Length: " << client.filename.size() << "\r\n\r\n";
-            std::ifstream file(client.filename.c_str(), std::ios::binary);
-            oss << file.rdbuf();
-            file.close();
-            oss << "\r\n"; // End of body
-            client.offset = -1337;
+            std::streamsize file_size = get_file_size(client.filename);
+            std::cout << "file_size: " << file_size << std::endl;
+            if (file_size >= 0 && file_size < CHUNK_SIZE)
+            {
+                std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
+                oss << "Content-Length: " << client.filename.size() << "\r\n\r\n";
+                std::ifstream file(client.filename.c_str(), std::ios::binary);
+                oss << file.rdbuf();
+                file.close();
+                oss << "\r\n"; // End of body
+                client.offset = -1337;
+            }
+            else
+            {
+                std::cout << "it is chunked" << std::endl;
+                oss << "Transfer-Encoding: chunked\r\n\r\n";
+                client.chunked = true; // Set flag for next call
+            }
         }
         else
         {
-            oss << "Transfer-Encoding: chunked\r\n\r\n";
-            client.chunked = true; // Set flag for next call
+            oss << "\r\n"; // End of headers
+            client.getBuffer() = oss.str();
+            client.offset = -1337; // Reset offset for next request
         }
     }
 
-    // Handle chunked body transfer
     if (client.chunked)
     {
         std::cout << "chunked transfer" << std::endl;
         std::ifstream file(client.filename.c_str(), std::ios::binary);
         if (file.is_open())
         {
+            std::cout << "file is open" << std::endl;
             file.seekg(client.offset, std::ios::beg);
 
             char buffer[CHUNK_SIZE];
@@ -279,7 +327,8 @@ void format_http_response(client_conn &client, http_response_t &response)
                 client.offset = -1337; // Reset offset for next request
             }
         }
+        else
+            std::cout << "could not open file : "<< client.filename << std::endl;
     }
-
     client.getBuffer() = oss.str();
 }
