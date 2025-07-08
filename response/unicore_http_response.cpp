@@ -16,10 +16,8 @@ std::string  check_path_type(const std::string& path) {
     if (stat(path.c_str(), &path_stat) != 0) {
         return "unaccessible";
     } else if (S_ISREG(path_stat.st_mode)) {
-        //file
        return "file";
     } else if (S_ISDIR(path_stat.st_mode)) {
-        //directory
         return "directory";
     } else {
         return "Not found";
@@ -98,6 +96,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     path = "." + root + static_uri_path;
     //check if file exists
     std::string type = check_path_type(path);
+    std::cout << " static_uri_path : " <<client.request.static_uri_path<< std::endl;
     if(type == "file")
     {
         client.filename = path;
@@ -200,19 +199,29 @@ void    deletemethod(client_conn &client, http_response_t &response)
 void     build_http_response(client_conn &client, int req_line)
 {
     http_response_t response;
+
     if (!client.chunked)
     {
         std::map<std::string, std::string> &mime_types_map = mime_types();
         std::map<int, std::string> &status_codes = get_all_errors();
+        bucket          *headers_bucket;
         bucket          *bucket;
         std::string root;
         std::string static_uri_path;
 
 
-
+        headers_bucket = get(client.request.headers, (const u_char *)"connection");
+        if (headers_bucket && headers_bucket->value)
+        {
+            response.headers["Connection"] = "close";
+            if (!std::strcmp((char *)headers_bucket->value, "close"))
+                client.keep_alive = false;
+            else
+                client.keep_alive = true;
+        }
         response.http_version = "HTTP/1.1";
         root = client.request.route->root;
-        bucket = get(client.info.redirection_list, client.request.static_uri_path);
+        bucket = get(client.info.redirection_list, client.request.absolute_path);
         if (bucket && bucket->value)
         {
             static_uri_path = (char *)bucket->value;
@@ -220,10 +229,10 @@ void     build_http_response(client_conn &client, int req_line)
             response.reason_phrase = "Moved Permanently";
             response.headers["Location"] = static_uri_path;
             response.headers["Content-Type"] = "text/html";
-            response.body = status_codes[response.status_code];
         }
         else
         {
+            std::cout << "the redirection list is empty" << std::endl;
             int method = client.request.REQUEST_METHOD;
             if (method == GET || method == POST || method == DELETE)
             {

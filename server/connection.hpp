@@ -66,6 +66,7 @@ class client_conn : public connection
     public:
         int                 request_line;
         bool                chunked;
+        bool               keep_alive;
         long				offset;
 		std::string 		filename;
         unicore_config_t    info;
