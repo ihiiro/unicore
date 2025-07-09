@@ -22,9 +22,9 @@ listening_conn::~listening_conn()
 {
     if (state.r)
     {
-        delete[] state.r->headers->buckets;
-        delete state.r->headers;
-        delete state.r;
+        // delete[] state.r->headers->buckets;
+        // delete state.r->headers;
+        // delete state.r;
     }
 }
 
@@ -102,6 +102,5 @@ void connection::reset()
 {
     std::cerr << "Connection reset on fd " << sockfd << std::endl;
     buffer.clear();
-    sockfd = -1;
     last_activity = std::chrono::steady_clock::now();
 }
