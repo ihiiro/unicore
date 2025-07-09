@@ -186,7 +186,7 @@ int WebServer::run()
     {
         struct timespec ts;
         ts.tv_sec = 0;
-        ts.tv_nsec = 0;
+        ts.tv_nsec = 10000000;
         int num_events = kevent(kq, NULL, 0, events, 10240, &ts);
         if (num_events < 0)
         {
@@ -294,7 +294,9 @@ int WebServer::run()
                             int valid = unicore_http_parse_chunked_body(conn->state , &buf_req);
                             if (valid == 2)
                             {
-                                // std::cerr << "state=" << conn->state.state << std::endl;
+                                std::cerr << "state=" << conn->state.state << std::endl;
+                                std::cerr << "hex_count=" << conn->state.hex_count << std::endl;
+                                std::cerr << "modulo [" << conn->state.p << "]\n";
                                 std::cerr << "chunked parsed successfully\n";
                             
                             }
@@ -357,7 +359,12 @@ int WebServer::run()
                             {
                                 std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
                                 // std::cout << conn->state.tertiary_buf;
-                                // EV_SET(&event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                                EV_SET(&event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                                if (kevent(kq, &event, 1, NULL, 0, NULL) < 0)
+                                    std::cerr << "Error unregistering socket from kqueue" << std::endl;
+                                connections.erase(event.ident);
+                                delete conn;
+                                close(event.ident);
                                 continue;
                             }
                         }
