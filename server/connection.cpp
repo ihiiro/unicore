@@ -102,6 +102,5 @@ void connection::reset()
 {
     std::cerr << "Connection reset on fd " << sockfd << std::endl;
     buffer.clear();
-    sockfd = -1;
     last_activity = std::chrono::steady_clock::now();
 }

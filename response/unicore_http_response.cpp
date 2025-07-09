@@ -213,11 +213,16 @@ void     build_http_response(client_conn &client, int req_line)
         headers_bucket = get(client.request.headers, (const u_char *)"connection");
         if (headers_bucket && headers_bucket->value)
         {
-            response.headers["Connection"] = "close";
             if (!std::strcmp((char *)headers_bucket->value, "close"))
+            {
+                response.headers["Connection"] = "close";
                 client.keep_alive = false;
+            }
             else
+            {
                 client.keep_alive = true;
+                response.headers["Connection"] = "keep-alive";
+            }
         }
         response.http_version = "HTTP/1.1";
         root = client.request.route->root;
@@ -226,6 +231,7 @@ void     build_http_response(client_conn &client, int req_line)
         {
             static_uri_path = (char *)bucket->value;
             response.status_code = 301;
+            response.headers.erase("Connection");
             response.reason_phrase = "Moved Permanently";
             response.headers["Location"] = static_uri_path;
             response.headers["Content-Type"] = "text/html";

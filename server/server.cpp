@@ -166,11 +166,11 @@ void    WebServer::check_events_timeout()
     {
         int fd = *it;
         std::cerr << "Removing connection " << fd << " due to timeout" << std::endl;
-        connections.erase(fd);
         struct kevent tmp_event;
-        EV_SET(&tmp_event, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+        EV_SET(&tmp_event, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
         if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
             std::cerr << "Error unregistering socket from kqueue" << std::endl;
+        connections.erase(fd);
         close(fd);
     }
 }
@@ -184,13 +184,15 @@ int WebServer::run()
     }
     while (true)
     {
-        int num_events = kevent(kq, NULL, 0, events, 10240, NULL);
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 0;
+        int num_events = kevent(kq, NULL, 0, events, 10240, &ts);
         if (num_events < 0)
         {
             std::cerr << "Error in kevent" << std::endl;
             continue ;
         }
-
         for (int i = 0; i < num_events; ++i)
         {
             std::cerr << "Event " << i + 1 << " of " << num_events << std::endl;
@@ -219,7 +221,7 @@ int WebServer::run()
 
                         struct kevent client_event;
                         connections[srv->sockfd] = new listening_conn(srv->sockfd, srv->info);
-                        EV_SET(&client_event, srv->sockfd, EVFILT_READ, EV_ADD | EV_ENABLE , 0, 0, &connections[srv->sockfd]);
+                        EV_SET(&client_event, srv->sockfd, EVFILT_READ, EV_ADD | EV_ENABLE , 0, 0, connections[srv->sockfd]);
                         if (kevent(kq, &client_event, 1, NULL, 0, NULL) == -1)
                         {
                             std::cerr << "Failed to register client socket" << std::endl;
@@ -303,6 +305,9 @@ int WebServer::run()
                                 connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                 delete conn;
                                 struct kevent tmp_event;
+                                EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                                if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                                    std::cerr << "Error unregistering read event for chunked request" << std::endl;
                                 EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
                                 if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
                                     std::cerr << "Error registering write event for chunked request" << std::endl;
@@ -334,6 +339,9 @@ int WebServer::run()
                                     connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                     delete conn;
                                     struct kevent tmp_event;
+                                    EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+                                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                                        std::cerr << "Error unregistering read event for request" << std::endl;
                                     EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
                                     if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
                                         std::cerr << "Error registering write event for request" << std::endl;
@@ -369,8 +377,8 @@ int WebServer::run()
                 build_http_response(*conn, conn->request_line);
                 //printing response
                 std::string response = conn->getBuffer();
-                std::cerr << "Response: \n" << response << std::endl;
-                std::cerr << "response.size() = " << response.size() << std::endl;
+                // std::cerr << "Response: \n" << response << std::endl;
+                // std::cerr << "response.size() = " << response.size() << std::endl;
                 ssize_t bytes_sent = send(event.ident, response.c_str(), response.size(), 0);
                 conn->update_last_activity();
                 if (conn->offset != -1337)
@@ -395,25 +403,39 @@ int WebServer::run()
                 }
                 if (conn->offset == -1337)
                 {
-                    struct kevent tmp_event;
-                    connections.erase(event.ident);
-                    // delete conn;
-                    EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                    if (!conn->keep_alive)
                     {
-                        std::cerr << "Error unregistering socket from kqueue" << std::endl;
+                        struct kevent tmp_event;
+                        connections.erase(event.ident);
+                        delete conn;
+                        EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                        if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                            std::cerr << "Error unregistering socket from kqueue" << std::endl;
+                        close(event.ident);
+                        continue ;
                     }
-                    close(event.ident);
-                    continue ;
+                    else
+                    {
+                        std::cerr << "Keep-alive connection on fd " << event.ident << std::endl;
+                        connections.erase(event.ident);
+                        connections[event.ident] = new listening_conn(event.ident, conn->info);
+                        delete conn;
+                        struct kevent tmp_event;
+                        EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                        if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                            std::cerr << "Error unregistering write event for keep-alive connection" << std::endl;
+                        EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
+                        if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                            std::cerr << "Error re-registering read event for keep-alive connection" << std::endl;
+                    }
                 }
-
             }
             else
             {
                 std::cerr << "Unhandled event type: " << event.filter << std::endl;
             }
-            check_events_timeout();
         }
+        check_events_timeout();
     }
     close(kq);
     return 0;
