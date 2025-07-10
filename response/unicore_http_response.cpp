@@ -86,6 +86,7 @@ static std::map<std::string, std::string>& mime_types() {
     types[".zip"] = "application/zip";
     return types;
 }
+//--------------------------------------------------------------------GET________________METHOD-----------------------------------------------------------------------------//
 
 void    getmethod(client_conn &client, http_response_t &response, std::map<int, std::string> &status_codes, std::map<std::string, std::string> &mime_types_map)
 {
@@ -136,6 +137,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             response.status_code = 403;
             response.reason_phrase = "Forbidden";
             response.headers["Content-Type"] = "text/html";
+            response.headers["Content-lenght"] = "0";
         }
     }
     else
@@ -147,9 +149,10 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         response.status_code = 404;
         response.reason_phrase = "Not Found";
         response.headers["Content-Type"] = "text/html";
+        response.headers["Content-lenght"] = "0";
     }
 }
-
+//--------------------------------------------------------------------DELETE________________METHOD-----------------------------------------------------------------------------//
 void    deletemethod(client_conn &client, http_response_t &response)
 {
     bucket *bucket;
@@ -166,8 +169,7 @@ void    deletemethod(client_conn &client, http_response_t &response)
             response.status_code = 204;
             response.reason_phrase = "No Content";
             response.headers["Content-Type"] = "text/html";
-            response.body = "<html><body><h1>File deleted successfully</h1></body></html>";
-            response.headers["Content-Length"] = std::to_string(response.body.size());
+            response.headers["Content-Length"] = "0";
         }
         else
         {
@@ -195,6 +197,11 @@ void    deletemethod(client_conn &client, http_response_t &response)
         response.reason_phrase = "Not Found";
         response.headers["Content-Type"] = "text/html";
     }
+}
+//--------------------------------------------------------------------POST________________METHOD-----------------------------------------------------------------------------//
+void    postmethod(client_conn &client, http_response_t & response)
+{
+    
 }
 void     build_http_response(client_conn &client, int req_line)
 {
@@ -224,6 +231,11 @@ void     build_http_response(client_conn &client, int req_line)
                 response.headers["Connection"] = "keep-alive";
             }
         }
+        else
+        {
+            response.headers["Connection"] = "keep-alive";
+            client.keep_alive = true;
+        }
         response.http_version = "HTTP/1.1";
         root = client.request.route->root;
         bucket = get(client.info.redirection_list, client.request.absolute_path);
@@ -231,7 +243,8 @@ void     build_http_response(client_conn &client, int req_line)
         {
             static_uri_path = (char *)bucket->value;
             response.status_code = 301;
-            response.headers.erase("Connection");
+            response.headers["Connection"] = "keep-alive";
+            response.headers["Content-Length"] = "0";
             response.reason_phrase = "Moved Permanently";
             response.headers["Location"] = static_uri_path;
             response.headers["Content-Type"] = "text/html";
@@ -244,8 +257,8 @@ void     build_http_response(client_conn &client, int req_line)
             {
                 if (method == GET && client.request.route->ROUTE_GET)
                     getmethod(client, response, status_codes, mime_types_map);
-                // else if (method == POST && client.request.route->ROUTE_POST)
-                //     postmethod(client, response);
+                else if (method == POST && client.request.route->ROUTE_POST)
+                    postmethod(client, response);
                 else if (method == DELETE && client.request.route->ROUTE_DELETE)
                     deletemethod(client, response);
                 else

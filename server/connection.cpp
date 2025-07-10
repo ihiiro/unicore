@@ -9,6 +9,7 @@ listening_conn::listening_conn()
 listening_conn::listening_conn(int fd, const unicore_config_t& info)
     : connection(fd), info(info)
 {
+    std::memset(&state, 0, sizeof(state));
 }
 
 listening_conn::listening_conn(const listening_conn& other)
