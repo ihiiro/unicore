@@ -4,6 +4,7 @@ int main(int argc, char *argv[])
 {
     std::string	path;
 
+	signal(SIGPIPE, SIG_IGN); // Ignore SIGPIPE to prevent crashes on broken pipes
     if (argc < 2)
 		path = "default/default.conf";
 	else if (argc == 2)

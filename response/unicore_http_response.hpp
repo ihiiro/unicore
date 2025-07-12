@@ -8,6 +8,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <iostream>
+#include <dirent.h>
 #include "../server/server.hpp"
 
 class client_conn;
