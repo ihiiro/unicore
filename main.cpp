@@ -1,10 +1,10 @@
-#include "server/server.hpp"
+#include "server/WebServer.hpp"
 
 int main(int argc, char *argv[])
 {
     std::string	path;
 
-	signal(SIGPIPE, SIG_IGN); // Ignore SIGPIPE to prevent crashes on broken pipes
+	signal(SIGPIPE, SIG_IGN);
     if (argc < 2)
 		path = "default/default.conf";
 	else if (argc == 2)
