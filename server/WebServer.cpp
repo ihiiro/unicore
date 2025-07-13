@@ -350,7 +350,6 @@ int WebServer::run()
                 build_http_response(*conn, conn->request_line);
                 //printing response
                 std::string response = conn->getBuffer();
-                std::cerr << "Response: \n" << response << std::endl;
                 // std::cerr << "response.size() = " << response.size() << std::endl;
                 ssize_t bytes_sent = send(event.ident, response.c_str(), response.size(), 0);
                 conn->update_last_activity();
