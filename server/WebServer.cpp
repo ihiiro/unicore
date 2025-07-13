@@ -211,7 +211,6 @@ int WebServer::run()
                         std::cerr << "Unknown connection type for fd " << event.ident << std::endl;
                         continue;
                     }
-                    
                     std::cerr << "Handling read event on fd " << event.ident << std::endl;
                     unicore_buf_t buf_req;
                     char buf[BUFFER_READ];
@@ -219,8 +218,6 @@ int WebServer::run()
                     ssize_t bytes;
                     bytes = recv(event.ident, buf, BUFFER_READ, 0);
                     conn->update_last_activity();
-                    // std::cerr << "Received " << bytes << " counter is " << counter << " bytes: " << std::endl;
-                    // write(STDOUT_FILENO, buf, bytes);
                     if (bytes > BUFFER_READ)
                     {
                         std::cerr << "Received too much data on fd " << event.ident << std::endl;
@@ -346,12 +343,8 @@ int WebServer::run()
                     continue;
                 }
                 std::cerr << "Handling write event on fd " << event.ident << std::endl;
-                //handling  response
                 build_http_response(*conn, conn->request_line);
-                //printing response
                 std::string response = conn->getBuffer();
-                // std::cerr << "Response: \n" << response << std::endl;
-                // std::cerr << "response.size() = " << response.size() << std::endl;
                 ssize_t bytes_sent = 0;
                 ssize_t resp_size = response.size();
                 while (bytes_sent != resp_size)
@@ -363,6 +356,7 @@ int WebServer::run()
                         std::cerr << "Error sending response on fd " << event.ident << std::endl;
                         close(event.ident);
                         connections.erase(event.ident);
+                        bytes_sent = bytes;
                         break;
                     }
                     else if (bytes == 0)
@@ -370,15 +364,15 @@ int WebServer::run()
                         std::cerr << "Client disconnected on fd " << event.ident << std::endl;
                         close(event.ident);
                         connections.erase(event.ident);
+                        bytes_sent = bytes;
                         break;
                     }
-                    else
-                    {
-                        std::cerr << "Sent " << bytes << " bytes to client on fd " << event.ident << std::endl;
-                    }
+                    std::cerr << "Sent " << bytes << " bytes to client on fd " << event.ident << std::endl;
                     bytes_sent += bytes;
                     response.erase(0, bytes);
                 }
+                if (bytes_sent <= 0)
+                    continue;
                 if (conn->offset == -1337)
                 {
                     if (!conn->keep_alive)
@@ -392,20 +386,17 @@ int WebServer::run()
                         close(event.ident);
                         continue ;
                     }
-                    else
-                    {
-                        std::cerr << "Keep-alive connection on fd " << event.ident << std::endl;
-                        connections.erase(event.ident);
-                        connections[event.ident] = new listening_conn(event.ident, conn->info);
-                        delete conn;
-                        struct kevent tmp_event;
-                        EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-                        if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-                            std::cerr << "Error unregistering write event for keep-alive connection" << std::endl;
-                        EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
-                        if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-                            std::cerr << "Error re-registering read event for keep-alive connection" << std::endl;
-                    }
+                    std::cerr << "Keep-alive connection on fd " << event.ident << std::endl;
+                    connections.erase(event.ident);
+                    connections[event.ident] = new listening_conn(event.ident, conn->info);
+                    delete conn;
+                    struct kevent tmp_event;
+                    EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                        std::cerr << "Error unregistering write event for keep-alive connection" << std::endl;
+                    EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
+                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                        std::cerr << "Error re-registering read event for keep-alive connection" << std::endl;
                 }
             }
             else
