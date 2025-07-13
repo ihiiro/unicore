@@ -544,8 +544,6 @@ void format_http_response(client_conn &client, http_response_t &response)
 
             if (bytes_read > 0)
             {
-                std::ofstream response_log("response.log", std::ios::app);
-                response_log.write(buffer_chunk, bytes_read);
                 oss << std::hex << bytes_read;
                 oss << "\r\n";
                 oss.write(buffer_chunk, bytes_read);
@@ -568,3 +566,5 @@ void format_http_response(client_conn &client, http_response_t &response)
     }
     client.getBuffer() = oss.str();
 }
+
+// int cgi (response_t &response, client_conn &client)
