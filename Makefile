@@ -4,7 +4,8 @@ MAIN_CFILES = main.cpp server/server.cpp server/connection.cpp server/WebServer.
 		core/unicore_http_parse.cpp \
 		core/unicore_hash_table.cpp \
 		core/unicore_config_parse.cpp \
-		response/unicore_http_response.cpp 
+		response/unicore_http_response.cpp \
+		cgi/cgi.cpp 
 
 TESTS_CFILES = tests/unicore_tests_parser.cpp \
 		core/unicore_http_parse.cpp \
@@ -15,6 +16,7 @@ RESPONSE_CFILES = core/unicore_http_parse.cpp \
 		core/unicore_hash_table.cpp \
 		core/unicore_config_parse.cpp \
 		tests/unicore_tests_response.cpp \
+
 
 
 HEADERS = core/unicore_defines.hpp server/server.hpp server/WebServer.hpp \
@@ -47,6 +49,9 @@ core/%.o: core/%.cpp
 	c++ -g $(CFLAGS) -c $< -o $@
 
 server/%.o: server/%.cpp
+	c++  -g $(CFLAGS) -c $< -o $@
+
+cgi/%.o: cgi/%.cpp
 	c++  -g $(CFLAGS) -c $< -o $@
 
 %.o: %.cpp
