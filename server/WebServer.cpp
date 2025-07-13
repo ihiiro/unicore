@@ -353,7 +353,8 @@ int WebServer::run()
                 // std::cerr << "Response: \n" << response << std::endl;
                 // std::cerr << "response.size() = " << response.size() << std::endl;
                 ssize_t bytes_sent = 0;
-                while (bytes_sent != response.size())
+                ssize_t resp_size = response.size();
+                while (bytes_sent != resp_size)
                 {
                     ssize_t bytes = send(event.ident, response.c_str(), response.size(), 0);
                     conn->update_last_activity();
@@ -362,18 +363,18 @@ int WebServer::run()
                         std::cerr << "Error sending response on fd " << event.ident << std::endl;
                         close(event.ident);
                         connections.erase(event.ident);
-                        continue;
+                        break;
                     }
                     else if (bytes == 0)
                     {
                         std::cerr << "Client disconnected on fd " << event.ident << std::endl;
                         close(event.ident);
                         connections.erase(event.ident);
-                        continue;
+                        break;
                     }
                     else
                     {
-                        std::cerr << "Sent " << bytes_sent << " bytes to client on fd " << event.ident << std::endl;
+                        std::cerr << "Sent " << bytes << " bytes to client on fd " << event.ident << std::endl;
                     }
                     bytes_sent += bytes;
                     response.erase(0, bytes);
