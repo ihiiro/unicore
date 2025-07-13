@@ -4,8 +4,6 @@
 
 # include "connection.hpp"
 
-class connection;
-
 class	server
 {
 	private:
@@ -19,26 +17,10 @@ class	server
 		std::string			host;
 		unicore_config_t	info;
 		server(const std::string& host, const size_t& port, const unicore_config_t& info);
+		server(const std::string& host, const size_t& port, const unicore_config_t& info, int listen_sockfd);
 		server(const server& other);
 		~server();
-};
-
-class   WebServer
-{
-	private:
-		int					kq;
-		std::string			config_file;
-		struct kevent		events[10240];
-		std::vector<server>	servers;
-		std::map<int, connection *> connections;
-		bool				check_all_failed() const;
-		void				check_events_timeout();
-
-	public:
-		WebServer(const std::string& config_file);
-		~WebServer();
-		int		init();
-		int		run();
+		void create_and_bind_socket();
 };
 
 #endif

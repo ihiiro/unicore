@@ -96,7 +96,7 @@ bool connection::has_timed_out() const
 {
     std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
     std::chrono::duration<double> duration = now - last_activity;
-    return duration.count() > 10;
+    return duration.count() > 30;
 }
 
 void connection::reset()

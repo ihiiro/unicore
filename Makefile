@@ -1,6 +1,6 @@
 CFLAGS = -std=c++98 #-Wall -Wextra -Werror
 
-MAIN_CFILES = main.cpp server/server.cpp server/connection.cpp \
+MAIN_CFILES = main.cpp server/server.cpp server/connection.cpp server/WebServer.cpp\
 		core/unicore_http_parse.cpp \
 		core/unicore_hash_table.cpp \
 		core/unicore_config_parse.cpp \
@@ -17,7 +17,7 @@ RESPONSE_CFILES = core/unicore_http_parse.cpp \
 		tests/unicore_tests_response.cpp \
 
 
-HEADERS = core/unicore_defines.hpp server/server.hpp \
+HEADERS = core/unicore_defines.hpp server/server.hpp server/WebServer.hpp \
 			core/unicore_buf.hpp \
 			core/unicore_http_parse.hpp \
 			core/unicore_request.hpp \
