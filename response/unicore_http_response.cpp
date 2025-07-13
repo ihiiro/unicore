@@ -25,45 +25,45 @@ std::string  check_path_type(const std::string& path) {
 }
 std::map<int, std::string>& get_all_errors() {
     static std::map<int, std::string> status_codes;
-        status_codes[100] = "<html><body><h1>Continue</h1><body></html>";
-        status_codes[101] = "<html><body><h1>Switching Protocols</h1><body></html>";
-        status_codes[200] = "<html><body><h1>OK</h1><body></html>";
-        status_codes[201] = "<html><body><h1>Created</h1><body></html>";
-        status_codes[202] = "<html><body><h1>Accepted</h1><body></html>";
-        status_codes[203] = "<html><body><h1>Non-Authoritative Information</h1><body></html>";
-        status_codes[204] = "<html><body><h1>No Content</h1><body></html>";
-        status_codes[205] = "<html><body><h1>Reset Content</h1><body></html>";
-        status_codes[206] = "<html><body><h1>Partial Content</h1><body></html>";
-        status_codes[300] = "<html><body><h1>Multiple Choices</h1><body></html>";
-        status_codes[301] = "<html><body><h1>Moved Permanently</h1><body></html>";
-        status_codes[302] = "<html><body><h1>Found</h1><body></html>";
-        status_codes[303] = "<html><body><h1>See Other</h1><body></html>";
-        status_codes[304] = "<html><body><h1>Not Modified</h1><body></html>";
-        status_codes[305] = "<html><body><h1>Use Proxy</h1><body></html>";
-        status_codes[307] = "<html><body><h1>Temporary Redirect</h1><body></html>";
-        status_codes[400] = "<html><body><h1>Bad Request</h1><body></html>";
-        status_codes[401] = "<html><body><h1>Unauthorized</h1><body></html>";
-        status_codes[402] = "<html><body><h1>Payment Required</h1><body></html>";
-        status_codes[403] = "<html><body><h1>Forbidden</h1><body></html>";
-        status_codes[404] = "<html><body><h1>Not Found</h1><body></html>";
-        status_codes[405] = "<html><body><h1>Method Not Allowed</h1><body></html>";
-        status_codes[406] = "<html><body><h1>Not Acceptable</h1><body></html>";
-        status_codes[407] = "<html><body><h1>Proxy Authentication Required</h1><body></html>";
-        status_codes[408] = "<html><body><h1>Request Timeout</h1><body></html>";
-        status_codes[409] = "<html><body><h1>Conflict</h1><body></html>";
-        status_codes[410] = "<html><body><h1>Gone</h1><body></html>";
-        status_codes[411] = "<html><body><h1>Length Required</h1><body></html>";
-        status_codes[412] = "<html><body><h1>Precondition Failed</h1><body></html>";
-        status_codes[413] = "<html><body><h1>Payload Too Large</h1><body></html>";
-        status_codes[414] = "<html><body><h1>URI Too Long</h1><body></html>";
-        status_codes[415] = "<html><body><h1>Unsupported Media Type</h1><body></html>";
-        status_codes[416] = "<html><body><h1>Range Not Satisfiable</h1><body></html>";
-        status_codes[417] = "<html><body><h1>Expectation Failed</h1><body></html>";
-        status_codes[426] = "<html><body><h1>Upgrade Required</h1><body></html>";
-        status_codes[500] = "<html><body><h1>Internal Server Error</h1><body></html>";
-        status_codes[501] = "<html><body><h1>Not Implemented</h1><body></html>";
-        status_codes[502] = "<html><body><h1>Bad Gateway</h1><body></html>";
-        status_codes[503] = "<html><><h1>Service Unavailable</h1><body></html>";
+        status_codes[100] = "Continue";
+        status_codes[101] = "Switching Protocols";
+        status_codes[200] = "OK";
+        status_codes[201] = "Created";
+        status_codes[202] = "Accepted";
+        status_codes[203] = "Non-Authoritative Information";
+        status_codes[204] = "No Content";
+        status_codes[205] = "Reset Content";
+        status_codes[206] = "Partial Content";
+        status_codes[300] = "Multiple Choices";
+        status_codes[301] = "Moved Permanently";
+        status_codes[302] = "Found";
+        status_codes[303] = "See Other";
+        status_codes[304] = "Not Modified";
+        status_codes[305] = "Use Proxy";
+        status_codes[307] = "Temporary Redirect";
+        status_codes[400] = "Bad Request";
+        status_codes[401] = "Unauthorized";
+        status_codes[402] = "Payment Required";
+        status_codes[403] = "Forbidden";
+        status_codes[404] = "Not Found";
+        status_codes[405] = "Method Not Allowed";
+        status_codes[406] = "Not Acceptable";
+        status_codes[407] = "Proxy Authentication Required";
+        status_codes[408] = "Request Timeout";
+        status_codes[409] = "Conflict";
+        status_codes[410] = "Gone";
+        status_codes[411] = "Length Required";
+        status_codes[412] = "Precondition Failed";
+        status_codes[413] = "Payload Too Large";
+        status_codes[414] = "URI Too Long";
+        status_codes[415] = "Unsupported Media Type";
+        status_codes[416] = "Range Not Satisfiable";
+        status_codes[417] = "Expectation Failed";
+        status_codes[426] = "Upgrade Required";
+        status_codes[500] = "Internal Server Error";
+        status_codes[501] = "Not Implemented";
+        status_codes[502] = "Bad Gateway";
+        status_codes[503] = "Service Unavailable";
     return status_codes;
 }
 
@@ -86,10 +86,44 @@ static std::map<std::string, std::string>& mime_types() {
     types[".zip"] = "application/zip";
     return types;
 }
-//--------------------------------------------------------------------GET________________METHOD-----------------------------------------------------------------------------//
+//--------------------------------------------------------------------ERROR---------FILES--------------------------------------------------------------------//
+void    check_files_errors(client_conn &client, http_response_t &response, std::map<int, std::string> &status_codes, std::string error_number)
+{
+    bucket *buck;
 
+    const u_char *error = (const u_char *)error_number.c_str();
+    buck = get(client.info.error_pages, error);
+    if (buck && buck->value)
+    {
+        std::cout << "bucket->value: " << (char *)buck->value << std::endl;
+        client.filename  =  "." + std::string((char *)buck->value);
+        if (!std::ifstream(client.filename).is_open())
+        {
+            std::cout << "could not open file: " << client.filename << std::endl;
+            response.status_code = 404;
+            response.reason_phrase = "Not Found";
+            response.headers["Content-Type"] = "text/html";
+            response.body = " <html><body><h1>cant be opened </h1></body></html>";
+            return;
+        }
+        else
+        {
+            response.status_code = std::stoi(error_number);
+            response.headers["Content-Type"] = mime_types()[client.filename.substr(client.filename.find_last_of('.'))];
+        }
+    }
+    else
+    {
+        response.status_code = std::stoi(error_number);
+        response.reason_phrase = status_codes[response.status_code];
+        response.headers["Content-Type"] = "text/html";
+        response.body = "<!DOCTYPE html>\n<html><body><h1>" + status_codes[response.status_code]+ "</h1></body></html>";
+    }
+}
+//--------------------------------------------------------------------GET________________METHOD-----------------------------------------------------------------------------//
 void    getmethod(client_conn &client, http_response_t &response, std::map<int, std::string> &status_codes, std::map<std::string, std::string> &mime_types_map)
 {
+    std::cout << "getmethod called" << std::endl;
     bucket *bucket;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
@@ -97,9 +131,17 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     path = "." + root + static_uri_path;
     //check if file exists
     std::string type = check_path_type(path);
+    std::cout << "type : " << type << std::endl;
+    std::cout << "path : " << path << std::endl;
     std::cout << " static_uri_path : " <<client.request.static_uri_path<< std::endl;
     if(type == "file")
     {
+        std::ifstream file(path, std::ios::binary);
+        if (!file.is_open())
+        {
+            check_files_errors(client, response, status_codes, "404");
+            return;
+        }
         client.filename = path;
         response.status_code = 200;
         response.reason_phrase = "OK";
@@ -108,53 +150,115 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             response.headers["Content-Type"] = mime_types_map[ext];
         else
             response.headers["Content-Type"] = "application/octet-stream";
-        std::ifstream file(path, std::ios::binary);
-        if (!file.is_open())
-        {
-            const u_char* error = (u_char *)"404";
-            // bucket = get(client.info.error_pages, error);
-            // if (bucket)
-            client.filename = "./test_dir/404.html";
-            response.status_code = 404;
-            response.reason_phrase = "Not Found";
-            response.headers["Content-Type"] = "text/html";
-        }
     }
     else if (type == "directory")
     {
-        if (client.request.route->directory_listing)
+        std::string static_uri_path = (char *)client.request.static_uri_path;
+        if (static_uri_path.back() != '/')
         {
+            response.status_code = 301;
+            response.reason_phrase = "Moved Permanently";
+            response.headers["Location"] = static_uri_path+ "/";
+            return;
+        }
+        if (client.request.route->file_if_directory_request)
+        {
+            std::cout << "there is a file_if_directory_request" << std::endl;
+            client.filename = path + client.request.route->file_if_directory_request;
+            std::cout << "client.filename2: " << client.filename << std::endl;
+            std::ifstream file(client.filename, std::ios::binary);
+            if (!file.is_open())
+            {
+                std::cout << "could not open file: " << client.filename << std::endl;
+                check_files_errors(client, response, status_codes, "404");
+                return;
+            }
+            response.status_code = 200;
+            response.reason_phrase = "OK";
+            std::string ext = client.filename.substr(client.filename.find_last_of('.'));
+            if (mime_types_map.find(ext) != mime_types_map.end())
+                response.headers["Content-Type"] = mime_types_map[ext];
+            else
+                response.headers["Content-Type"] = "application/octet-stream";
+            return;
+        }
+        else if (client.request.route->directory_listing)
+        {
+            std::cout << "there is a directory listing" << std::endl;
+            DIR *dir = opendir(path.c_str());
+            if (dir == NULL)
+            {
+                check_files_errors(client, response, status_codes, "403");
+                return;
+            }
+            std::ostringstream html;
+            html << "<html><head><title>Directory Listing</title></head><body>";
+            html << "<h1>Directory Listing for " << static_uri_path << "</h1><ul>";
+
+            struct dirent *entry;
+            while ((entry = readdir(dir)) != NULL)
+            {
+                std::string name = entry->d_name;
+                if (name == "." || name == "..")
+                    continue; // Skip current and parent directory
+                html << "<li><a href=\"" << static_uri_path << "/" << name << "\">" << name << "</a></li>";
+            }
+
+            closedir(dir);
+
+            html << "</ul></body></html>";
+
             response.status_code = 200;
             response.reason_phrase = "OK";
             response.headers["Content-Type"] = "text/html";
+            response.body = html.str();
+
         }
         else
-        {
-            const u_char *error = (u_char *)"403";
-            // bucket = get(client.info.error_pages, error);
-            // if (bucket)
-            //     client.filename = (char *)bucket->value;
-            response.status_code = 403;
-            response.reason_phrase = "Forbidden";
-            response.headers["Content-Type"] = "text/html";
-            response.headers["Content-lenght"] = "0";
-        }
+            check_files_errors(client, response, status_codes, "403");
     }
     else
-    {
-        const u_char *error = (u_char *)"404";
-        // bucket = get(client.info.error_pages, error);
-        // if (bucket)
-        client.filename = "./test_dir/404.html";
-        response.status_code = 404;
-        response.reason_phrase = "Not Found";
-        response.headers["Content-Type"] = "text/html";
-        response.headers["Content-lenght"] = "0";
-    }
+        check_files_errors(client, response, status_codes, "404");
 }
 //--------------------------------------------------------------------DELETE________________METHOD-----------------------------------------------------------------------------//
+bool remove_directory_recursive(const std::string &path)
+{
+    DIR *dir = opendir(path.c_str());
+    if (!dir)
+        return false;
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+        std::string entry_path = path + "/" + entry->d_name;
+        struct stat entry_stat;
+        if (stat(entry_path.c_str(), &entry_stat) == 0)
+        {
+            if (S_ISDIR(entry_stat.st_mode))
+            {
+                if (!remove_directory_recursive(entry_path))
+                {
+                    closedir(dir);
+                    return false;
+                }
+            }
+            else
+            {
+                if (remove(entry_path.c_str()) != 0)
+                {
+                    closedir(dir);
+                    return false;
+                }
+            }
+        }
+    }
+    closedir(dir);
+    return rmdir(path.c_str()) == 0;
+}
 void    deletemethod(client_conn &client, http_response_t &response)
 {
+    std::cout << "deletemethod called" << std::endl;
     bucket *bucket;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
@@ -162,47 +266,55 @@ void    deletemethod(client_conn &client, http_response_t &response)
     path = "." + root + static_uri_path;
     //check if file exists
     std::string type = check_path_type(path);
+    std::cout << "type : " << type << std::endl;
+    std::cout << "path : " << path << std::endl;
     if(type == "file")
     {
         if (remove(path.c_str()) == 0)
         {
             response.status_code = 204;
             response.reason_phrase = "No Content";
-            response.headers["Content-Type"] = "text/html";
             response.headers["Content-Length"] = "0";
         }
         else
         {
-            response.status_code = 500;
-            response.reason_phrase = "Internal Server Error";
-            response.headers["Content-Type"] = "text/html";
-            response.body = "<html><body><h1>Error deleting file</h1></body></html>";
-            response.headers["Content-Length"] = std::to_string(response.body.size());
+            check_files_errors(client, response, get_all_errors(), "500");
         }
     }
     else if (type == "directory")
     {
-        response.status_code = 403;
-        response.reason_phrase = "Forbidden";
-        response.headers["Content-Type"] = "text/html";
-        response.body = "<html><body><h1>Cannot delete a directory</h1></body></html>";
+        if (path.back() != '/')
+        {
+            check_files_errors(client, response, get_all_errors(), "409");
+            return;
+        }
+        if (access(path.c_str(), W_OK) == 0)
+        {
+            if (remove_directory_recursive(path))
+            {
+                response.status_code = 204;
+                response.reason_phrase = "No Content";
+                response.headers["Content-Length"] = "0";
+            }
+            else
+                check_files_errors(client, response, get_all_errors(), "500");
+        }
+        else
+        {
+            check_files_errors(client, response, get_all_errors(), "403");
+        }
     }
     else
     {
-        const u_char *error = (u_char *)"404";
-        bucket = get(client.info.error_pages, error);
-        if (bucket)
-            client.filename = "./test_dir/404.html";
-        response.status_code = 404;
-        response.reason_phrase = "Not Found";
-        response.headers["Content-Type"] = "text/html";
+        check_files_errors(client, response, get_all_errors(), "404");
     }
 }
 //--------------------------------------------------------------------POST________________METHOD-----------------------------------------------------------------------------//
-void    postmethod(client_conn &client, http_response_t & response)
+void    postmethod(client_conn &client, http_response_t & response, int req_line)
 {
     
 }
+//--------------------------------------------------------------------BUILD________________HTTP_RESPONSE-----------------------------------------------------------------------------//
 void     build_http_response(client_conn &client, int req_line)
 {
     http_response_t response;
@@ -220,21 +332,21 @@ void     build_http_response(client_conn &client, int req_line)
         headers_bucket = get(client.request.headers, (const u_char *)"connection");
         if (headers_bucket && headers_bucket->value)
         {
-            if (!std::strcmp((char *)headers_bucket->value, "close"))
+            if (!std::strcmp((char *)headers_bucket->value, "keep-alive"))
             {
-                response.headers["Connection"] = "close";
-                client.keep_alive = false;
+                response.headers["Connection"] = "keep-alive";
+                client.keep_alive = true;
             }
             else
             {
-                client.keep_alive = true;
-                response.headers["Connection"] = "keep-alive";
+                client.keep_alive = false;
+                response.headers["Connection"] = "close";
             }
         }
         else
         {
-            response.headers["Connection"] = "keep-alive";
-            client.keep_alive = true;
+            response.headers["Connection"] = "close";
+            client.keep_alive = false;
         }
         response.http_version = "HTTP/1.1";
         root = client.request.route->root;
@@ -247,26 +359,23 @@ void     build_http_response(client_conn &client, int req_line)
             response.headers["Content-Length"] = "0";
             response.reason_phrase = "Moved Permanently";
             response.headers["Location"] = static_uri_path;
-            response.headers["Content-Type"] = "text/html";
         }
         else
         {
             std::cout << "the redirection list is empty" << std::endl;
             int method = client.request.REQUEST_METHOD;
+            std::cout << "the method is: " << method << std::endl;
             if (method == GET || method == POST || method == DELETE)
             {
                 if (method == GET && client.request.route->ROUTE_GET)
                     getmethod(client, response, status_codes, mime_types_map);
                 else if (method == POST && client.request.route->ROUTE_POST)
-                    postmethod(client, response);
+                    postmethod(client, response, req_line);
                 else if (method == DELETE && client.request.route->ROUTE_DELETE)
                     deletemethod(client, response);
                 else
                 {
-                    response.status_code = 405;
-                    response.reason_phrase = "Method Not Allowed";
-                    response.headers["Content-Type"] = "text/html";
-                    response.body = status_codes[response.status_code];
+                    check_files_errors(client, response, status_codes, "405");
                 }
             }
         }
@@ -305,22 +414,49 @@ void format_http_response(client_conn &client, http_response_t &response)
             if (file_size >= 0 && file_size < CHUNK_SIZE)
             {
                 std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
-                oss << "Content-Length: " << client.filename.size() << "\r\n\r\n";
+                oss << "Content-Length: " << file_size << "\r\n\r\n";
                 std::ifstream file(client.filename.c_str(), std::ios::binary);
                 oss << file.rdbuf();
                 file.close();
-                oss << "\r\n"; // End of body
                 client.offset = -1337;
             }
             else
             {
-                std::cout << "it is chunked" << std::endl;
-                oss << "Transfer-Encoding: chunked\r\n\r\n";
-                client.chunked = true; // Set flag for next call
+                if (file_size < 0)
+                {
+                    if (response.body != "")
+                    {
+                        std::cerr << "File size could not be determined, using body content." << std::endl;
+                        oss << "Content-Length: " << response.body.size() << "\r\n\r\n";
+                        oss << response.body; // Add body content
+                        client.offset = -1337; // Reset offset for next request
+                    }
+                    else
+                    {
+                        std::cerr << "File size could not be determined and response body is empty." << std::endl;
+                        oss << "Content-Length: 0\r\n\r\n"; // No body content
+                    }
+                }
+                else
+                {
+                    std::cout << "it is chunked" << std::endl;
+                    oss << "Transfer-Encoding: chunked\r\n\r\n";
+                    client.chunked = true; // Set flag for next call
+                }
             }
         }
         else
         {
+            if (response.body != "")
+            {
+                std::cout << "response.body is not empty" << std::endl;
+                oss << "Content-Length: " << response.body.size() << "\r\n\r\n";
+                oss << response.body; // Add body content
+            }
+            else
+            {
+                std::cout << "response.body is empty" << std::endl;
+            }
             oss << "\r\n"; // End of headers
             client.getBuffer() = oss.str();
             client.offset = -1337; // Reset offset for next request

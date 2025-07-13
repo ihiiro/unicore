@@ -14,6 +14,7 @@
 # include <sys/event.h>
 # include <sys/time.h>
 # include <arpa/inet.h>
+#include <signal.h>
 # include "../core/unicore_http_parse.hpp"
 # include "../core/unicore_defines.hpp"
 # include "server.hpp"
