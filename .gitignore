@@ -3,3 +3,4 @@ notes.txt
 *.o
 parser_tests
 .vscode.vscode/
+test_dir/
