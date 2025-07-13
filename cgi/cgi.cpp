@@ -1,13 +1,6 @@
-#include <iostream>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <cstring>
-#include <cstdlib>
-#include <map>
-#include "../core/unicore_request.hpp"
+#include "cgi.hpp"
 
-int execute_cgi(const unicore_request_t &req, std::string &result)
+int execute_cgi(unicore_request_t &req, std::string &result)
 {
     int in_pipe[2];
     int out_pipe[2];
@@ -37,6 +30,8 @@ int execute_cgi(const unicore_request_t &req, std::string &result)
         dup2(out_pipe[1], STDOUT_FILENO);
         close(in_pipe[1]);
         close(out_pipe[0]);
+        //they are not strings
+        std::string path_translated = "." + std::string((char *)req.route->root) + std::string((char *)req.SCRIPT_NAME);
 
         // Set environment variables
         env = new char *[10];
@@ -47,14 +42,29 @@ int execute_cgi(const unicore_request_t &req, std::string &result)
             env[i++] = (char *)"REQUEST_METHOD=GET";
         else if (req.REQUEST_METHOD == POST)
             env[i++] = (char *)"REQUEST_METHOD=POST";
-        env[i++] = (char *)("SCRIPT_FILENAME=" + std::string((char *)req.PATH_TRANSLATED)).c_str();
+        env[i++] = (char *)("SCRIPT_FILENAME=" + path_translated).c_str();
         env[i++] = (char *)("PATH_INFO=" + std::string((char *)req.PATH_INFO)).c_str();
         env[i++] = (char *)("QUERY_STRING=" + std::string((char *)req.QUERY_STRING)).c_str();
         env[i++] = NULL;
         // Execute the CGI script
 
-        char *args[] = {(char *)req.PATH_TRANSLATED, NULL};
-        execve((char *)req.PATH_TRANSLATED, args, env);
+        char **args;
+        if (req.cgi_script_type == PYTHON)
+        {
+            args = new char *[3];
+            args[0] = (char *)"python";
+            args[1] = (char *)path_translated.c_str();
+            args[2] = NULL;
+        }
+        else if (req.cgi_script_type == PHP && req.route->CGI_PHP)
+        {
+            args = new char *[3];
+            args[0] = (char *)"php";
+            args[1] = (char *)path_translated.c_str();
+            args[2] = NULL;    
+        }
+        std::cerr << "Executing CGI script: " << path_translated << std::endl;
+        execve((char *)path_translated.c_str(), args, env);
         perror("execve");
         delete[] env;
         exit(1);
@@ -68,6 +78,7 @@ int execute_cgi(const unicore_request_t &req, std::string &result)
 
         char buffer[4096];
         ssize_t bytes;
+        result.append("HTTP/1.1 200 OK\r\n");
         while ((bytes = read(out_pipe[0], buffer, sizeof(buffer))) > 0)
             result.append(buffer, bytes);
         close(out_pipe[0]);

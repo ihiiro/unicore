@@ -127,15 +127,44 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     bucket *bucket;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
-    static_uri_path = (char *)client.request.static_uri_path;
-    path = "." + root + static_uri_path;
+    if (client.request.static_uri_path != NULL)
+    {
+        static_uri_path = (char *)client.request.static_uri_path;
+        path = "." + root + static_uri_path;
+    }
+    else
+    {
+        std::string script_name = (char *)client.request.SCRIPT_NAME;
+        path = "." + root + script_name;
+    }
+    std::cout << "SCRIPT_NAME: " << client.request.SCRIPT_NAME << std::endl;
+    std::cout << "PATH_TRNANSLATED: " << client.request.PATH_TRANSLATED << std::endl;
     //check if file exists
     std::string type = check_path_type(path);
     std::cout << "type : " << type << std::endl;
     std::cout << "path : " << path << std::endl;
-    std::cout << " static_uri_path : " <<client.request.static_uri_path<< std::endl;
+
     if(type == "file")
     {
+        if (client.request.cgi)
+        {
+            std::cout << "cgi request" << std::endl;
+            if (client.request.route->CGI_GET)
+            {
+                std::cout << "CGI GET request" << std::endl;
+                execute_cgi(client.request,response.body);
+                // cgi(client, response);
+            }
+            else
+            {
+                check_files_errors(client, response, status_codes, "403");
+                return;
+            }
+        }
+        else
+        {
+            std::cout << "not a cgi request" << std::endl;
+        }
         std::ifstream file(path, std::ios::binary);
         if (!file.is_open())
         {
@@ -454,115 +483,123 @@ void format_http_response(client_conn &client, http_response_t &response)
     std::ostringstream oss;
     std::string &buffer = client.getBuffer();
     buffer.clear();
-    const std::size_t CHUNK_SIZE = 65536;
-    std::cout << "client.filename: ' " << client.filename << "'"<< std::endl;
-
-    // First-time response (headers)
-    std::cerr << "client.chunked: " << client.chunked << std::endl;
-    if (!client.chunked)
+    if (client.request.cgi)
     {
-        std::cout << "not chunked" << std::endl;
-        if (client.filename != "")
+        oss << response.body;
+        client.offset = -1337; // Reset offset for next request
+    }
+    else
+    {
+        const std::size_t CHUNK_SIZE = 65536;
+        std::cout << "client.filename: ' " << client.filename << "'"<< std::endl;
+
+        // First-time response (headers)
+        std::cerr << "client.chunked: " << client.chunked << std::endl;
+        if (!client.chunked)
         {
-            std::cout << "client.filename: " << client.filename<<" not empty " << std::endl;
-            std::ifstream file(client.filename.c_str(), std::ios::binary);
-            if (!file.is_open())
-                std::cout << "could not open file: " << client.filename << std::endl;
-        }
-        oss << response.http_version << " " << response.status_code << " " << response.reason_phrase << "\r\n";
-        for (std::map<std::string, std::string>::iterator it = response.headers.begin(); it != response.headers.end(); ++it) {
-            oss << it->first << ": " << it->second << "\r\n";
-        }
-        if (client.filename != "")
-        {
-            std::streamsize file_size = get_file_size(client.filename);
-            std::cout << "file_size: " << file_size << std::endl;
-            if (file_size >= 0 && file_size < CHUNK_SIZE)
+            std::cout << "not chunked" << std::endl;
+            if (client.filename != "")
             {
-                std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
-                oss << "Content-Length: " << file_size << "\r\n";
+                std::cout << "client.filename: " << client.filename<<" not empty " << std::endl;
                 std::ifstream file(client.filename.c_str(), std::ios::binary);
-                oss << file.rdbuf();
-                file.close();
-                client.offset = -1337;
+                if (!file.is_open())
+                    std::cout << "could not open file: " << client.filename << std::endl;
             }
-            else
+            oss << response.http_version << " " << response.status_code << " " << response.reason_phrase << "\r\n";
+            for (std::map<std::string, std::string>::iterator it = response.headers.begin(); it != response.headers.end(); ++it) {
+                oss << it->first << ": " << it->second << "\r\n";
+            }
+            if (client.filename != "")
             {
-                if (file_size < 0)
+                std::streamsize file_size = get_file_size(client.filename);
+                std::cout << "file_size: " << file_size << std::endl;
+                if (file_size >= 0 && file_size < CHUNK_SIZE)
                 {
-                    if (response.body != "")
-                    {
-                        std::cerr << "File size could not be determined, using body content." << std::endl;
-                        oss << "Content-Length: " << response.body.size() << "\r\n\r\n";
-                        oss << response.body; // Add body content
-                        client.offset = -1337; // Reset offset for next request
-                    }
-                    else
-                    {
-                        std::cerr << "File size could not be determined and response body is empty." << std::endl;
-                        oss << "Content-Length: 0\r\n\r\n"; // No body content
-                    }
+                    std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
+                    oss << "Content-Length: " << file_size << "\r\n";
+                    std::ifstream file(client.filename.c_str(), std::ios::binary);
+                    oss << file.rdbuf();
+                    file.close();
+                    client.offset = -1337;
                 }
                 else
                 {
-                    std::cout << "it is chunked" << std::endl;
-                    oss << "Transfer-Encoding: chunked\r\n\r\n";
-                    client.chunked = true;
+                    if (file_size < 0)
+                    {
+                        if (response.body != "")
+                        {
+                            std::cerr << "File size could not be determined, using body content." << std::endl;
+                            oss << "Content-Length: " << response.body.size() << "\r\n\r\n";
+                            oss << response.body; // Add body content
+                            client.offset = -1337; // Reset offset for next request
+                        }
+                        else
+                        {
+                            std::cerr << "File size could not be determined and response body is empty." << std::endl;
+                            oss << "Content-Length: 0\r\n\r\n"; // No body content
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "it is chunked" << std::endl;
+                        oss << "Transfer-Encoding: chunked\r\n\r\n";
+                        client.chunked = true;
+                    }
                 }
-            }
-        }
-        else
-        {
-            if (response.body != "")
-            {
-                std::cout << "response.body is not empty" << std::endl;
-                oss << "Content-Length: " << response.body.size() << "\r\n\r\n";
-                oss << response.body; // Add body content
             }
             else
             {
-                std::cout << "response.body is empty" << std::endl;
-            }
-            oss << "\r\n"; // End of headers
-            client.getBuffer() = oss.str();
-            client.offset = -1337; // Reset offset for next request
-        }
-    }
-
-    if (client.chunked)
-    {
-        std::cout << "chunked transfer" << std::endl;
-        std::ifstream file(client.filename.c_str(), std::ios::binary);
-        if (file.is_open())
-        {
-            std::cout << "file is open" << std::endl;
-            file.seekg(client.offset, std::ios::beg);
-
-            char *buffer_chunk = new char[CHUNK_SIZE];
-            std::memset(buffer_chunk, 0, CHUNK_SIZE);
-            std::streamsize bytes_read = file.rdbuf()->sgetn(buffer_chunk, CHUNK_SIZE);
-
-            if (bytes_read > 0)
-            {
-                oss << std::hex << bytes_read;
-                oss << "\r\n";
-                oss.write(buffer_chunk, bytes_read);
-                oss << "\r\n";
-                client.offset += bytes_read; // Update offset for next read
-            }
-
-            // End of file
-            if (file.eof() || bytes_read == 0)
-            {
-                std::cerr << "End of file reached, sending final chunk." << std::endl;
-                oss << "0\r\n\r\n"; // Terminate chunked stream
-                client.chunked = false; // Optional: reset chunked flag
+                if (response.body != "")
+                {
+                    std::cout << "response.body is not empty" << std::endl;
+                    oss << "Content-Length: " << response.body.size() << "\r\n\r\n";
+                    oss << response.body; // Add body content
+                }
+                else
+                {
+                    std::cout << "response.body is empty" << std::endl;
+                }
+                oss << "\r\n"; // End of headers
+                client.getBuffer() = oss.str();
                 client.offset = -1337; // Reset offset for next request
             }
-            delete[] buffer_chunk;
         }
-        else
-            std::cout << "could not open file : "<< client.filename << std::endl;
+
+        if (client.chunked)
+        {
+            std::cout << "chunked transfer" << std::endl;
+            std::ifstream file(client.filename.c_str(), std::ios::binary);
+            if (file.is_open())
+            {
+                std::cout << "file is open" << std::endl;
+                file.seekg(client.offset, std::ios::beg);
+
+                char *buffer_chunk = new char[CHUNK_SIZE];
+                std::memset(buffer_chunk, 0, CHUNK_SIZE);
+                std::streamsize bytes_read = file.rdbuf()->sgetn(buffer_chunk, CHUNK_SIZE);
+
+                if (bytes_read > 0)
+                {
+                    oss << std::hex << bytes_read;
+                    oss << "\r\n";
+                    oss.write(buffer_chunk, bytes_read);
+                    oss << "\r\n";
+                    client.offset += bytes_read; // Update offset for next read
+                }
+
+                // End of file
+                if (file.eof() || bytes_read == 0)
+                {
+                    std::cerr << "End of file reached, sending final chunk." << std::endl;
+                    oss << "0\r\n\r\n"; // Terminate chunked stream
+                    client.chunked = false; // Optional: reset chunked flag
+                    client.offset = -1337; // Reset offset for next request
+                }
+                delete[] buffer_chunk;
+            }
+            else
+                std::cout << "could not open file : "<< client.filename << std::endl;
+        }
     }
     client.getBuffer() = oss.str();
 }

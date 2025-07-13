@@ -10,6 +10,7 @@
 #include <iostream>
 #include <dirent.h>
 #include "../server/server.hpp"
+#include "../cgi/cgi.hpp"
 
 class client_conn;
 
