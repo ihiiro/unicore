@@ -100,5 +100,5 @@ typedef struct
 #endif
 
 #ifndef DELETE
-   #define DELETE 1
+   #define DELETE 2
 #endif
