@@ -24,6 +24,8 @@ typedef struct
     bucket              *bucket;
     unicore_request_t   *r;
 
+    char                *boundary;
+
     size_t              chunk_size;
 
     u_char              ch;
@@ -43,6 +45,10 @@ typedef struct
 
     int                 chunked_trailers_fsm_return;
 
+    int                 content_length;
+    int                 boundary_length;
+
+
     bool                chunked;
 
 } fsm_state_t;
@@ -52,3 +58,5 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b 
 int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b );
 
 int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b );
+
+int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *b );

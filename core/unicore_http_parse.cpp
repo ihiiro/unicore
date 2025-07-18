@@ -1828,6 +1828,238 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
 }
 
+int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
+{
+   
+   static char content_disposition[] = "Content-Disposition:", content_type[] = "Content-Type:",
+                     form_data[] = "form-data", name[] = "name=";
+   static int cd_i = 20, ct_i = 13, form_data_i = 9, name_i = 5;
+
+   enum state
+   {
+
+      START=0,
+      BOUNDARY_DASH_1,
+      BOUNDARY_DASH_2,
+      BOUNDARY,
+      BWS,
+      CR_AFTER_DASH_BOUNDARY,
+      LF_AFTER_DASH_BOUNDARY,
+      CONTENT_DISPOSITION,
+      BWS_BEFORE_FORM_DATA,
+      FORM_DATA,
+      BWS_AFTER_FORM_DATA,
+      SEMI_COLON_AFTER_FORM_DATA,
+      BWS_AFTER_FORM_DATA_SEMI_COLON,
+      NAME,
+      NAME_VALUE_TCHAR,
+      NAME_VALUE_DQUOTE_OPEN,
+      NAME_VALUE_QUOTED_TCHAR,
+      NAME_VALUE_DQUOTE_CLOSE,
+      BWS_AFTER_NAME,
+      SEMI_COLON_AFTER_NAME,
+      BWS_BEFORE_FILENAME,
+      FILENAME,
+      FILENAME_VALUE_TCHAR,
+      FILENAME_VALUE_DQUOTE_OPEN,
+      FILENAME_VALUE_QUOTED_TCHAR,
+      FILENAME_VALUE_DQUOTE_CLOSE,
+      BWS_AFTER_FILENAME,
+      CR_AFTER_CONTENT_DISPOSITION,
+      LF_AFTER_CONTENT_DISPOSITION,
+      CONTENT_TYPE,
+      BWS_BEFORE_MEDIA_TYPE,
+      MEDIA_TYPE_TCHAR,
+      MEDIA_TYPE_FORWARD_SLASH,
+      MEDIA_SUBTYPE_TCHAR,
+      BWS_AFTER_MEDIA_TYPE,
+      CR_AFTER_CONTENT_TYPE,
+      LF_AFTER_CONTENT_TYPE,
+      CR_BEFORE_BODY_PART,
+      LF_BEFORE_BODY_PART,
+      BODY_PART,
+      CR_AFTER_BODY_PART,
+      LF_AFTER_BODY_PART,
+      CLOSE_DASH_1,
+      CLOSE_DASH_2,
+      TERMINAL_BWS
+
+   } state;
+
+   state = ( enum state )fsm_state.state;
+   for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++ )
+   {
+
+      fsm_state.ch = *fsm_state.p;
+      fsm_state.state = state;
+      switch ( state )
+      {
+
+         case START:
+            if ( fsm_state.ch == '-' )
+               state = BOUNDARY_DASH_1;
+            else
+               return -1;
+            break;
+
+         case BOUNDARY_DASH_1:
+            if ( fsm_state.ch == '-' )
+               state = BOUNDARY_DASH_2;
+            else
+               return -1;
+            break;
+
+         case BOUNDARY_DASH_2:
+            for ( int i = 0 ; fsm_state.p <= b->end and i < fsm_state.boundary_length ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != fsm_state.boundary [ i ] )
+                  return -1;
+            state = BOUNDARY;
+            fsm_state.p--;
+            break;
+
+         case BOUNDARY:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS;
+                  break;
+               case CR:
+                  state = CR_AFTER_DASH_BOUNDARY;
+                  break;
+               case '-':
+                  state = CLOSE_DASH_1;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case BWS:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = CR_AFTER_DASH_BOUNDARY;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case CR_AFTER_DASH_BOUNDARY:
+            if ( fsm_state.ch == LF )
+               state = LF_AFTER_DASH_BOUNDARY;
+            else
+               return -1;
+            break;
+
+         case LF_AFTER_DASH_BOUNDARY:
+            if ( fsm_state.ch == CR )
+            {
+
+               state = CR_BEFORE_BODY_PART;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < cd_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != content_disposition [ i ] )
+                  return -1;
+            state = CONTENT_DISPOSITION;
+            break;
+
+         case CONTENT_DISPOSITION:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+            {
+
+               state = BWS_BEFORE_FORM_DATA;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < form_data_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != form_data [ i ] )
+                  return -1;
+            state = FORM_DATA;
+            break;
+
+         case BWS_BEFORE_FORM_DATA:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            for ( int i = 0 ; fsm_state.p <= b->end and i < form_data_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != form_data [ i ] )
+                  return -1;
+            state = FORM_DATA;
+            break;
+
+         case FORM_DATA:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_FORM_DATA;
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_FORM_DATA;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case BWS_AFTER_FORM_DATA:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_FORM_DATA;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+         
+         case SEMI_COLON_AFTER_FORM_DATA:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+            {
+
+               state = BWS_AFTER_FORM_DATA_SEMI_COLON;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < name_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != name [ i ] )
+                  return -1;
+            state = NAME;
+            break;
+
+         
+
+      }
+
+   }
+
+}
+
+
+
 /*
 
    client { chunked , received , buf }
