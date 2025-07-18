@@ -2236,6 +2236,188 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             }
             break;
 
+         case BWS_AFTER_FILENAME:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case CR_AFTER_CONTENT_DISPOSITION:
+            if ( fsm_state.ch == LF )
+               state = LF_AFTER_CONTENT_DISPOSITION;
+            else
+               return -1;
+            break;
+
+         case LF_AFTER_CONTENT_DISPOSITION:
+            if ( fsm_state.ch == CR )
+            {
+
+               state = CR_BEFORE_BODY_PART;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < ct_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != content_type [ i ] )
+                  return -1;
+            state = CONTENT_TYPE;
+            fsm_state.p--;
+            break;
+
+         case CONTENT_TYPE:
+            if ( TCHAR( fsm_state.ch ) )
+               state = MEDIA_TYPE_TCHAR;
+            else if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               state = BWS_BEFORE_MEDIA_TYPE;
+            else
+               return -1;
+            break;
+
+         case BWS_BEFORE_MEDIA_TYPE:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            if ( TCHAR( fsm_state.ch ) )
+               state = MEDIA_TYPE_TCHAR;
+            else
+               return -1;
+            break;
+
+         case MEDIA_TYPE_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+               break;
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_MEDIA_TYPE;
+                  break;
+               case '/':
+                  state = MEDIA_TYPE_FORWARD_SLASH;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_TYPE;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case MEDIA_TYPE_FORWARD_SLASH:
+            if ( TCHAR( fsm_state.ch ) )
+               state = MEDIA_SUBTYPE_TCHAR;
+            else
+               return -1;
+            break;
+
+         case MEDIA_SUBTYPE_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+               break;
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_MEDIA_TYPE;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_TYPE;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case BWS_AFTER_MEDIA_TYPE:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_TYPE;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case CR_AFTER_CONTENT_TYPE:
+            if ( fsm_state.ch == LF )
+               state = LF_AFTER_CONTENT_TYPE;
+            else
+               return -1;
+            break;
+         
+         case LF_AFTER_CONTENT_TYPE:
+            if ( fsm_state.ch == CR )
+               state = CR_BEFORE_BODY_PART;
+            else
+               return -1;
+            break;
+
+         case CR_BEFORE_BODY_PART:
+            if ( fsm_state.ch == LF )
+               state = LF_BEFORE_BODY_PART;
+            else
+               return -1;
+            break;
+
+         case LF_BEFORE_BODY_PART:
+            state = BODY_PART;
+            break;
+         
+         case BODY_PART:
+            if ( fsm_state.ch == CR )
+               state = CR_AFTER_BODY_PART;
+            break;
+
+         case CR_AFTER_BODY_PART:
+            if ( fsm_state.ch == LF )
+               state = LF_AFTER_BODY_PART;
+            else
+               return -1;
+            break;
+         
+         case LF_AFTER_BODY_PART:
+            if ( fsm_state.ch == '-' )
+               state = BOUNDARY_DASH_1;
+            else
+               return -1;
+            break;
+
+         case CLOSE_DASH_1:
+            if ( fsm_state.ch == '-' )
+               state = CLOSE_DASH_2;
+            else
+               return -1;
+            break;
+
+         case CLOSE_DASH_2:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               state = TERMINAL_BWS;
+            return 1;
+
+         case TERMINAL_BWS:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            return 1;
+         
+
       }
 
    }
