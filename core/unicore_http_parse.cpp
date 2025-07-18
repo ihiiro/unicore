@@ -1832,8 +1832,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 {
    
    static char content_disposition[] = "Content-Disposition:", content_type[] = "Content-Type:",
-                     form_data[] = "form-data", name[] = "name=";
-   static int cd_i = 20, ct_i = 13, form_data_i = 9, name_i = 5;
+                     form_data[] = "form-data", name[] = "name=", filename[] = "filename=";
+   static int cd_i = 20, ct_i = 13, form_data_i = 9, name_i = 5, filename_i = 9;
 
    enum state
    {
@@ -1972,6 +1972,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                if ( *fsm_state.p != content_disposition [ i ] )
                   return -1;
             state = CONTENT_DISPOSITION;
+            fsm_state.p--;
             break;
 
          case CONTENT_DISPOSITION:
@@ -1986,6 +1987,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                if ( *fsm_state.p != form_data [ i ] )
                   return -1;
             state = FORM_DATA;
+            fsm_state.p--;
             break;
 
          case BWS_BEFORE_FORM_DATA:
@@ -1995,6 +1997,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                if ( *fsm_state.p != form_data [ i ] )
                   return -1;
             state = FORM_DATA;
+            fsm_state.p--;
             break;
 
          case FORM_DATA:
@@ -2048,9 +2051,190 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                if ( *fsm_state.p != name [ i ] )
                   return -1;
             state = NAME;
+            fsm_state.p--;
             break;
 
+         case BWS_AFTER_FORM_DATA_SEMI_COLON:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            for ( int i = 0 ; fsm_state.p <= b->end and i < name_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != name [ i ] )
+                  return -1;
+            state = NAME;
+            fsm_state.p--;
+            break;
+
+         case NAME:
+            if ( TCHAR( fsm_state.ch ) )
+               state = NAME_VALUE_TCHAR;
+            else if ( fsm_state.ch == '"' )
+               state = NAME_VALUE_DQUOTE_OPEN;
+            else
+               return -1;
+            break;
+
+         case NAME_VALUE_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+               break;
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_NAME;
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_NAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case NAME_VALUE_DQUOTE_OPEN:
+            if ( TCHAR( fsm_state.ch ) )
+               state = NAME_VALUE_QUOTED_TCHAR;
+            else
+               return -1;
+            break;
          
+         case NAME_VALUE_QUOTED_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+               break;
+            else if ( fsm_state.ch == '"' )
+               state = NAME_VALUE_DQUOTE_CLOSE;
+            else
+               return -1;
+            break;
+
+         case NAME_VALUE_DQUOTE_CLOSE:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_NAME;
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_NAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case BWS_AFTER_NAME:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_NAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case SEMI_COLON_AFTER_NAME:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+            {
+
+               state = BWS_BEFORE_FILENAME;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < filename_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != filename [ i ] )
+                  return -1;
+            state = FILENAME;
+            fsm_state.p--;
+            break;
+
+         case BWS_BEFORE_FILENAME:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            for ( int i = 0 ; fsm_state.p <= b->end and i < filename_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != filename [ i ] )
+                  return -1;
+            state = FILENAME;
+            fsm_state.p--;
+            break;
+
+         case FILENAME:
+            if ( TCHAR( fsm_state.ch ) )
+               state = FILENAME_VALUE_TCHAR;
+            else if ( fsm_state.ch == '"' )
+               state = FILENAME_VALUE_DQUOTE_OPEN;
+            else
+               return -1;
+            break;
+
+         case FILENAME_VALUE_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+               break;
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_FILENAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
+
+         case FILENAME_VALUE_DQUOTE_OPEN:
+            if ( TCHAR( fsm_state.ch ) )
+               state = FILENAME_VALUE_QUOTED_TCHAR;
+            else
+               return -1;
+            break;
+         
+         case FILENAME_VALUE_QUOTED_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+               break;
+            if ( fsm_state.ch == '"' )
+               state = FILENAME_VALUE_DQUOTE_CLOSE;
+            else
+               return -1;
+            break;
+
+         case FILENAME_VALUE_DQUOTE_CLOSE:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_FILENAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return -1;
+
+            }
+            break;
 
       }
 
