@@ -609,6 +609,41 @@ will succeed because one CRLF terminates the field
     else
         std::cout << "\e[0;31mfail, ";
 
+    std::cout << "\n\t\t\t\t\e[1;37mMULTIPART-FSM\e[0m\n";
+    u_char *MULTIPART_ACCEPTS[] = {
+
+       ( u_char * )"--boundary  \t\t \r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\n\r\ndata\r\n--boundary\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\nContent-Disposition:form-data;name=tchar;filename=tchar\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\nContent-Disposition:\t\t\tform-data  \t\t\t\t ; \t\t\t\tname=tchar\t\t\t\t\t;\t\t\t\t\t\tfilename=tchar\t\t\t\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=tchar;  filename=tchar\r\nContent-Type: image/jpg\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=tchar; filename=tchar\r\nContent-Type: image/png\r\n\r\ndata\r\n--boundary\r\nContent-Disposition: form-data; name=tchar; filename=tchar\r\nContent-Type: image/jpg\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=\"quoted_tchar\"; filename=\"quoted_tchar\"\r\nContent-Type: text/plain\r\n\r\ndata\r\n--boundary\r\nContent-Disposition: form-data; name=tchar; filename=tchar\r\nContent-Type: image/png\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"download.jpg\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n--boundary\r\nContent-Disposition: form-data; name=\"\"; filename=\"238971-400596355.jpg\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n--boundary--"
+
+    };
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.boundary = ( char * )"boundary";
+    fsm_state.boundary_length = 8;
+
+    for ( int i = 0 ; i < 10 ; i++ )
+    {
+
+        b.start = MULTIPART_ACCEPTS [ i ];
+        fsm_state.content_length = std::strlen ( ( char * )b.start );
+        b.pos = b.start;
+        b.end = b.start + std::strlen ( ( char * )b.start ) - 1;
+        if ( unicore_http_parse_multipart_body ( fsm_state , &b ) == 1 )
+            std::cout << "\e[0;32mpass, ";
+        else
+            std::cout << "\e[0;31mfail, ";
+
+    }
+    
+
     // u_char *request = (u_char *)"GET /route/.py/extrapath/shithtml/?name=yes HTTP/1.1\r\n";
     // // u_char *request = (u_char *)"GET /servlet?;jsessionid=1234&param=value/ HTTP/1.1 \r\n";
     // unicore_buf_t bb = { request , request , request + 54 };

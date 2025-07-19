@@ -1882,12 +1882,12 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
       LF_AFTER_BODY_PART,
       CLOSE_DASH_1,
       CLOSE_DASH_2,
-      TERMINAL_BWS
+      // TERMINAL_BWS
 
    } state;
 
    state = ( enum state )fsm_state.state;
-   for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++ )
+   for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++, fsm_state.content_length-- )
    {
 
       fsm_state.ch = *fsm_state.p;
@@ -2408,19 +2408,32 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case CLOSE_DASH_2:
-            if ( fsm_state.ch == SP or fsm_state.ch == HT )
-               state = TERMINAL_BWS;
+            // if ( fsm_state.ch == SP or fsm_state.ch == HT )
+            //    state = TERMINAL_BWS;
+            fsm_state.state = 0;
+            b->pos = fsm_state.p;
             return 1;
 
-         case TERMINAL_BWS:
-            if ( fsm_state.ch == SP or fsm_state.ch == HT )
-               break;
-            return 1;
+         // case TERMINAL_BWS:
+         //    if ( fsm_state.ch == SP or fsm_state.ch == HT )
+         //       break;
+         //    return 1;
          
 
       }
 
    }
+
+   fsm_state.state = state;
+   if ( state == CLOSE_DASH_2 )
+   {
+
+      fsm_state.state = 0;
+      b->pos = fsm_state.p;
+      return 1;
+
+   }
+   return 2;
 
 }
 
