@@ -24,7 +24,11 @@ typedef struct
     bucket              *bucket;
     unicore_request_t   *r;
 
-    char                *boundary;
+    char                boundary [ 70 ];
+    char                name [ 129 ];
+    char                filename [ 129 ];
+    char                content_type [ 129 ];
+
 
     size_t              chunk_size;
 
@@ -48,6 +52,7 @@ typedef struct
     int                 content_length;
     int                 boundary_length;
 
+    int                 mp_i;
 
     bool                chunked;
 

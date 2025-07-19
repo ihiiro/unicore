@@ -627,7 +627,14 @@ will succeed because one CRLF terminates the field
     };
 
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
-    fsm_state.boundary = ( char * )"boundary";
+    fsm_state.boundary [ 0 ] = 'b';
+    fsm_state.boundary [ 1 ] = 'o';
+    fsm_state.boundary [ 2 ] = 'u';
+    fsm_state.boundary [ 3 ] = 'n';
+    fsm_state.boundary [ 4 ] = 'd';
+    fsm_state.boundary [ 5 ] = 'a';
+    fsm_state.boundary [ 6 ] = 'r';
+    fsm_state.boundary [ 7 ] = 'y';
     fsm_state.boundary_length = 8;
 
     for ( int i = 0 ; i < 11 ; i++ )
@@ -641,6 +648,7 @@ will succeed because one CRLF terminates the field
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
+        // std::cerr << "\n";
 
     }
     
