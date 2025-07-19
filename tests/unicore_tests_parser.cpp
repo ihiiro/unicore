@@ -621,7 +621,8 @@ will succeed because one CRLF terminates the field
        ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=tchar;  filename=tchar\r\nContent-Type: image/jpg\r\n\r\ndata\r\n--boundary--",
        ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=tchar; filename=tchar\r\nContent-Type: image/png\r\n\r\ndata\r\n--boundary\r\nContent-Disposition: form-data; name=tchar; filename=tchar\r\nContent-Type: image/jpg\r\n\r\ndata\r\n--boundary--",
        ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=\"quoted_tchar\"; filename=\"quoted_tchar\"\r\nContent-Type: text/plain\r\n\r\ndata\r\n--boundary\r\nContent-Disposition: form-data; name=tchar; filename=tchar\r\nContent-Type: image/png\r\n\r\ndata\r\n--boundary--",
-       ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"download.jpg\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n--boundary\r\nContent-Disposition: form-data; name=\"\"; filename=\"238971-400596355.jpg\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n--boundary--"
+       ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"download.jpg\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n--boundary\r\nContent-Disposition: form-data; name=\"\"; filename=\"238971-400596355.jpg\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n--boundary--",
+       ( u_char * )"--boundary\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"download.jpg\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n--boundary\r\nContent-Disposition: form-data; name=\"\"; filename=\"\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n--boundary--"
 
     };
 
@@ -629,7 +630,7 @@ will succeed because one CRLF terminates the field
     fsm_state.boundary = ( char * )"boundary";
     fsm_state.boundary_length = 8;
 
-    for ( int i = 0 ; i < 10 ; i++ )
+    for ( int i = 0 ; i < 11 ; i++ )
     {
 
         b.start = MULTIPART_ACCEPTS [ i ];

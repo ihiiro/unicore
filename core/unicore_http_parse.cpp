@@ -2098,6 +2098,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case NAME_VALUE_DQUOTE_OPEN:
             if ( TCHAR( fsm_state.ch ) )
                state = NAME_VALUE_QUOTED_TCHAR;
+            else if ( fsm_state.ch == '"' )
+               state = NAME_VALUE_DQUOTE_CLOSE;
             else
                return -1;
             break;
@@ -2206,6 +2208,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case FILENAME_VALUE_DQUOTE_OPEN:
             if ( TCHAR( fsm_state.ch ) )
                state = FILENAME_VALUE_QUOTED_TCHAR;
+            else if ( fsm_state.ch == '"' )
+               state = FILENAME_VALUE_DQUOTE_CLOSE;
             else
                return -1;
             break;
