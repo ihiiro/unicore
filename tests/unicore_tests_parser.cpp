@@ -627,6 +627,7 @@ will succeed because one CRLF terminates the field
     };
 
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
     fsm_state.boundary [ 0 ] = 'b';
     fsm_state.boundary [ 1 ] = 'o';
     fsm_state.boundary [ 2 ] = 'u';

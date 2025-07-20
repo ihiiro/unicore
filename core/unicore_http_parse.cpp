@@ -2480,9 +2480,11 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case LF_BEFORE_BODY_PART:
             state = BODY_PART;
             // fsm_state.file = std::ofstream ( fsm_state.filename ,  );
-            fsm_state.file = new std::ofstream ( fsm_state.filename , std::ios::app  );
+            // fsm_state.file = new std::ofstream ( fsm_state.filename , std::ios::app  );
+            fsm_state.file->open ( fsm_state.filename , std::ios::app );
             // std::cerr << fsm_state.ch;
             *fsm_state.file << fsm_state.ch;
+            fsm_state.file->close();
 
             // std::cerr << "name=" << fsm_state.name << "\n";
             // std::cerr << "filename=" << fsm_state.filename << "\n";
@@ -2496,8 +2498,11 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             // std::cerr << fsm_state.ch;
             // if ( fsm_state.file->is_open() )
             // std::cout << fsm_state.file;
+            fsm_state.file->open ( fsm_state.filename , std::ios::app );
             *fsm_state.file << fsm_state.ch;
+
                // exit (1);
+            fsm_state.file->close();
             break;
 
          case CR_AFTER_BODY_PART:
