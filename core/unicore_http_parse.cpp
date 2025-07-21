@@ -2556,22 +2556,84 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
 }
 
+int unicore_http_parse_message_body ( unicore_request_t& r , unicore_buf_t *b )
+{
+
+   bucket *transfer_encoding = get ( r.headers , ( u_char * )"transfer-encoding" );
+   bucket *content_type = get ( r.headers , ( u_char * )"content-type" );
+   bucket *content_length = get ( r.headers , ( u_char * )"content_length" );
+   int    content_len;
+
+   if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
+   {
+
+      if ( content_length or ( content_type /*and  multipart content-type */ ) )
+         return -1;
+      if ( content_type )
+         //file is content-type
+      else
+         //file is text/plain
+      // parse chunked and produce to file
+
+   }
+
+   else if ( content_length )
+   {
+
+      content_len = std::atoi ( ( char * )content_length->value );
+      if ( content_len <= 0 /* or content-len > max_length */ )
+         return -1
+      /* if ( content-type is multipart )
+            parse multipart and produce to files */
+
+      else if ( r.cgi )
+         // buffer body
+
+      else
+      {
+
+         if ( content_type )
+            // file is content_type
+         else
+            // file is text/plain
+         // produce to file
+
+      }
+
+
+   }
+
+}
+
 
 
 /*
 
-   client { chunked , received , buf }
 
-   parse_message_body ( client )
-      if transfer-encoding and content-length
-         error
-      else if transfer-encoding
-         client.chunked = 1
-         client.received := parse chunked ( client.received )
-         client.buf += client.received
-         if received last chunk
-            client.chunked = 0
-      else
-         naive fill
+   parse_message_body ( headers , body , route )
+      if ( headers has transfer-encoding and transfer-encoding is chunked )
+         if ( headers has content-length or ( headers has content-type and content-type is multipart ) )
+            error
+         if ( headers has content-type )
+            file is content-type
+         else
+            file is text/plain
+         parse chunked body and produce to file
+
+      else if ( headers has content-length and content-length > 0 and content-length <= max length )
+         if ( headers has multipart content-type )
+            parse multipart and produce to files
+   
+         else if ( route cgi is on )
+            buffer body
+
+         else
+            if ( headers has content-type )
+               file is content-type
+            else
+               file is text/plain
+            produce to file
+
+      
 
 */
