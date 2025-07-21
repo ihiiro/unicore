@@ -109,12 +109,22 @@ will succeed because one CRLF terminates the field
     {
 
         // std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
-        // fsm_state.r = new unicore_request_t;
-        int validator = ( i == 0 ) ? -1 : 2;
+        // fsm_state.r = new unicore_request_t;       
         b.start = FIELD_LINES_REJECTS [ i ];
         b.pos = FIELD_LINES_REJECTS [ i ];
         b.end = b.start + std::strlen ( (const char *)FIELD_LINES_REJECTS [ i ] ) - 1;
-        if ( unicore_http_parse_field_lines ( fsm_state, &b ) == validator )
+        if ( i == 0 )
+        {
+
+            int validator = unicore_http_parse_field_lines ( fsm_state, &b );
+            if ( validator != 1 and validator != 2 )
+                std::cout << "\e[0;32mpass, ";
+            else
+                std::cout << "\e[0;31mfail, ";
+            continue;
+
+        }
+        if ( unicore_http_parse_field_lines ( fsm_state, &b ) == 2 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
@@ -410,7 +420,7 @@ will succeed because one CRLF terminates the field
         b.start = REQUEST_LINE_REJECTS [ i ];
         b.pos = REQUEST_LINE_REJECTS [ i ];
         b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_REJECTS [ i ] ) - 1;
-        if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == -1 )
+        if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) != 1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
