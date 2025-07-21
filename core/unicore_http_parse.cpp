@@ -2479,12 +2479,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
          case LF_BEFORE_BODY_PART:
             state = BODY_PART;
-            // fsm_state.file = std::ofstream ( fsm_state.filename ,  );
-            // fsm_state.file = new std::ofstream ( fsm_state.filename , std::ios::app  );
             fsm_state.file->open ( fsm_state.filename , std::ios::app );
-            // std::cerr << fsm_state.ch;
             *fsm_state.file << fsm_state.ch;
-            fsm_state.file->close();
 
             // std::cerr << "name=" << fsm_state.name << "\n";
             // std::cerr << "filename=" << fsm_state.filename << "\n";
@@ -2495,14 +2491,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case BODY_PART:
             if ( fsm_state.ch == CR )
                state = CR_AFTER_BODY_PART;
-            // std::cerr << fsm_state.ch;
-            // if ( fsm_state.file->is_open() )
-            // std::cout << fsm_state.file;
-            fsm_state.file->open ( fsm_state.filename , std::ios::app );
             *fsm_state.file << fsm_state.ch;
-
-               // exit (1);
-            fsm_state.file->close();
             break;
 
          case CR_AFTER_BODY_PART:
@@ -2513,6 +2502,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
          
          case LF_AFTER_BODY_PART:
+            fsm_state.file->close();
             if ( fsm_state.ch == '-' )
                state = BOUNDARY_DASH_1;
             else
@@ -2556,54 +2546,61 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
 }
 
-int unicore_http_parse_message_body ( unicore_request_t& r , unicore_buf_t *b )
-{
+// int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
+// {
 
-   bucket *transfer_encoding = get ( r.headers , ( u_char * )"transfer-encoding" );
-   bucket *content_type = get ( r.headers , ( u_char * )"content-type" );
-   bucket *content_length = get ( r.headers , ( u_char * )"content_length" );
-   int    content_len;
+//    bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
+//    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
+//    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content_length" );
+//    int    content_len;
 
-   if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
-   {
+//    if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
+//    {
 
-      if ( content_length or ( content_type /*and  multipart content-type */ ) )
-         return -1;
-      if ( content_type )
-         //file is content-type
-      else
-         //file is text/plain
-      // parse chunked and produce to file
+//       if ( content_length )
+//          return -1;
+//       if ( content_type )
+//       {
+         
+//          if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
+//             return -1;
 
-   }
+//       }
+//       if ( content_type )
+//          //file is content-type
+//       else
+//          //file is text/plain
+//       // parse chunked and produce to file
 
-   else if ( content_length )
-   {
+//    }
 
-      content_len = std::atoi ( ( char * )content_length->value );
-      if ( content_len <= 0 /* or content-len > max_length */ )
-         return -1
-      /* if ( content-type is multipart )
-            parse multipart and produce to files */
+//    else if ( content_length )
+//    {
 
-      else if ( r.cgi )
-         // buffer body
+//       content_len = std::atoi ( ( char * )content_length->value );
+//       if ( content_len <= 0 /* or content-len > max_length */ )
+//          return -1
+//       if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
+//          unicore_http_parse_multipart_body (  )
 
-      else
-      {
+//       else if ( r.cgi )
+//          // buffer body
 
-         if ( content_type )
-            // file is content_type
-         else
-            // file is text/plain
-         // produce to file
+//       else
+//       {
 
-      }
+//          if ( content_type )
+//             // file is content_type
+//          else
+//             // file is text/plain
+//          // produce to file
+
+//       }
 
 
-   }
+//    }
 
-}
+// }
 
 
 

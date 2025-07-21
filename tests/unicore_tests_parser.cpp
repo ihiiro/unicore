@@ -670,6 +670,7 @@ will succeed because one CRLF terminates the field
 
     // std::cout << unicore_http_parse_request_line ( &r , &bb , conf [ 0 ] );
 
+    // while (true);
     return 0;
 
 
