@@ -2641,7 +2641,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
-                  if ( fsm_state.content_length == -1 )
+                  // std::cout << "hit\n";
+                  // std::cout << "lenfdf dgth is " << fsm_state.content_length << "\n";
+                  if ( fsm_state.content_length == 0 )
                   {
 
                      b->pos = fsm_state.p;
@@ -2653,6 +2655,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   
 
                }
+               if ( fsm_state.content_length == 0 )
+                  return 1;
+               // std::cout << "length is " << fsm_state.content_length;
                return 2;
 
             }
@@ -2694,6 +2699,8 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   fsm_state.content_length--;
 
                }
+               if ( fsm_state.content_length == 0 )
+                  return 1;
                // std::cout << "length is " << fsm_state.content_length << "ffff";
                return 2;
 

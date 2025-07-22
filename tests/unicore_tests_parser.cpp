@@ -742,29 +742,41 @@ will succeed because one CRLF terminates the field
     // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
 
+    // std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    // fsm_state.file = new std::ofstream;
+    // u_char *andromeda = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\ntransfer-encoding:chunked\r\n\r\n4\r\ndata\r";
+
+    // u_char *karl_marx = ( u_char * )"\nA\r\ndata\r\ndata\r\n0\r\n\r\n";
+
+    // b.start = andromeda;
+    // b.pos = b.start;
+    // b.end = b.start + std::strlen ( ( char * )andromeda ) - 1;
+
+    // std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
+    // std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
+    // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+    // b.start = karl_marx;
+    // b.pos = b.start;
+    // b.end = b.start + std::strlen ( ( char * )karl_marx ) - 1;
+
+    // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
     fsm_state.file = new std::ofstream;
-    u_char *andromeda = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\ntransfer-encoding:chunked\r\n\r\n4\r\ndata\r";
 
-    u_char *karl_marx = ( u_char * )"\nA\r\ndata\r\ndata\r\n0\r\n\r\n";
+    u_char *ajax_niner = ( u_char * )"GET /python.py HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:4\r\n\r\ndata";
 
-    b.start = andromeda;
+    b.start = ajax_niner;
     b.pos = b.start;
-    b.end = b.start + std::strlen ( ( char * )andromeda ) - 1;
+    b.end = b.start + std::strlen ( ( char * )ajax_niner ) - 1;
 
     std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
     std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
     std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
-    b.start = karl_marx;
-    b.pos = b.start;
-    b.end = b.start + std::strlen ( ( char * )karl_marx ) - 1;
-
-    std::cout << unicore_http_parse_message_body ( fsm_state , &b );
-
-
-
-    
+    std::cout << (fsm_state.r->route->message_body == "data");
 
     // std::cout << "\n";
 
