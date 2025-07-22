@@ -2574,15 +2574,19 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             return -1;
 
       }
-      if ( content_type )
+      if ( !fsm_state.file->is_open() )
       {
 
-         fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+         if ( content_type )
+         {
 
+            fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+         }
+         else
+            fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
 
       }
-      else
-         fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+      
          // std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
          //file is content-type
       // else
