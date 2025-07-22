@@ -666,21 +666,37 @@ will succeed because one CRLF terminates the field
     std::cout << "\n\t\t\t\t\e[1;37mGENERAL PARSER\e[0m\n";
 
     u_char *request_str = ( u_char * )"GET /?df=df HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
-                        "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"test.jpg\"" \
+                        "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"mamak.text\"" \
                         "\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
 
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
     b.start = request_str;
     b.pos = b.start;
     b.end = b.start + std::strlen ( ( char * )request_str ) - 1;
+    // std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
+    // std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
+    // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+    u_char *request_str_0 = ( u_char * )"GET /?df=df HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
+            "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"dinr";
+
+    u_char *request_str_400 = ( u_char * )"eb.txt\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"; // error cuz no close dquote
+    b.start = request_str_0;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str_0 ) - 1;
     std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
     std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
     std::cout << unicore_http_parse_message_body ( fsm_state , &b );
-
+    b.start = request_str_400;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str_400 ) - 1;
+    std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
     std::cout << "\n";
 
-    std::cout << fsm_state.p;
+    // std::cout << fsm_state.state;
+    // std::cout << fsm_state.p;
     
 
     // u_char *request = (u_char *)"GET /route/.py/extrapath/shithtml/?name=yes HTTP/1.1\r\n";

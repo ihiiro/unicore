@@ -1889,7 +1889,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++, fsm_state.content_length-- )
    {
 
-      std::cout << "a";
+      // std::cout << "a";
       fsm_state.ch = *fsm_state.p;
       fsm_state.state = state;
       switch ( state )
@@ -2492,7 +2492,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case BODY_PART:
             if ( fsm_state.ch == CR )
                state = CR_AFTER_BODY_PART;
-            *fsm_state.file << fsm_state.ch;
+            else
+               *fsm_state.file << fsm_state.ch;
             break;
 
          case CR_AFTER_BODY_PART:
@@ -2553,7 +2554,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
-   static char   *content_type_default_postman_form = ( char * )"multipart/form-data; boundary=--";
+   static char   *content_type_default_postman_form = ( char * )"multipart/form-data; boundary=";
    int    content_len;
    char   *content_type_str;
    int i = 0, j = 0;
@@ -2592,10 +2593,10 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       {
 
          content_type_str = ( char * )content_type->value;
-         for ( i = 0 ; i < 32 ; i++ )
+         for ( i = 0 ; i < 30 ; i++ )
             if ( content_type_default_postman_form [ i ] != content_type_str [ i ] )
                break;
-         if ( i == 32 )
+         if ( i == 30 )
          {
 
             for ( j = 0 ; content_type_str [ i ] ; i++, j++ )
@@ -2608,8 +2609,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             }
             fsm_state.boundary_length = j;
 
-            std::cout << "boundary=" << fsm_state.boundary; exit (1);
+            // std::cout << "boundary=" << fsm_state.boundary;
 
+            // std::cout << "multi" << "\n"; exit(1);
             return unicore_http_parse_multipart_body ( fsm_state , b );
 
          }
