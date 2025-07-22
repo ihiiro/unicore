@@ -63,6 +63,8 @@ typedef struct
     bool            CGI_PYTHON;
     bool            CGI_PHP;
 
+    std::string     message_body;
+
     bool            directory_listing;
 
 

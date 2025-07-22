@@ -109,12 +109,22 @@ will succeed because one CRLF terminates the field
     {
 
         // std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
-        // fsm_state.r = new unicore_request_t;
-        int validator = ( i == 0 ) ? -1 : 2;
+        // fsm_state.r = new unicore_request_t;       
         b.start = FIELD_LINES_REJECTS [ i ];
         b.pos = FIELD_LINES_REJECTS [ i ];
         b.end = b.start + std::strlen ( (const char *)FIELD_LINES_REJECTS [ i ] ) - 1;
-        if ( unicore_http_parse_field_lines ( fsm_state, &b ) == validator )
+        if ( i == 0 )
+        {
+
+            int validator = unicore_http_parse_field_lines ( fsm_state, &b );
+            if ( validator != 1 and validator != 2 )
+                std::cout << "\e[0;32mpass, ";
+            else
+                std::cout << "\e[0;31mfail, ";
+            continue;
+
+        }
+        if ( unicore_http_parse_field_lines ( fsm_state, &b ) == 2 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
@@ -410,7 +420,7 @@ will succeed because one CRLF terminates the field
         b.start = REQUEST_LINE_REJECTS [ i ];
         b.pos = REQUEST_LINE_REJECTS [ i ];
         b.end = b.start + std::strlen ( (const char *)REQUEST_LINE_REJECTS [ i ] ) - 1;
-        if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == -1 )
+        if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) != 1 )
             std::cout << "\e[0;32mpass, ";
         else
             std::cout << "\e[0;31mfail, ";
@@ -418,6 +428,7 @@ will succeed because one CRLF terminates the field
     }
 
     std::cout << "\n\t\t\t\t\e[1;37mCHUNKED-MESSAGE\e[0m\n";
+
     u_char *CHUNKED_MESSAGE_ACCEPTS[] = {
        ( u_char * )"0\r\n\r\n",
        ( u_char * )"000000\r\n\r\n",
@@ -447,6 +458,7 @@ will succeed because one CRLF terminates the field
         else
             validator = 2;
         std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+        fsm_state.file = new std::ofstream;
         b.start = CHUNKED_MESSAGE_ACCEPTS [ i ];
         b.pos = b.start;
         b.end = b.start + std::strlen ( ( char * )CHUNKED_MESSAGE_ACCEPTS [ i ]) - 1;
@@ -461,6 +473,7 @@ will succeed because one CRLF terminates the field
     // "A \t\t\t\t ;             this\r\n0123456789\n"
     u_char *chunked0 = ( u_char * )"A \t\t\t\t ;";
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
     b.start = chunked0;
     b.pos = b.start;
     b.end = b.start + std::strlen ( ( char * )chunked0 ) - 1;
@@ -652,6 +665,232 @@ will succeed because one CRLF terminates the field
         // std::cerr << "\n";
 
     }
+
+    std::cout << "\n\t\t\t\t\e[1;37mGENERAL PARSER INTEGRATION TESTS\e[0m\n";
+
+    u_char *request_str = ( u_char * )"GET /?df=df HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
+                        "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"mamak.text\"" \
+                        "\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+    b.start = request_str;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+    u_char *request_str_0 = ( u_char * )"GET /?df=df HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
+            "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"dinr";
+
+    u_char *request_str_400 = ( u_char * )"eb.txt\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"; // error cuz no close dquote
+    b.start = request_str_0;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str_0 ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 2 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    b.start = request_str_400;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str_400 ) - 1;
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+    u_char *request_str_q2prago = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:  \t4" \
+                    "\r\n\r\ndataff";
+    b.start = request_str_q2prago;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str_q2prago ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+    u_char *request_str_terron = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:  \t4" \
+                     "\r\n\r\ndat";
+
+    u_char *request_str_south = ( u_char * )"anoff";
+
+    b.start = request_str_terron;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str_terron ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 2 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    b.start = request_str_south;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str_south ) - 1;
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+    u_char *venus = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\ntransfer-encoding:chunked\r\n\r\n4\r\ndata\r\nA\r\ndata\r\ndata\r\n0\r\n\r\n";
+
+    b.start = venus;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )venus ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+    u_char *andromeda = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\ntransfer-encoding:chunked\r\n\r\n4\r\ndata\r";
+
+    u_char *karl_marx = ( u_char * )"\nA\r\ndata\r\ndata\r\n0\r\n\r\n";
+
+    b.start = andromeda;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )andromeda ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 2 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    b.start = karl_marx;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )karl_marx ) - 1;
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+
+    u_char *ajax_niner = ( u_char * )"GET /python.py HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:4\r\n\r\ndata";
+
+    b.start = ajax_niner;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )ajax_niner ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    if ( fsm_state.r->route->message_body == "data" )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+
+    u_char *paul_alan = ( u_char * )"GET /route/python.py HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:4\r\n\r\nda";
+
+    u_char *pat_bateman = ( u_char * )"ta";
+
+    b.start = paul_alan;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )paul_alan ) - 1;
+    if ( unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_field_lines ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 2 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    b.start = pat_bateman;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )pat_bateman ) - 1;
+    if ( unicore_http_parse_message_body ( fsm_state , &b ) == 1 )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+    if ( fsm_state.r->route->message_body == "data" )
+        std::cout << "\e[0;32mpass, ";
+    else
+        std::cout << "\e[0;31mfail, ";
+
+
+    // std::cout << "\n";
+
+    // std::cout << fsm_state.state;
+    // std::cout << fsm_state.p;
     
 
     // u_char *request = (u_char *)"GET /route/.py/extrapath/shithtml/?name=yes HTTP/1.1\r\n";
@@ -660,8 +899,7 @@ will succeed because one CRLF terminates the field
 
     // std::cout << unicore_http_parse_request_line ( &r , &bb , conf [ 0 ] );
 
+    // while (true);
     return 0;
-
-
 
 }

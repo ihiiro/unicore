@@ -291,8 +291,18 @@ void    deletemethod(client_conn &client, http_response_t &response)
     bucket *bucket;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
-    static_uri_path = (char *)client.request.static_uri_path;
-    path = "." + root + static_uri_path;
+    if (client.request.static_uri_path != NULL)
+    {
+        static_uri_path = (char *)client.request.static_uri_path;
+        path = "." + root + static_uri_path;
+    }
+    else
+    {
+        std::string script_name = (char *)client.request.SCRIPT_NAME;
+        path = "." + root + script_name;
+    }
+    // static_uri_path = (char *)client.request.static_uri_path;
+    // path = "." + root + static_uri_path;
     //check if file exists
     std::string type = check_path_type(path);
     std::cout << "type : " << type << std::endl;
@@ -343,7 +353,20 @@ void    postmethod(client_conn &client, http_response_t & response, int req_line
 {
     if (!client.request.route->ROUTE_POST)
     {
-        std::string path = "." + std::string(client.request.route->root) + std::string((char *)client.request.static_uri_path);
+        std::string path;
+        std::string static_uri_path;
+        std::string root;
+        if (client.request.static_uri_path != NULL)
+        {
+            static_uri_path = (char *)client.request.static_uri_path;
+            path = "." + root + static_uri_path;
+        }
+        else
+        {
+            std::string script_name = (char *)client.request.SCRIPT_NAME;
+            path = "." + root + script_name;
+        }
+        // std::string path = "." + std::string(client.request.route->root) + std::string((char *)client.request.static_uri_path);
         if (!std::ifstream(path).is_open())
         {
             check_files_errors(client, response, get_all_errors(), "404");

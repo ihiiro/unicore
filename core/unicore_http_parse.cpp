@@ -1339,8 +1339,6 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
 {
 
-   // ( void )chunked;
-   // size_t chunk_size = 0;
    static const u_int hex_dec [ ] = {
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
@@ -1573,7 +1571,8 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             fsm_state.chunk_size--;
             fsm_state.hex_count = 0;
             // write_to.append ( 1 , ch );
-            std::cout << fsm_state.ch;
+            // std::cout << fsm_state.ch;
+            *fsm_state.file <<  fsm_state.ch;
             state = CHUNK_DATA;
             break;
 
@@ -1581,7 +1580,8 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.chunk_size )
             {
 
-               std::cout << fsm_state.ch;
+               // std::cout << fsm_state.ch;
+               *fsm_state.file <<  fsm_state.ch;
                fsm_state.chunk_size--;
                // write_to.append ( 1 , ch );
                break;
@@ -1634,7 +1634,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
             }
             else
-               return 2;
+               return 400;
             break;
 
          case LAST_CHUNK_ZERO:
@@ -1808,6 +1808,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
          case CHUNKED_TOTAL_LF:
             b->pos = fsm_state.p;
             fsm_state.state = 0;
+            fsm_state.file->close();
             return 1;
 
       }
@@ -1820,6 +1821,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
       b->pos = fsm_state.p;
       fsm_state.state = 0;
+      fsm_state.file->close();
       return 1;
 
    }
@@ -1889,6 +1891,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++, fsm_state.content_length-- )
    {
 
+      // std::cout << "a";
       fsm_state.ch = *fsm_state.p;
       fsm_state.state = state;
       switch ( state )
@@ -2479,12 +2482,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
          case LF_BEFORE_BODY_PART:
             state = BODY_PART;
-            // fsm_state.file = std::ofstream ( fsm_state.filename ,  );
-            // fsm_state.file = new std::ofstream ( fsm_state.filename , std::ios::app  );
             fsm_state.file->open ( fsm_state.filename , std::ios::app );
-            // std::cerr << fsm_state.ch;
             *fsm_state.file << fsm_state.ch;
-            fsm_state.file->close();
 
             // std::cerr << "name=" << fsm_state.name << "\n";
             // std::cerr << "filename=" << fsm_state.filename << "\n";
@@ -2495,14 +2494,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case BODY_PART:
             if ( fsm_state.ch == CR )
                state = CR_AFTER_BODY_PART;
-            // std::cerr << fsm_state.ch;
-            // if ( fsm_state.file->is_open() )
-            // std::cout << fsm_state.file;
-            fsm_state.file->open ( fsm_state.filename , std::ios::app );
-            *fsm_state.file << fsm_state.ch;
-
-               // exit (1);
-            fsm_state.file->close();
+            else
+               *fsm_state.file << fsm_state.ch;
             break;
 
          case CR_AFTER_BODY_PART:
@@ -2513,6 +2506,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
          
          case LF_AFTER_BODY_PART:
+            fsm_state.file->close();
             if ( fsm_state.ch == '-' )
                state = BOUNDARY_DASH_1;
             else
@@ -2556,22 +2550,203 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
 }
 
+int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
+{
+
+   bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
+   bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
+   bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
+   static char   *content_type_default_postman_form = ( char * )"multipart/form-data; boundary=";
+
+   int    content_len;
+   char   *content_type_str;
+   int i = 0, j = 0;
+
+   if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
+   {
+
+      if ( content_length )
+         return -1;
+      if ( content_type )
+      {
+         
+         if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
+            return -1;
+
+      }
+      if ( !fsm_state.file->is_open() )
+      {
+
+         if ( content_type )
+         {
+
+            fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+         }
+         else
+            fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+
+      }
+      
+         // std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
+         //file is content-type
+      // else
+      //    std::strcpy ( fsm_state.content_type , "text/plain" );
+         //file is text/plain
+      return unicore_http_parse_chunked_body ( fsm_state , b );
+
+   }
+
+   else if ( content_length )
+   {
+
+      content_len = std::atoi ( ( char * )content_length->value );
+      if ( content_len <= 0 /* or content-len > max_length */ )
+         return -1;
+      if ( fsm_state.content_length == 0 )
+         fsm_state.content_length = content_len;
+      // std::cout << "length is " << fsm_state.content_length << "\n";
+
+      if ( content_type )
+      {
+
+         content_type_str = ( char * )content_type->value;
+         for ( i = 0 ; i < 30 ; i++ )
+            if ( content_type_default_postman_form [ i ] != content_type_str [ i ] )
+               break;
+         if ( i == 30 )
+         {
+
+            for ( j = 0 ; content_type_str [ i ] ; i++, j++ )
+            {
+
+               if ( j == 70 )
+                  return -1;
+               fsm_state.boundary [ j ] = content_type_str [ i ]; 
+
+            }
+            fsm_state.boundary_length = j;
+
+            // std::cout << "boundary=" << fsm_state.boundary;
+
+            // std::cout << "multi" << "\n"; exit(1);
+            return unicore_http_parse_multipart_body ( fsm_state , b );
+
+         }
+         else
+         {
+
+            if ( fsm_state.r->cgi )
+            {
+
+               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
+               {
+
+                  // std::cout << "hit\n";
+                  // std::cout << "lenfdf dgth is " << fsm_state.content_length << "\n";
+                  if ( fsm_state.content_length == 0 )
+                  {
+
+                     b->pos = fsm_state.p;
+                     return 1;
+
+                  }
+                  fsm_state.r->route->message_body.append ( 1 , ( char )*fsm_state.p );
+                  fsm_state.content_length--;
+                  
+
+               }
+               if ( fsm_state.content_length == 0 )
+                  return 1;
+               // std::cout << "length is " << fsm_state.content_length;
+               return 2;
+
+            }
+
+            else
+            {
+
+               
+
+               if ( !fsm_state.file->is_open() )
+               {
+
+                  if ( content_type )
+                  {
+
+                     // mime types to extension
+                     fsm_state.file->open ( "nongenerative.txt" , std::ios::app );
+                     
+                  }
+                  else
+                     fsm_state.file->open ( "nongenerative.txt" , std::ios::app );
+                     // file is text/plain
+                  // produce to file
+
+               }
+               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
+               {
+
+
+                  if ( fsm_state.content_length == 0 )
+                  {
+
+                     b->pos = fsm_state.p;
+                     fsm_state.file->close ();
+                     return 1;
+
+                  }
+                  *fsm_state.file << *fsm_state.p;
+                  fsm_state.content_length--;
+
+               }
+               if ( fsm_state.content_length == 0 )
+                  return 1;
+               // std::cout << "length is " << fsm_state.content_length << "ffff";
+               return 2;
+
+            }
+
+         }
+         
+
+
+      }
+      
+   }
+
+   return 1;
+
+}
+
 
 
 /*
 
-   client { chunked , received , buf }
 
-   parse_message_body ( client )
-      if transfer-encoding and content-length
-         error
-      else if transfer-encoding
-         client.chunked = 1
-         client.received := parse chunked ( client.received )
-         client.buf += client.received
-         if received last chunk
-            client.chunked = 0
-      else
-         naive fill
+   parse_message_body ( headers , body , route )
+      if ( headers has transfer-encoding and transfer-encoding is chunked )
+         if ( headers has content-length or ( headers has content-type and content-type is multipart ) )
+            error
+         if ( headers has content-type )
+            file is content-type
+         else
+            file is text/plain
+         parse chunked body and produce to file
+
+      else if ( headers has content-length and content-length > 0 and content-length <= max length )
+         if ( headers has multipart content-type )
+            parse multipart and produce to files
+      
+         else if ( route cgi is on )
+            buffer body
+
+         else
+            if ( headers has content-type )
+               file is content-type
+            else
+               file is text/plain
+            produce to file
+
+      
 
 */

@@ -283,6 +283,7 @@ int WebServer::run()
                         else
                         {
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
+                            
                             if (req_line == 1)
                             {
                                 int valid = 0;
