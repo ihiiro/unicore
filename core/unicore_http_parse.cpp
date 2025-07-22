@@ -2621,8 +2621,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.r->cgi )
             {
 
-
-               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
+               for ( fsm_state.p = b->pos; fsm_state.p < b->end ; fsm_state.p++ )
                {
 
                   if ( fsm_state.content_length == -1 )
@@ -2645,18 +2644,25 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             {
 
                if ( content_type )
+               {
+
+                  
+                  
+               }
                   std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
                   // file is content_type
                else
                   std::strcpy ( fsm_state.content_type , "text/plain" );
                   // file is text/plain
                // produce to file
+
                if ( !fsm_state.file->is_open() )
-                  fsm_state.file->open ( "garbage.txt" );
-               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
+                  fsm_state.file->open ( "garbage.txt" , std::ios::app );
+               for ( fsm_state.p = b->pos; fsm_state.p < b->end ; fsm_state.p++ )
                {
 
-                  if ( fsm_state.content_length == -1 )
+
+                  if ( fsm_state.content_length == 0 )
                   {
 
                      b->pos = fsm_state.p;
@@ -2678,10 +2684,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
       }
       
-
-      
-
-
    }
 
    return 1;
