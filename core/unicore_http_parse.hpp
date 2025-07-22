@@ -58,7 +58,7 @@ typedef struct shoot
     int                 mp_i;
 
     bool                chunked;
-
+    
     std::ofstream       *file;
 
 

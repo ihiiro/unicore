@@ -662,6 +662,25 @@ will succeed because one CRLF terminates the field
         // std::cerr << "\n";
 
     }
+
+    std::cout << "\n\t\t\t\t\e[1;37mGENERAL PARSER\e[0m\n";
+
+    u_char *request_str = ( u_char * )"GET /?df=df HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
+                        "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"test.jpg\"" \
+                        "\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    b.start = request_str;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str ) - 1;
+    std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
+    std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
+    std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+
+    std::cout << "\n";
+
+    std::cout << fsm_state.p;
     
 
     // u_char *request = (u_char *)"GET /route/.py/extrapath/shithtml/?name=yes HTTP/1.1\r\n";

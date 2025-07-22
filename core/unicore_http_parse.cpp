@@ -1889,6 +1889,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++, fsm_state.content_length-- )
    {
 
+      std::cout << "a";
       fsm_state.ch = *fsm_state.p;
       fsm_state.state = state;
       switch ( state )
@@ -2551,11 +2552,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
    bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
-   bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content_length" );
-   static char   *content_type_default_postman_form = "multipart/form-data; boundary=--";
+   bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
+   static char   *content_type_default_postman_form = ( char * )"multipart/form-data; boundary=--";
    int    content_len;
    char   *content_type_str;
-   int i = 0;
+   int i = 0, j = 0;
 
    if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
    {
@@ -2585,6 +2586,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       content_len = std::atoi ( ( char * )content_length->value );
       if ( content_len <= 0 /* or content-len > max_length */ )
          return -1;
+      fsm_state.content_length = content_len;
 
       if ( content_type )
       {
@@ -2596,7 +2598,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
          if ( i == 32 )
          {
 
-            for ( int j = 0 ; content_type_str [ i ] ; i++, j++ )
+            for ( j = 0 ; content_type_str [ i ] ; i++, j++ )
             {
 
                if ( j == 70 )
@@ -2604,6 +2606,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                fsm_state.boundary [ j ] = content_type_str [ i ]; 
 
             }
+            fsm_state.boundary_length = j;
+
+            std::cout << "boundary=" << fsm_state.boundary; exit (1);
 
             return unicore_http_parse_multipart_body ( fsm_state , b );
 
@@ -2676,6 +2681,8 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
 
    }
+
+   return 1;
 
 }
 

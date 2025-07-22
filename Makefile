@@ -1,4 +1,4 @@
-CFLAGS = -std=c++98 #-Wall -Wextra -Werror
+CFLAGS = -std=c++98 -Wall -Wextra -Werror
 
 CFILES = tests/unicore_tests_parser.cpp \
 		core/unicore_http_parse.cpp \
