@@ -1339,8 +1339,6 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
 {
 
-   // ( void )chunked;
-   // size_t chunk_size = 0;
    static const u_int hex_dec [ ] = {
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
@@ -1574,6 +1572,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             fsm_state.hex_count = 0;
             // write_to.append ( 1 , ch );
             // std::cout << fsm_state.ch;
+            *fsm_state.file <<  fsm_state.ch;
             state = CHUNK_DATA;
             break;
 
@@ -1582,6 +1581,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             {
 
                // std::cout << fsm_state.ch;
+               *fsm_state.file <<  fsm_state.ch;
                fsm_state.chunk_size--;
                // write_to.append ( 1 , ch );
                break;
@@ -2573,10 +2573,18 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
       }
       if ( content_type )
-         std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
-         //file is content-type
+      {
+
+         fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+
+
+      }
       else
-         std::strcpy ( fsm_state.content_type , "text/plain" );
+         fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+         // std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
+         //file is content-type
+      // else
+      //    std::strcpy ( fsm_state.content_type , "text/plain" );
          //file is text/plain
       return unicore_http_parse_chunked_body ( fsm_state , b );
 

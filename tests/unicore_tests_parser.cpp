@@ -428,6 +428,7 @@ will succeed because one CRLF terminates the field
     }
 
     std::cout << "\n\t\t\t\t\e[1;37mCHUNKED-MESSAGE\e[0m\n";
+
     u_char *CHUNKED_MESSAGE_ACCEPTS[] = {
        ( u_char * )"0\r\n\r\n",
        ( u_char * )"000000\r\n\r\n",
@@ -457,6 +458,7 @@ will succeed because one CRLF terminates the field
         else
             validator = 2;
         std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+        fsm_state.file = new std::ofstream;
         b.start = CHUNKED_MESSAGE_ACCEPTS [ i ];
         b.pos = b.start;
         b.end = b.start + std::strlen ( ( char * )CHUNKED_MESSAGE_ACCEPTS [ i ]) - 1;
@@ -471,6 +473,7 @@ will succeed because one CRLF terminates the field
     // "A \t\t\t\t ;             this\r\n0123456789\n"
     u_char *chunked0 = ( u_char * )"A \t\t\t\t ;";
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
     b.start = chunked0;
     b.pos = b.start;
     b.end = b.start + std::strlen ( ( char * )chunked0 ) - 1;
@@ -704,26 +707,31 @@ will succeed because one CRLF terminates the field
     // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
 
-    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
-    fsm_state.file = new std::ofstream;
-    u_char *request_str_terron = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:  \t4" \
-                     "\r\n\r\ndat";
+    // std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    // fsm_state.file = new std::ofstream;
+    // u_char *request_str_terron = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:  \t4" \
+    //                  "\r\n\r\ndat";
 
-    u_char *request_str_south = ( u_char * )"anoff";
+    // u_char *request_str_south = ( u_char * )"anoff";
 
-    b.start = request_str_terron;
-    b.pos = b.start;
-    b.end = b.start + std::strlen ( ( char * )request_str_terron ) - 1;
+    // b.start = request_str_terron;
+    // b.pos = b.start;
+    // b.end = b.start + std::strlen ( ( char * )request_str_terron ) - 1;
     
-    std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
-    std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
-    std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+    // std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
+    // std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
+    // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
-    b.start = request_str_south;
-    b.pos = b.start;
-    b.end = b.start + std::strlen ( ( char * )request_str_south ) - 1;
+    // b.start = request_str_south;
+    // b.pos = b.start;
+    // b.end = b.start + std::strlen ( ( char * )request_str_south ) - 1;
 
-    std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+    // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+
+
+
+
 
 
     
