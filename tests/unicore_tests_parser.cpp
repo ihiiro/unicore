@@ -763,20 +763,45 @@ will succeed because one CRLF terminates the field
     // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
 
+    // std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    // fsm_state.file = new std::ofstream;
+
+    // u_char *ajax_niner = ( u_char * )"GET /python.py HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:4\r\n\r\ndata";
+
+    // b.start = ajax_niner;
+    // b.pos = b.start;
+    // b.end = b.start + std::strlen ( ( char * )ajax_niner ) - 1;
+
+    // std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
+    // std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
+    // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+    // std::cout << (fsm_state.r->route->message_body == "data");
+
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
     fsm_state.file = new std::ofstream;
 
-    u_char *ajax_niner = ( u_char * )"GET /python.py HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:4\r\n\r\ndata";
+    u_char *paul_alan = ( u_char * )"GET /python.py HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:4\r\n\r\nda";
 
-    b.start = ajax_niner;
+    u_char *pat_bateman = ( u_char * )"ta";
+
+    b.start = paul_alan;
     b.pos = b.start;
-    b.end = b.start + std::strlen ( ( char * )ajax_niner ) - 1;
+    b.end = b.start + std::strlen ( ( char * )paul_alan ) - 1;
 
     std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
     std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
     std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
+    b.start = pat_bateman;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )pat_bateman ) - 1;
+
+    std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
     std::cout << (fsm_state.r->route->message_body == "data");
+
+
 
     // std::cout << "\n";
 
