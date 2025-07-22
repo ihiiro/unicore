@@ -2546,61 +2546,138 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
 }
 
-// int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
-// {
+int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
+{
 
-//    bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
-//    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
-//    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content_length" );
-//    int    content_len;
+   bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
+   bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
+   bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content_length" );
+   static char   *content_type_default_postman_form = "multipart/form-data; boundary=--";
+   int    content_len;
+   char   *content_type_str;
+   int i = 0;
 
-//    if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
-//    {
+   if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
+   {
 
-//       if ( content_length )
-//          return -1;
-//       if ( content_type )
-//       {
+      if ( content_length )
+         return -1;
+      if ( content_type )
+      {
          
-//          if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
-//             return -1;
+         if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
+            return -1;
 
-//       }
-//       if ( content_type )
-//          //file is content-type
-//       else
-//          //file is text/plain
-//       // parse chunked and produce to file
+      }
+      if ( content_type )
+         std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
+         //file is content-type
+      else
+         std::strcpy ( fsm_state.content_type , "text/plain" );
+         //file is text/plain
+      return unicore_http_parse_chunked_body ( fsm_state , b );
 
-//    }
+   }
 
-//    else if ( content_length )
-//    {
+   else if ( content_length )
+   {
 
-//       content_len = std::atoi ( ( char * )content_length->value );
-//       if ( content_len <= 0 /* or content-len > max_length */ )
-//          return -1
-//       if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
-//          unicore_http_parse_multipart_body (  )
+      content_len = std::atoi ( ( char * )content_length->value );
+      if ( content_len <= 0 /* or content-len > max_length */ )
+         return -1;
 
-//       else if ( r.cgi )
-//          // buffer body
+      if ( content_type )
+      {
 
-//       else
-//       {
+         content_type_str = ( char * )content_type->value;
+         for ( i = 0 ; i < 32 ; i++ )
+            if ( content_type_default_postman_form [ i ] != content_type_str [ i ] )
+               break;
+         if ( i == 32 )
+         {
 
-//          if ( content_type )
-//             // file is content_type
-//          else
-//             // file is text/plain
-//          // produce to file
+            for ( int j = 0 ; content_type_str [ i ] ; i++, j++ )
+            {
 
-//       }
+               if ( j == 70 )
+                  return -1;
+               fsm_state.boundary [ j ] = content_type_str [ i ]; 
+
+            }
+
+            return unicore_http_parse_multipart_body ( fsm_state , b );
+
+         }
+         else
+         {
+
+            if ( fsm_state.r->cgi )
+            {
 
 
-//    }
+               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
+               {
 
-// }
+                  if ( fsm_state.content_length == -1 )
+                  {
+
+                     b->pos = fsm_state.p;
+                     return 1;
+
+                  }
+                  fsm_state.r->route->message_body.append ( 1 , ( char )*fsm_state.p );
+                  fsm_state.content_length--;
+                  
+
+               }
+               return 2;
+
+            }
+
+            else
+            {
+
+               if ( content_type )
+                  std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
+                  // file is content_type
+               else
+                  std::strcpy ( fsm_state.content_type , "text/plain" );
+                  // file is text/plain
+               // produce to file
+               if ( !fsm_state.file->is_open() )
+                  fsm_state.file->open ( "garbage.txt" );
+               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
+               {
+
+                  if ( fsm_state.content_length == -1 )
+                  {
+
+                     b->pos = fsm_state.p;
+                     fsm_state.file->close ();
+                     return 1;
+
+                  }
+                  *fsm_state.file << *fsm_state.p;
+                  fsm_state.content_length--;
+
+               }
+               return 2;
+
+            }
+
+         }
+         
+
+
+      }
+      
+
+      
+
+
+   }
+
+}
 
 
 
@@ -2620,7 +2697,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
       else if ( headers has content-length and content-length > 0 and content-length <= max length )
          if ( headers has multipart content-type )
             parse multipart and produce to files
-   
+      
          else if ( route cgi is on )
             buffer body
 
