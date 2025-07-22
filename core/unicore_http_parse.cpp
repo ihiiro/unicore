@@ -1634,7 +1634,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
             }
             else
-               return 2;
+               return 400;
             break;
 
          case LAST_CHUNK_ZERO:
@@ -1808,6 +1808,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
          case CHUNKED_TOTAL_LF:
             b->pos = fsm_state.p;
             fsm_state.state = 0;
+            fsm_state.file->close();
             return 1;
 
       }
@@ -1820,6 +1821,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
       b->pos = fsm_state.p;
       fsm_state.state = 0;
+      fsm_state.file->close();
       return 1;
 
    }

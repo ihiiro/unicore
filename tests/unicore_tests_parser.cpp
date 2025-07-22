@@ -701,7 +701,7 @@ will succeed because one CRLF terminates the field
     // b.start = request_str_q2prago;
     // b.pos = b.start;
     // b.end = b.start + std::strlen ( ( char * )request_str_q2prago ) - 1;
-    
+
     // std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
     // std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
     // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
@@ -729,7 +729,17 @@ will succeed because one CRLF terminates the field
     // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
 
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+    u_char *venus = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\ntransfer-encoding:chunked\r\n\r\n4\r\ndata\r\nA\r\ndata\r\ndata\r\n0\r\n\r\n";
 
+    b.start = venus;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )venus ) - 1;
+
+    std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
+    std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
+    std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
 
 
@@ -750,7 +760,5 @@ will succeed because one CRLF terminates the field
 
     // while (true);
     return 0;
-
-
 
 }
