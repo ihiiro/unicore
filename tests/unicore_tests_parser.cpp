@@ -693,15 +693,39 @@ will succeed because one CRLF terminates the field
     // b.end = b.start + std::strlen ( ( char * )request_str_400 ) - 1;
     // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
 
-    u_char *request_str_q2prago = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:text/garbage\r\ncontent-length:  \t4" \
-                    "\r\n\r\ndataff";
-    b.start = request_str_q2prago;
+    // u_char *request_str_q2prago = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:  \t4" \
+    //                 "\r\n\r\ndataff";
+    // b.start = request_str_q2prago;
+    // b.pos = b.start;
+    // b.end = b.start + std::strlen ( ( char * )request_str_q2prago ) - 1;
+    
+    // std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
+    // std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
+    // std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+
+    std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.file = new std::ofstream;
+    u_char *request_str_terron = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:  \t4" \
+                     "\r\n\r\ndat";
+
+    u_char *request_str_south = ( u_char * )"anoff";
+
+    b.start = request_str_terron;
     b.pos = b.start;
-    b.end = b.start + std::strlen ( ( char * )request_str_q2prago ) - 1;
+    b.end = b.start + std::strlen ( ( char * )request_str_terron ) - 1;
     
     std::cout << unicore_http_parse_request_line ( fsm_state , &b , conf [ 0 ] );
     std::cout << unicore_http_parse_field_lines ( fsm_state , &b );
     std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+    b.start = request_str_south;
+    b.pos = b.start;
+    b.end = b.start + std::strlen ( ( char * )request_str_south ) - 1;
+
+    std::cout << unicore_http_parse_message_body ( fsm_state , &b );
+
+
     
 
     // std::cout << "\n";

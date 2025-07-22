@@ -2555,6 +2555,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
    static char   *content_type_default_postman_form = ( char * )"multipart/form-data; boundary=";
+
    int    content_len;
    char   *content_type_str;
    int i = 0, j = 0;
@@ -2587,7 +2588,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       content_len = std::atoi ( ( char * )content_length->value );
       if ( content_len <= 0 /* or content-len > max_length */ )
          return -1;
-      fsm_state.content_length = content_len;
+      if ( fsm_state.content_length == 0 )
+         fsm_state.content_length = content_len;
+      // std::cout << "length is " << fsm_state.content_length << "\n";
 
       if ( content_type )
       {
@@ -2621,7 +2624,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.r->cgi )
             {
 
-               for ( fsm_state.p = b->pos; fsm_state.p < b->end ; fsm_state.p++ )
+               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
                   if ( fsm_state.content_length == -1 )
@@ -2643,22 +2646,25 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else
             {
 
-               if ( content_type )
-               {
-
-                  
-                  
-               }
-                  std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
-                  // file is content_type
-               else
-                  std::strcpy ( fsm_state.content_type , "text/plain" );
-                  // file is text/plain
-               // produce to file
+               
 
                if ( !fsm_state.file->is_open() )
-                  fsm_state.file->open ( "garbage.txt" , std::ios::app );
-               for ( fsm_state.p = b->pos; fsm_state.p < b->end ; fsm_state.p++ )
+               {
+
+                  if ( content_type )
+                  {
+
+                     // mime types to extension
+                     fsm_state.file->open ( "nongenerative.txt" , std::ios::app );
+                     
+                  }
+                  else
+                     fsm_state.file->open ( "nongenerative.txt" , std::ios::app );
+                     // file is text/plain
+                  // produce to file
+
+               }
+               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
 
@@ -2674,6 +2680,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   fsm_state.content_length--;
 
                }
+               // std::cout << "length is " << fsm_state.content_length << "ffff";
                return 2;
 
             }
