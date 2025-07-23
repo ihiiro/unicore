@@ -695,7 +695,7 @@ will succeed because one CRLF terminates the field
     u_char *request_str_0 = ( u_char * )"GET /?df=df HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
             "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"filename\"; filename=\"dinr";
 
-    u_char *request_str_400 = ( u_char * )"eb.txt\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"; // error cuz no close dquote
+    u_char *request_str_400 = ( u_char * )"eb.txt\"\r\nContent-Type: image/jpeg\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
     b.start = request_str_0;
     b.pos = b.start;
     b.end = b.start + std::strlen ( ( char * )request_str_0 ) - 1;
@@ -795,7 +795,7 @@ will succeed because one CRLF terminates the field
 
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
     fsm_state.file = new std::ofstream;
-    u_char *andromeda = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\ntransfer-encoding:chunked\r\n\r\n4\r\ndata\r";
+    u_char *andromeda = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\ncontent-type:      \t\t\t audio/aac\r\ntransfer-encoding:chunked\r\n\r\n4\r\ndata\r";
 
     u_char *karl_marx = ( u_char * )"\nA\r\ndata\r\ndata\r\n0\r\n\r\n";
 
@@ -885,6 +885,8 @@ will succeed because one CRLF terminates the field
         std::cout << "\e[0;32mpass, ";
     else
         std::cout << "\e[0;31mfail, ";
+
+    
 
 
     // std::cout << "\n";

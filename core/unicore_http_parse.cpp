@@ -423,10 +423,10 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   if ( fsm_state.portion == 1 )
                   {
 
-                     fsm_state.bucket = get ( c.routes , (u_char *)"/" );
-                     if ( fsm_state.bucket == NULL )
+                     fsm_state.buckett = get ( c.routes , (u_char *)"/" );
+                     if ( fsm_state.buckett == NULL )
                         return 400; // or specific error
-                     fsm_state.r->route = ( unicore_route_t * )fsm_state.bucket->value;
+                     fsm_state.r->route = ( unicore_route_t * )fsm_state.buckett->value;
 
                   }
                   state = ORIGIN_FORM_VALIDATED_BY_SP;
@@ -459,10 +459,10 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   {
 
                      // std::cout << "ROUTE " << "/" << "\n";
-                     fsm_state.bucket = get ( c.routes , (u_char *)"/" );
-                     if ( fsm_state.bucket == NULL )
+                     fsm_state.buckett = get ( c.routes , (u_char *)"/" );
+                     if ( fsm_state.buckett == NULL )
                         return 400; // or specific error
-                     fsm_state.r->route = ( unicore_route_t * )fsm_state.bucket->value;
+                     fsm_state.r->route = ( unicore_route_t * )fsm_state.buckett->value;
 
                   }
                   fsm_state.r->cgi = 1;
@@ -518,11 +518,11 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                
                // std::cout << "PRIMARY BUF " << primary_buf;
                // std::exit (1);
-               fsm_state.bucket = get ( c.routes , fsm_state.primary_buf );
+               fsm_state.buckett = get ( c.routes , fsm_state.primary_buf );
                /* if second hierarchy route exists then it is part of the route component 
                      and shouldn't be in SCRIPT_NAME which also uses primary_buf */
                // std::cout << "ROUTE " << primary_buf << "\n";
-               if ( fsm_state.bucket )
+               if ( fsm_state.buckett )
                {
 
                   std::memset ( fsm_state.primary_buf , 0 , 512 );
@@ -532,12 +532,12 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                else
                {
                   // std::cout << "ROUTE " << "/" << "\n";
-                  fsm_state.bucket = get ( c.routes , (u_char *)"/" );
-                  if ( fsm_state.bucket == NULL )
+                  fsm_state.buckett = get ( c.routes , (u_char *)"/" );
+                  if ( fsm_state.buckett == NULL )
                      return 400; // or specific error
 
                }
-               fsm_state.r->route = ( unicore_route_t * )fsm_state.bucket->value;
+               fsm_state.r->route = ( unicore_route_t * )fsm_state.buckett->value;
                fsm_state.portion = 2;
 
             }
@@ -580,10 +580,10 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             if ( fsm_state.r->route == NULL )
             {
 
-               fsm_state.bucket = get ( c.routes , ( u_char * )"/" );
-               if ( fsm_state.bucket == NULL )
+               fsm_state.buckett = get ( c.routes , ( u_char * )"/" );
+               if ( fsm_state.buckett == NULL )
                   return 404;
-               fsm_state.r->route = ( unicore_route_t * )fsm_state.bucket->value;
+               fsm_state.r->route = ( unicore_route_t * )fsm_state.buckett->value;
 
             }
             if ( PCHAR( fsm_state.ch ) )
@@ -1976,6 +1976,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             for ( int i = 0 ; fsm_state.p <= b->end and i < cd_i ; i++, fsm_state.p++ )
                if ( *fsm_state.p != content_disposition [ i ] )
                   return 400;
+            std::memset ( fsm_state.filename , 0 , 129 );
             state = CONTENT_DISPOSITION;
             fsm_state.p--;
             break;
@@ -2335,6 +2336,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             for ( int i = 0 ; fsm_state.p <= b->end and i < ct_i ; i++, fsm_state.p++ )
                if ( *fsm_state.p != content_type [ i ] )
                   return 400;
+            std::memset ( fsm_state.content_type , 0 , 129 );
             state = CONTENT_TYPE;
             fsm_state.p--;
             break;
@@ -2482,7 +2484,40 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
          case LF_BEFORE_BODY_PART:
             state = BODY_PART;
-            fsm_state.file->open ( fsm_state.filename , std::ios::app );
+            if ( fsm_state.mimes)
+            {
+
+               if ( !*fsm_state.filename )
+               {
+
+                  if ( *fsm_state.name and !*fsm_state.content_type )
+                     fsm_state.file->open ( std::string ( fsm_state.name ) + ".txt" , std::ios::app ); // generate random filename
+                  else if ( *fsm_state.name and *fsm_state.content_type )
+                  {
+
+                     fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
+                     if ( fsm_state.selected_mime_type )
+                        fsm_state.file->open ( std::string ( fsm_state.name ) + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app ); // generate random filename
+
+                  }
+                  else if ( !*fsm_state.name and *fsm_state.content_type )
+                  {
+
+                     fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
+                     if ( fsm_state.selected_mime_type )
+                        fsm_state.file->open ( "nongenerative_multipart.txt" + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app );
+
+                  }
+                  else
+                     fsm_state.file->open ( "nongenerative_multipart.txt" , std::ios::app ); // generate random filename
+
+               }
+               else
+                  fsm_state.file->open ( fsm_state.filename , std::ios::app );
+
+            }
+            else
+               fsm_state.file->open ( fsm_state.filename , std::ios::app );
             *fsm_state.file << fsm_state.ch;
 
             // std::cerr << "name=" << fsm_state.name << "\n";
@@ -2541,6 +2576,9 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
    if ( state == CLOSE_DASH_2 )
    {
 
+      std::memset ( fsm_state.filename , 0 , 129 );
+      std::memset ( fsm_state.name , 0 , 129 );
+      std::memset ( fsm_state.content_type , 0 , 129 );
       fsm_state.state = 0;
       b->pos = fsm_state.p;
       return 1;
@@ -2557,6 +2595,41 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
    static char   *content_type_default_postman_form = ( char * )"multipart/form-data; boundary=";
+   // free hash table after
+   ht mimes;
+   bucket *selected_mime_type;
+   fsm_state.mimes = &mimes;
+
+   mimes.buckets = new bucket [ 29 ]; 
+   insert ( &mimes , ( u_char * )"audio/aac" , ( char * )".aac" );
+   insert ( &mimes , ( u_char * )"image/apng" , ( char * )".apng" );
+   insert ( &mimes , ( u_char * )"application/x-freearc" , ( char * )".arc" );
+   insert ( &mimes , ( u_char * )"image/avif" , ( char * )".avif" );
+   insert ( &mimes , ( u_char * )"video/x-msvideo" , ( char * )".avi" );
+   insert ( &mimes , ( u_char * )"application/octet-stream" , ( char * )".bin" );
+   insert ( &mimes , ( u_char * )"image/bmp" , ( char * )".bmp" );
+   insert ( &mimes , ( u_char * )"text/css" , ( char * )".css" );
+   insert ( &mimes , ( u_char * )"text/csv" , ( char * )".csv" );
+   insert ( &mimes , ( u_char * )"application/epub+zip" , ( char * )".epub" );
+   insert ( &mimes , ( u_char * )"image/gif" , ( char * )".gif" );
+   insert ( &mimes , ( u_char * )"text/html" , ( char * )".html" );
+   insert ( &mimes , ( u_char * )"image/jpeg" , ( char * )".jpg" );
+   insert ( &mimes , ( u_char * )"text/markdown" , ( char * )".md" );
+   insert ( &mimes , ( u_char * )"audio/mpeg" , ( char * )".mp3" );
+   insert ( &mimes , ( u_char * )"video/mp4" , ( char * )".mp4" );
+   insert ( &mimes , ( u_char * )"video/mpeg" , ( char * )".mpeg" );
+   insert ( &mimes , ( u_char * )"image/png" , ( char * )".png" );
+   insert ( &mimes , ( u_char * )"application/pdf" , ( char * )".pdf" );
+   insert ( &mimes , ( u_char * )"image/svg+xml" , ( char * )".svg" );
+   insert ( &mimes , ( u_char * )"video/mp2t" , ( char * )".ts" );
+   insert ( &mimes , ( u_char * )"audio/wav" , ( char * )".wav" );
+   insert ( &mimes , ( u_char * )"audio/webm" , ( char * )".weba" );
+   insert ( &mimes , ( u_char * )"video/webm" , ( char * )".webm" );
+   insert ( &mimes , ( u_char * )"image/webp" , ( char * )".webp" );
+   insert ( &mimes , ( u_char * )"image/webp" , ( char * )".webp" );
+   insert ( &mimes , ( u_char * )"application/xhtml+xml" , ( char * )".xhtml" );
+   insert ( &mimes , ( u_char * )"application/xml" , ( char * )".xml" );
+   insert ( &mimes , ( u_char * )"application/xml" , ( char * )".xml" );
 
    int    content_len;
    char   *content_type_str;
@@ -2580,7 +2653,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
          if ( content_type )
          {
 
-            fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+            selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
+            if ( selected_mime_type )
+               fsm_state.file->open ( "nongenerative_chunked" + std::string ( ( char * )selected_mime_type->value ) );
+            else
+               fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
          }
          else
             fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
