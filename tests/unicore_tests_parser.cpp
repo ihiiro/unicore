@@ -670,7 +670,7 @@ will succeed because one CRLF terminates the field
 
     u_char *request_str = ( u_char * )"GET /?df=df HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
                         "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"\"; filename=\"\"" \
-                        "\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
+                        "\r\nContent-Type:      image/png\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
 
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
     fsm_state.file = new std::ofstream;

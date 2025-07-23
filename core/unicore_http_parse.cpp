@@ -2507,7 +2507,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
                      fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
                      if ( fsm_state.selected_mime_type )
-                        fsm_state.file->open ( "nongenerative_multipart.txt" + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app );
+                        fsm_state.file->open ( "nongenerative_multipart" + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app );
 
                   }
                   else
