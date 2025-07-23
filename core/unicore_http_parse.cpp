@@ -2498,6 +2498,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                      fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
                      if ( fsm_state.selected_mime_type )
                         fsm_state.file->open ( std::string ( fsm_state.name ) + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app ); // generate random filename
+                     else
+                        fsm_state.file->open ( std::string ( fsm_state.name ) + ".txt" , std::ios::app ); // generate random filename
 
                   }
                   else if ( !*fsm_state.name and *fsm_state.content_type )
