@@ -640,6 +640,10 @@ will succeed because one CRLF terminates the field
     };
 
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
+    fsm_state.r = new unicore_request_t;
+    fsm_state.r->route = new unicore_route_t;
+    fsm_state.r->route->upload_path = ( char * )"PAUL";
+    fsm_state.r->route->root = ( char * )"/";
     fsm_state.file = new std::ofstream;
     fsm_state.boundary [ 0 ] = 'b';
     fsm_state.boundary [ 1 ] = 'o';
@@ -670,7 +674,7 @@ will succeed because one CRLF terminates the field
 
     u_char *request_str = ( u_char * )"GET /?df=df HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW" \
                         "\r\nContent-Length: 229\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"\"; filename=\"\"" \
-                        "\r\nContent-Type:      image/png\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
+                        "\r\n\r\ndata\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
 
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
     fsm_state.file = new std::ofstream;
@@ -722,7 +726,7 @@ will succeed because one CRLF terminates the field
 
     std::memset ( &fsm_state , 0 , sizeof ( fsm_state_t ) );
     fsm_state.file = new std::ofstream;
-    u_char *request_str_q2prago = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:multipart/form-data;\r\ncontent-length:  \t4" \
+    u_char *request_str_q2prago = ( u_char * )"GET / HTTP/1.1\r\nHost: localhost:8000\r\nContent-Type:image/gif\r\ncontent-length:  \t4" \
                     "\r\n\r\ndataff";
     b.start = request_str_q2prago;
     b.pos = b.start;
