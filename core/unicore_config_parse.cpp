@@ -201,15 +201,15 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 switch ( ch )
                 {
 
-                    case 'S':
-                        state = SERVER_NAME;
-                        break;
-                    case 'R':
-                        state = ROUTES;
-                        break;
-                    case 'E':
-                        state = ERROR_PAGES;
-                        break;
+                    // case 'S':
+                    //     state = SERVER_NAME;
+                    //     break;
+                    // case 'R':
+                    //     state = ROUTES;
+                    //     break;
+                    // case 'E':
+                    //     state = ERROR_PAGES;
+                    //     break;
                     case 'M':
                         state = MCMS;
                         break;
@@ -709,12 +709,12 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 switch ( ch )
                 {
 
-                    case 'E':
-                        state = ERROR_PAGES;
-                        break;
-                    case 'M':
-                        state = MCMS;
-                        break;
+                    // case 'E':
+                    //     state = ERROR_PAGES;
+                    //     break;
+                    // case 'M':
+                    //     state = MCMS;
+                    //     break;
                     case '/':
                         c [ j ].redirection_list = new ht;
                         c [ j ].redirection_list->buckets = new bucket [ M ];
@@ -1012,9 +1012,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                     case 'R':
                         state = ROUTES;
                         break;
-                    case 'M':
-                        state = MCMS;
-                        break;
+                    // case 'M':
+                    //     state = MCMS;
+                    //     break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
@@ -1137,9 +1137,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 switch ( ch )
                 {
 
-                    case 'R':
-                        state = ROUTES;
-                        break;
+                    // case 'R':
+                    //     state = ROUTES;
+                    //     break;
                     case 'E':
                         state = ERROR_PAGES;
                         break;
