@@ -248,7 +248,10 @@ will succeed because one CRLF terminates the field
     
     std::vector < unicore_config_t > config;
 
-	std::cout << unicore_config_parse ( stream , config ); //exit(1);
+	if ( unicore_config_parse ( stream , config ) == 1 )
+    	std::cout << "\e[0;32mpass, ";
+	else
+		std::cout << "\e[0;31mfail, ";
 	if ( !strcmp ( "HOST" , config [ 0 ].host ) )
 		std::cout << "\e[0;32mpass, ";
 	else

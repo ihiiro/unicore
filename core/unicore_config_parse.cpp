@@ -2,7 +2,7 @@
 #include "unicore_config_parse.hpp"
 #include "unicore_defines.hpp"
 
-#include <iostream>
+#include <fstream>
 
 int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& c )
 {
@@ -618,6 +618,8 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 for ( int k = 0 ; k < len ; k++ )
                     route->file_if_directory_request [ k ] = secondary_buf [ k ];
                 route->file_if_directory_request [ i ] = '\0';
+                if ( !std::ifstream ( "./" + std::string ( route->file_if_directory_request ) ).is_open() )
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 if ( ch == '0' or ch == '1' )
                 {
 
@@ -978,13 +980,15 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 for ( int k = 0 ; k < i ; k++ )
                     value [ k ] = secondary_buf [ k ];
                 value [ i ] = '\0';
+                if ( !std::ifstream ( "./" + std::string ( value ) ).is_open() )
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 insert ( c [ j ].error_pages , (u_char *)key , value );
                 switch ( ch )
                 {
 
-                    case LF:
-                        state = SERVER_BLOCK_TERMINAL_LF;
-                        break;
+                    // case LF:
+                    //     state = SERVER_BLOCK_TERMINAL_LF;
+                    //     break;
                     case HT:
                         state = ERROR_PAGES_HT;
                         break;
@@ -1121,9 +1125,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 switch ( ch )
                 {
 
-                    case LF:
-                        state = SERVER_BLOCK_TERMINAL_LF;
-                        break;
+                    // case LF:
+                    //     state = SERVER_BLOCK_TERMINAL_LF;
+                    //     break;
                     case HT:
                         state = MCMS_HT;
                         break;
