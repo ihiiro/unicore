@@ -7,7 +7,7 @@
 int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& c )
 {
 
-    int digit_count = 0, i = 0, j = 0, len = 0;
+    int digit_count = 0, i = 0, j = 0, len = 0, root_slash_count = 0;
     char ch = 0, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
                 mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", server_name[] = "SERVER_NAME=",
                 primary_buf [ 512 ] , secondary_buf [ 512 ],
@@ -425,6 +425,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                     std::memset ( primary_buf , 0 , 512 );
                     i = 0;
                     primary_buf [ i++ ] = ch;
+                    root_slash_count = 0;
+                    if ( ch == '/' )
+                        root_slash_count++;
                     state = ROUTES_ROOT;
 
                 }
@@ -438,7 +441,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 else if ( VCHAR( ch ) )
                 {
 
-                    if ( i > 510 )
+                    if ( ch == '/' )
+                        root_slash_count++;
+                    if ( i > 510 or root_slash_count > 2 )
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
                     primary_buf [ i++ ] = ch;
                     break;
