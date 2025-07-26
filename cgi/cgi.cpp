@@ -10,6 +10,10 @@ int execute_cgi(unicore_request_t &req, std::string &result)
     {
         perror("pipe");
         result = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+        if (in_pipe[0] >= 0)
+            close(in_pipe[0]);
+        if (in_pipe[1] >= 0)
+            close(in_pipe[1]);
         return -1;
     }
 
@@ -30,10 +34,8 @@ int execute_cgi(unicore_request_t &req, std::string &result)
         dup2(out_pipe[1], STDOUT_FILENO);
         close(in_pipe[1]);
         close(out_pipe[0]);
-        //they are not strings
         std::string path_translated = "." + std::string((char *)req.route->root) + std::string((char *)req.SCRIPT_NAME);
 
-        // Set environment variables
         env = new char *[10];
         int i = 0;
         env[i++] = (char *)"GATEWAY_INTERFACE=CGI/1.1";
@@ -46,7 +48,6 @@ int execute_cgi(unicore_request_t &req, std::string &result)
         env[i++] = (char *)("PATH_INFO=" + std::string((char *)req.PATH_INFO)).c_str();
         env[i++] = (char *)("QUERY_STRING=" + std::string((char *)req.QUERY_STRING)).c_str();
         env[i++] = NULL;
-        // Execute the CGI script
 
         char **args;
         if (req.cgi_script_type == PYTHON)

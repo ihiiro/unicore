@@ -345,31 +345,31 @@ int WebServer::run()
                 std::cerr << "Handling write event on fd " << event.ident << std::endl;
                 build_http_response(*conn, conn->request_line);
                 std::string response = conn->getBuffer();
-                ssize_t bytes_sent = 0;
-                ssize_t resp_size = response.size();
-                while (bytes_sent != resp_size)
+                size_t bytes_sent = 0;
+                const char *buffer = response.c_str();
+                size_t total_size = response.size();
+
+                while (bytes_sent < total_size)
                 {
-                    ssize_t bytes = send(event.ident, response.c_str(), response.size(), 0);
+                    ssize_t bytes = send(event.ident, buffer + bytes_sent, total_size - bytes_sent, 0);
+                    std::cerr << bytes << " " << total_size << " " << bytes_sent << " " << std::endl;
                     conn->update_last_activity();
+
                     if (bytes < 0)
                     {
                         std::cerr << "Error sending response on fd " << event.ident << std::endl;
-                        close(event.ident);
-                        connections.erase(event.ident);
-                        bytes_sent = bytes;
-                        break;
+                        continue;
                     }
                     else if (bytes == 0)
                     {
                         std::cerr << "Client disconnected on fd " << event.ident << std::endl;
                         close(event.ident);
                         connections.erase(event.ident);
-                        bytes_sent = bytes;
                         break;
                     }
+
                     std::cerr << "Sent " << bytes << " bytes to client on fd " << event.ident << std::endl;
                     bytes_sent += bytes;
-                    response.erase(0, bytes);
                 }
                 if (bytes_sent <= 0)
                     continue;

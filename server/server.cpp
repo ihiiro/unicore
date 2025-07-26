@@ -52,51 +52,6 @@ void server::create_and_bind_socket()
     listen_sockfd = socketfd;
 }
 
-// int create_and_bind_socket(int port, const char* ip)
-// {
-//     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
-//     if (socketfd < 0)
-//     {
-//         std::cerr << "Error creating socket" << std::endl;
-//         return -1;
-//     }
-
-//     int opt = 1;
-//     setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-//     sockaddr_in addr;
-//     addr.sin_family = AF_INET;
-//     addr.sin_port = htons(port);
-
-//     if (inet_pton(AF_INET, ip, &addr.sin_addr) <= 0 && ip != std::string("localhost"))
-//     {
-//         std::cerr << "Invalid IP address: " << ip << std::endl;
-//         close(socketfd);
-//         return -1;
-//     }
-//     if (ip == std::string("localhost"))
-//     {
-//         addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-//     }
-
-//     int flags = fcntl(socketfd, F_GETFL, 0);
-//     int result = fcntl(socketfd, F_SETFL, flags | O_NONBLOCK);
-//     if (result < 0)
-//     {
-//         std::cerr << "Error setting socket to non-blocking mode" << std::endl;
-//         close(socketfd);
-//         return -1;
-//     }
-//     if (bind(socketfd, (sockaddr*)&addr, sizeof(addr)) < 0)
-//     {
-//         std::cerr << "Error binding socket to port " << port << std::endl;
-//         std::cerr << "Error: " << strerror(errno) << std::endl;
-//         return -1;
-//     }
-//     return socketfd;
-// }
-
-
 server::server(const std::string &host, const size_t &port, const unicore_config_t &info)
     : failed(false), listen_sockfd(-1), port(port), host(host) ,info(info)
 {
