@@ -13,7 +13,6 @@
 
 #include <unistd.h>
 
-
 #include <iostream>
 
 int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b 
@@ -107,7 +106,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = START_CR;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501; // 501 Not Implemented
 
             }
             break;
@@ -121,7 +120,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = START_LF;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400; // 400 Bad Request
                
 
             }
@@ -147,7 +146,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_PRECEDING_SP_FIELD;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501; // 501 Not Implemented
                
             }
             break;
@@ -170,7 +169,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
 
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501; // 501 Not Implemented
 
             }
             break;
@@ -186,7 +185,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400; // 400 bad request
 
             }
             break;
@@ -205,7 +204,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = GET_E_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501; // 501 Not Implemented
 
             }
             break;
@@ -219,7 +218,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = POST_O_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -233,7 +232,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = DELETE_E1_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -246,7 +245,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = GET_T_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -259,7 +258,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = METHOD_VALIDATED_BY_SP;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -272,7 +271,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = POST_S_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -285,7 +284,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = POST_T_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -298,7 +297,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = METHOD_VALIDATED_BY_SP;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -311,7 +310,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = DELETE_L_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -324,7 +323,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = DELETE_E2_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -337,7 +336,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = DELETE_T_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -350,7 +349,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state =  DELETE_E3_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 501;
 
             }
             break;
@@ -363,7 +362,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = METHOD_VALIDATED_BY_SP;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -381,7 +380,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = ORIGIN_FORM_FORWARD_SLASH;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -399,7 +398,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.primary_i > 510 or fsm_state.tertiary_i > 510  )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                fsm_state.tertiary_buf [ fsm_state.tertiary_i++ ] = fsm_state.ch;
                state = URI_SEGMENT;
@@ -426,7 +425,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
 
                      fsm_state.bucket = get ( c.routes , (u_char *)"/" );
                      if ( fsm_state.bucket == NULL )
-                        return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                        return 400; // or specific error
                      fsm_state.r->route = ( unicore_route_t * )fsm_state.bucket->value;
 
                   }
@@ -438,7 +437,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
                
             }
             break;
@@ -448,7 +447,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.tertiary_i > 510 )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.tertiary_buf [ fsm_state.tertiary_i++ ] = fsm_state.ch;
                if ( ( fsm_state.portion == 1 or fsm_state.portion == 2 ) and fsm_state.p [ 0 ] == '.' and ( 
                   ( fsm_state.p [ 1 ] and fsm_state.p [ 1 ] == 'p' and fsm_state.p [ 2 ] and fsm_state.p [ 2 ] == 'y' ) or
@@ -462,7 +461,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                      // std::cout << "ROUTE " << "/" << "\n";
                      fsm_state.bucket = get ( c.routes , (u_char *)"/" );
                      if ( fsm_state.bucket == NULL )
-                        return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                        return 400; // or specific error
                      fsm_state.r->route = ( unicore_route_t * )fsm_state.bucket->value;
 
                   }
@@ -475,7 +474,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                      {
 
                         if ( fsm_state.primary_i > 510 )
-                           return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                           return 400; // or specific error
                         fsm_state.primary_buf [ fsm_state.primary_i++ ] = *fsm_state.p;
                      }
 
@@ -488,7 +487,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                      {
 
                         if ( fsm_state.primary_i > 510 )
-                           return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                           return 400; // or specific error
                         fsm_state.primary_buf [ fsm_state.primary_i++ ] = *fsm_state.p;
                      }
 
@@ -506,7 +505,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                {
 
                   if ( fsm_state.primary_i > 510 )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
 
                }
@@ -535,7 +534,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   // std::cout << "ROUTE " << "/" << "\n";
                   fsm_state.bucket = get ( c.routes , (u_char *)"/" );
                   if ( fsm_state.bucket == NULL )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
 
                }
                fsm_state.r->route = ( unicore_route_t * )fsm_state.bucket->value;
@@ -561,7 +560,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
                case '/':
                   if ( fsm_state.primary_i > 510 or fsm_state.tertiary_i > 510 )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   fsm_state.tertiary_buf [ fsm_state.tertiary_i++ ] = fsm_state.ch;
                   state = ORIGIN_FORM_FORWARD_SLASH;
@@ -572,7 +571,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -583,7 +582,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
 
                fsm_state.bucket = get ( c.routes , ( u_char * )"/" );
                if ( fsm_state.bucket == NULL )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 404;
                fsm_state.r->route = ( unicore_route_t * )fsm_state.bucket->value;
 
             }
@@ -591,7 +590,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.secondary_i > 510 )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                state = QUERY_PCHAR;
                break;
@@ -610,17 +609,17 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
                case '/':
                   if ( fsm_state.secondary_i > 510 )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   state = QUERY_FORWARD_SLASH;
                   break;
                case '?':
                   if ( fsm_state.secondary_i > 510 )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -630,7 +629,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.secondary_i > 510 )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                state = QUERY_PCHAR;
                break;
@@ -648,17 +647,17 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
                case '?':
                   if ( fsm_state.secondary_i > 510 )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                case '/':
                   if ( fsm_state.secondary_i > 510 )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -668,7 +667,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.secondary_i > 510 )
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                break;
 
@@ -686,18 +685,18 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
                case '?':
                   if ( fsm_state.secondary_i > 510 )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                case '/':
                   if ( fsm_state.secondary_i > 510 )
-                     return UNICORE_INVALID_REQUEST_LINE_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   state = QUERY_FORWARD_SLASH;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -741,7 +740,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_HTTP_H_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -754,7 +753,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_HTTP_T1_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -767,7 +766,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_HTTP_T2_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -780,7 +779,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_HTTP_P_ALPHA;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -793,7 +792,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_HTTP_FORWARD_SLASH_BEFORE_VERSION;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -806,7 +805,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_HTTP_MAJOR_VERSION_1;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -819,7 +818,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_HTTP_VERSION_DOT;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -832,7 +831,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = REQUEST_LINE_HTTP_MINOR_VERSION_1;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -851,7 +850,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }
             break;
@@ -869,7 +868,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_REQUEST_LINE_ERROR;
+                  return 400;
 
             }      
 
@@ -957,7 +956,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -967,7 +966,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
 
                if ( fsm_state.primary_i > 510 )
-                  return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                break;
 
@@ -979,7 +978,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = FIELD_LINE_COLON;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1029,7 +1028,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = FIELD_LINE_CR;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1057,7 +1056,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = FIELD_LINE_CR;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1067,7 +1066,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
 
                if ( fsm_state.primary_i > 510 )
-                  return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_VCHAR;
                break;
@@ -1080,7 +1079,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                case SP:
                case HT:
                   if ( fsm_state.primary_i > 510 )
-                     return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION;
                   break;
@@ -1088,7 +1087,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = FIELD_LINE_CR;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1098,7 +1097,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
 
                if ( fsm_state.primary_i > 510 )
-                  return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION;
                break;
@@ -1109,13 +1108,13 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 
                case SP:
                   if ( fsm_state.primary_i > 510 )
-                     return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_VALUE_OPTIONAL_SP;
                   break;
                case HT:
                   if ( fsm_state.primary_i > 510 )
-                     return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_VALUE_OPTIONAL_HT;
                   break;
@@ -1127,14 +1126,14 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = FIELD_LINE_CR;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
 
          case FIELD_VALUE_OPTIONAL_SP:
             if ( fsm_state.primary_i > 510 )
-               return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+               return 400; // or specific error
             fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
             if ( VCHAR( fsm_state.ch ) )
             {
@@ -1153,14 +1152,14 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = FIELD_VALUE_OPTIONAL_HT;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
 
          case FIELD_VALUE_OPTIONAL_HT:
             if ( fsm_state.primary_i > 510 )
-               return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+               return 400; // or specific error
             fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
             if ( VCHAR( fsm_state.ch ) )
             {
@@ -1178,7 +1177,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                case HT:
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
                
             }
             break;
@@ -1188,7 +1187,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
             
                if ( fsm_state.primary_i > 510 )
-                  return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                break;
 
@@ -1200,7 +1199,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                case SP:
                case HT:
                   if ( fsm_state.primary_i > 510 )
-                     return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION;
                   break;
@@ -1208,7 +1207,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = FIELD_LINE_CR;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1218,7 +1217,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
 
                if ( fsm_state.primary_i > 510 )
-                  return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                  return 400; // or specific error
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_VCHAR;
                break;
@@ -1231,14 +1230,14 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                case SP:
                case HT:
                   if ( fsm_state.primary_i > 510 )
-                     return UNICORE_INVALID_FIELD_LINES_ERROR; // or specific error
+                     return 400; // or specific error
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   break;
                case CR:
                   state = FIELD_LINE_CR;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1270,7 +1269,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = FIELD_LINE_LF;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1297,7 +1296,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1310,7 +1309,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                   state = LINE_FEED;
                   break;
                default:
-                  return UNICORE_INVALID_FIELD_LINES_ERROR;
+                  return 400;
 
             }
             break;
@@ -1340,8 +1339,6 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
 {
 
-   // ( void )chunked;
-   // size_t chunk_size = 0;
    static const u_int hex_dec [ ] = {
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
@@ -1415,7 +1412,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
             }
             else
-               return -1;
+               return 400;
             break;
             
          case CHUNK_SIZE:
@@ -1446,7 +1443,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   state = CHUNK_LF;
                   break;
                default:
-                  return -1;
+                  return 400;
 
             }
             break;
@@ -1457,7 +1454,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( fsm_state.ch == ';' )
                state = CHUNK_EXT_SEMI_COLON;
             else
-               return -1;
+               return 400;
             break;
 
          case CHUNK_EXT_SEMI_COLON:
@@ -1477,7 +1474,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   state = CHUNK_EXT_BWS_AFTER_SEMI_COLON;
                   break;
                default:
-                  return -1;
+                  return 400;
 
             }
             break;
@@ -1488,7 +1485,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( TCHAR( fsm_state.ch ) )
                state = CHUNK_EXT_NAME;
             else
-               return -1;
+               return 400;
             break;
 
          case CHUNK_EXT_NAME:
@@ -1512,7 +1509,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   state = CHUNK_LF;
                   break;
                default:
-                  return -1;
+                  return 400;
 
             }
             break;
@@ -1523,7 +1520,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( fsm_state.ch == '=' )
                state = CHUNK_EXT_EQUALS;
             else
-               return -1;
+               return 400;
             break;
 
          case CHUNK_EXT_EQUALS:
@@ -1532,7 +1529,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( fsm_state.ch == SP or fsm_state.ch == HT )
                state = CHUNK_EXT_BWS_AFTER_EQUALS;
             else
-               return -1;
+               return 400;
             break;
 
          case CHUNK_EXT_BWS_AFTER_EQUALS:
@@ -1541,7 +1538,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( TCHAR( fsm_state.ch ) )
                state = CHUNK_EXT_VALUE;
             else
-               return -1;
+               return 400;
             break;
 
          case CHUNK_EXT_VALUE:
@@ -1558,7 +1555,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   state = CHUNK_LF;
                   break;
                default:
-                  return -1;
+                  return 400;
 
             }
             break;
@@ -1567,14 +1564,15 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.ch == LF )
                state = CHUNK_LF;
             else
-               return -1;
+               return 400;
             break;
 
          case CHUNK_LF:
             fsm_state.chunk_size--;
             fsm_state.hex_count = 0;
             // write_to.append ( 1 , ch );
-            std::cout << fsm_state.ch;
+            // std::cout << fsm_state.ch;
+            *fsm_state.file <<  fsm_state.ch;
             state = CHUNK_DATA;
             break;
 
@@ -1582,7 +1580,8 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.chunk_size )
             {
 
-               std::cout << fsm_state.ch;
+               // std::cout << fsm_state.ch;
+               *fsm_state.file <<  fsm_state.ch;
                fsm_state.chunk_size--;
                // write_to.append ( 1 , ch );
                break;
@@ -1609,7 +1608,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             {
 
                // std::cout << "failed at CHUNK_DATA at char[" << ( int )fsm_state.ch << "]\n";
-               return -1;
+               return 400;
 
 
             }
@@ -1619,7 +1618,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.ch == LF )
                state = CHUNK_FINAL_LF;
             else
-               return -1;
+               return 400;
             break;
 
          case CHUNK_FINAL_LF:
@@ -1635,7 +1634,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
             }
             else
-               return 2;
+               return 400;
             break;
 
          case LAST_CHUNK_ZERO:
@@ -1671,7 +1670,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   state = LAST_CHUNK_EXT_SEMI_COLON;
                   break;
                default:
-                  return -1;
+                  return 400;
 
             }
             break;
@@ -1682,7 +1681,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( fsm_state.ch == ';' )
                state = LAST_CHUNK_EXT_SEMI_COLON;
             else
-               return -1;
+               return 400;
             break;
 
          case LAST_CHUNK_EXT_BWS_AFTER_SEMI_COLON:
@@ -1691,7 +1690,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( TCHAR( fsm_state.ch ) )
                state = LAST_CHUNK_EXT_NAME;
             else
-               return -1;
+               return 400;
             break;
 
          case LAST_CHUNK_EXT_SEMI_COLON:
@@ -1700,7 +1699,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( fsm_state.ch == SP or fsm_state.ch == HT )
                state = LAST_CHUNK_EXT_BWS_AFTER_SEMI_COLON;
             else
-               return -1;
+               return 400;
             break;
 
          case LAST_CHUNK_EXT_NAME:
@@ -1724,7 +1723,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   state = LAST_CHUNK_LF;
                   break;
                default:
-                  return -1;
+                  return 400;
 
             }
             break;
@@ -1735,7 +1734,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( fsm_state.ch == '=' )
                state = LAST_CHUNK_EXT_EQUALS;
             else
-               return -1;
+               return 400;
             break;
 
          case LAST_CHUNK_EXT_EQUALS:
@@ -1744,7 +1743,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( TCHAR( fsm_state.ch ) )
                state = LAST_CHUNK_EXT_VALUE;
             else
-               return -1;
+               return 400;
             break;
 
          case LAST_CHUNK_EXT_BWS_AFTER_EQUALS:
@@ -1753,7 +1752,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( TCHAR( fsm_state.ch ) )
                state = LAST_CHUNK_EXT_VALUE;
             else
-               return -1;
+               return 400;
             break;
 
          case LAST_CHUNK_EXT_VALUE:
@@ -1764,14 +1763,14 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( fsm_state.ch == LF )
                state = LAST_CHUNK_LF;
             else
-               return -1;
+               return 400;
             break;
 
          case LAST_CHUNK_CR:
             if ( fsm_state.ch == LF )
                state = LAST_CHUNK_LF;
             else
-               return -1;
+               return 400;
             break;
 
          case LAST_CHUNK_LF:
@@ -1782,7 +1781,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else if ( fsm_state.ch == LF )
                state = CHUNKED_TOTAL_LF;
             else
-               return -1;
+               return 400;
             break;
 
          case TRAILER_SECTION: // untested
@@ -1797,18 +1796,19 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                return 1;
 
             }
-            return -1;
+            return 400;
 
          case CHUNKED_TOTAL_CR:
             if ( fsm_state.ch == LF )
                state = CHUNKED_TOTAL_LF;
             else
-               return -1;
+               return 400;
             break;
          
          case CHUNKED_TOTAL_LF:
             b->pos = fsm_state.p;
             fsm_state.state = 0;
+            fsm_state.file->close();
             return 1;
 
       }
@@ -1821,6 +1821,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
       b->pos = fsm_state.p;
       fsm_state.state = 0;
+      fsm_state.file->close();
       return 1;
 
    }
@@ -1828,20 +1829,924 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
 }
 
+int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
+{
+   
+   static char content_disposition[] = "Content-Disposition:", content_type[] = "Content-Type:",
+                     form_data[] = "form-data", name[] = "name=", filename[] = "filename=";
+   static int cd_i = 20, ct_i = 13, form_data_i = 9, name_i = 5, filename_i = 9;
+
+   enum state
+   {
+
+      START=0,
+      BOUNDARY_DASH_1,
+      BOUNDARY_DASH_2,
+      BOUNDARY,
+      BWS,
+      CR_AFTER_DASH_BOUNDARY,
+      LF_AFTER_DASH_BOUNDARY,
+      CONTENT_DISPOSITION,
+      BWS_BEFORE_FORM_DATA,
+      FORM_DATA,
+      BWS_AFTER_FORM_DATA,
+      SEMI_COLON_AFTER_FORM_DATA,
+      BWS_AFTER_FORM_DATA_SEMI_COLON,
+      NAME,
+      NAME_VALUE_TCHAR,
+      NAME_VALUE_DQUOTE_OPEN,
+      NAME_VALUE_QUOTED_TCHAR,
+      NAME_VALUE_DQUOTE_CLOSE,
+      BWS_AFTER_NAME,
+      SEMI_COLON_AFTER_NAME,
+      BWS_BEFORE_FILENAME,
+      FILENAME,
+      FILENAME_VALUE_TCHAR,
+      FILENAME_VALUE_DQUOTE_OPEN,
+      FILENAME_VALUE_QUOTED_TCHAR,
+      FILENAME_VALUE_DQUOTE_CLOSE,
+      BWS_AFTER_FILENAME,
+      CR_AFTER_CONTENT_DISPOSITION,
+      LF_AFTER_CONTENT_DISPOSITION,
+      CONTENT_TYPE,
+      BWS_BEFORE_MEDIA_TYPE,
+      MEDIA_TYPE_TCHAR,
+      MEDIA_TYPE_FORWARD_SLASH,
+      MEDIA_SUBTYPE_TCHAR,
+      BWS_AFTER_MEDIA_TYPE,
+      CR_AFTER_CONTENT_TYPE,
+      LF_AFTER_CONTENT_TYPE,
+      CR_BEFORE_BODY_PART,
+      LF_BEFORE_BODY_PART,
+      BODY_PART,
+      CR_AFTER_BODY_PART,
+      LF_AFTER_BODY_PART,
+      CLOSE_DASH_1,
+      CLOSE_DASH_2,
+      // TERMINAL_BWS
+
+   } state;
+
+   state = ( enum state )fsm_state.state;
+   for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++, fsm_state.content_length-- )
+   {
+
+      // std::cout << "a";
+      fsm_state.ch = *fsm_state.p;
+      fsm_state.state = state;
+      switch ( state )
+      {
+
+         case START:
+            if ( fsm_state.ch == '-' )
+               state = BOUNDARY_DASH_1;
+            else
+               return 400;
+            break;
+
+         case BOUNDARY_DASH_1:
+            std::memset ( fsm_state.content_type , 0 , 129 );
+            std::memset ( fsm_state.name , 0 , 129 );
+            std::memset ( fsm_state.filename , 0 , 129 );
+            if ( fsm_state.ch == '-' )
+               state = BOUNDARY_DASH_2;
+            else
+               return 400;
+            break;
+
+         case BOUNDARY_DASH_2:
+            for ( int i = 0 ; fsm_state.p <= b->end and i < fsm_state.boundary_length ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != fsm_state.boundary [ i ] )
+                  return 400;
+            state = BOUNDARY;
+            fsm_state.p--;
+            break;
+
+         case BOUNDARY:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS;
+                  break;
+               case CR:
+                  state = CR_AFTER_DASH_BOUNDARY;
+                  break;
+               case '-':
+                  state = CLOSE_DASH_1;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case BWS:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = CR_AFTER_DASH_BOUNDARY;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case CR_AFTER_DASH_BOUNDARY:
+            if ( fsm_state.ch == LF )
+               state = LF_AFTER_DASH_BOUNDARY;
+            else
+               return 400;
+            break;
+
+         case LF_AFTER_DASH_BOUNDARY:
+            if ( fsm_state.ch == CR )
+            {
+
+               state = CR_BEFORE_BODY_PART;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < cd_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != content_disposition [ i ] )
+                  return 400;
+            state = CONTENT_DISPOSITION;
+            fsm_state.p--;
+            break;
+
+         case CONTENT_DISPOSITION:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+            {
+
+               state = BWS_BEFORE_FORM_DATA;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < form_data_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != form_data [ i ] )
+                  return 400;
+            state = FORM_DATA;
+            fsm_state.p--;
+            break;
+
+         case BWS_BEFORE_FORM_DATA:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            for ( int i = 0 ; fsm_state.p <= b->end and i < form_data_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != form_data [ i ] )
+                  return 400;
+            state = FORM_DATA;
+            fsm_state.p--;
+            break;
+
+         case FORM_DATA:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_FORM_DATA;
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_FORM_DATA;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case BWS_AFTER_FORM_DATA:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_FORM_DATA;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+         
+         case SEMI_COLON_AFTER_FORM_DATA:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+            {
+
+               state = BWS_AFTER_FORM_DATA_SEMI_COLON;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < name_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != name [ i ] )
+                  return 400;
+            state = NAME;
+            fsm_state.p--;
+            break;
+
+         case BWS_AFTER_FORM_DATA_SEMI_COLON:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            for ( int i = 0 ; fsm_state.p <= b->end and i < name_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != name [ i ] )
+                  return 400;
+            state = NAME;
+            fsm_state.p--;
+            break;
+
+         case NAME:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               state = NAME_VALUE_TCHAR;
+               // std::memset ( fsm_state.name , 0 , 129 );
+               fsm_state.mp_i = 0;
+               fsm_state.name [ fsm_state.mp_i++ ] = fsm_state.ch;
+
+            }
+            else if ( fsm_state.ch == '"' )
+               state = NAME_VALUE_DQUOTE_OPEN;
+            else
+               return 400;
+            break;
+
+         case NAME_VALUE_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               if ( fsm_state.mp_i >= 128 )
+                  return 400; // or specific error
+               fsm_state.name [ fsm_state.mp_i++ ] = fsm_state.ch;
+               break;
+
+            }
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_NAME;
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_NAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case NAME_VALUE_DQUOTE_OPEN:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               state = NAME_VALUE_QUOTED_TCHAR;
+               // std::memset ( fsm_state.name , 0 , 129 );
+               fsm_state.mp_i = 0;
+               fsm_state.name [ fsm_state.mp_i++ ] = fsm_state.ch;
+
+            }
+            else if ( fsm_state.ch == '"' )
+               state = NAME_VALUE_DQUOTE_CLOSE;
+            else
+               return 400;
+            break;
+         
+         case NAME_VALUE_QUOTED_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               if ( fsm_state.mp_i >= 128 )
+                  return 400;
+               fsm_state.name [ fsm_state.mp_i++ ] = fsm_state.ch;
+               break;
+
+            }
+            else if ( fsm_state.ch == '"' )
+               state = NAME_VALUE_DQUOTE_CLOSE;
+            else
+               return 400;
+            break;
+
+         case NAME_VALUE_DQUOTE_CLOSE:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_NAME;
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_NAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case BWS_AFTER_NAME:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case ';':
+                  state = SEMI_COLON_AFTER_NAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case SEMI_COLON_AFTER_NAME:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+            {
+
+               state = BWS_BEFORE_FILENAME;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < filename_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != filename [ i ] )
+                  return 400;
+            state = FILENAME;
+            fsm_state.p--;
+            break;
+
+         case BWS_BEFORE_FILENAME:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            for ( int i = 0 ; fsm_state.p <= b->end and i < filename_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != filename [ i ] )
+                  return 400;
+            state = FILENAME;
+            fsm_state.p--;
+            break;
+
+         case FILENAME:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               state = FILENAME_VALUE_TCHAR;
+               // std::memset ( fsm_state.filename , 0 , 129 );
+               fsm_state.mp_i = 0;
+               fsm_state.filename [ fsm_state.mp_i++ ] = fsm_state.ch;
+
+            }
+            else if ( fsm_state.ch == '"' )
+               state = FILENAME_VALUE_DQUOTE_OPEN;
+            else
+               return 400;
+            break;
+
+         case FILENAME_VALUE_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               if ( fsm_state.mp_i >= 128 )
+                  return 400; // or specific error
+               fsm_state.filename [ fsm_state.mp_i++ ] = fsm_state.ch;
+               break;
+
+            }
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_FILENAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case FILENAME_VALUE_DQUOTE_OPEN:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               state = FILENAME_VALUE_QUOTED_TCHAR;
+               // std::memset ( fsm_state.filename , 0 , 129 );
+               fsm_state.mp_i = 0;
+               fsm_state.filename [ fsm_state.mp_i++ ] = fsm_state.ch;
+
+            }
+            else if ( fsm_state.ch == '"' )
+               state = FILENAME_VALUE_DQUOTE_CLOSE;
+            else
+               return 400;
+            break;
+         
+         case FILENAME_VALUE_QUOTED_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               if ( fsm_state.mp_i >= 128 )
+                  return 400; // or specific error
+               fsm_state.filename [ fsm_state.mp_i++ ] = fsm_state.ch;
+               break;
+
+            }
+            if ( fsm_state.ch == '"' )
+               state = FILENAME_VALUE_DQUOTE_CLOSE;
+            else
+               return 400;
+            break;
+
+         case FILENAME_VALUE_DQUOTE_CLOSE:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_FILENAME;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case BWS_AFTER_FILENAME:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_DISPOSITION;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case CR_AFTER_CONTENT_DISPOSITION:
+            if ( fsm_state.ch == LF )
+               state = LF_AFTER_CONTENT_DISPOSITION;
+            else
+               return 400;
+            break;
+
+         case LF_AFTER_CONTENT_DISPOSITION:
+            if ( fsm_state.ch == CR )
+            {
+
+               state = CR_BEFORE_BODY_PART;
+               break;
+
+            }
+            for ( int i = 0 ; fsm_state.p <= b->end and i < ct_i ; i++, fsm_state.p++ )
+               if ( *fsm_state.p != content_type [ i ] )
+                  return 400;
+            state = CONTENT_TYPE;
+            fsm_state.p--;
+            break;
+
+         case CONTENT_TYPE:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               state = MEDIA_TYPE_TCHAR;
+               // std::memset ( fsm_state.content_type , 0 , 129 );
+               fsm_state.mp_i = 0;
+               fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
+
+            }
+            else if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               state = BWS_BEFORE_MEDIA_TYPE;
+            else
+               return 400;
+            break;
+
+         case BWS_BEFORE_MEDIA_TYPE:
+            if ( fsm_state.ch == SP or fsm_state.ch == HT )
+               break;
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               state = MEDIA_TYPE_TCHAR;
+               // std::memset ( fsm_state.content_type , 0 , 129 );
+               fsm_state.mp_i = 0;
+               fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
+
+            }
+            else
+               return 400;
+            break;
+
+         case MEDIA_TYPE_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               if ( fsm_state.mp_i >= 128 )
+                  return 400; // or specific error
+               fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
+               break;
+
+            }
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_MEDIA_TYPE;
+                  break;
+               case '/':
+                  if ( fsm_state.mp_i >= 128 )
+                     return 400; // or specific error
+                  fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
+                  state = MEDIA_TYPE_FORWARD_SLASH;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_TYPE;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case MEDIA_TYPE_FORWARD_SLASH:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               state = MEDIA_SUBTYPE_TCHAR;
+               if ( fsm_state.mp_i >= 128 )
+                  return 400; // or specific error
+               fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
+
+            }
+            else
+               return 400;
+            break;
+
+         case MEDIA_SUBTYPE_TCHAR:
+            if ( TCHAR( fsm_state.ch ) )
+            {
+
+               if ( fsm_state.mp_i >= 128 )
+                  return 400; // or specific error
+               fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
+               break;
+
+            }
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  state = BWS_AFTER_MEDIA_TYPE;
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_TYPE;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case BWS_AFTER_MEDIA_TYPE:
+            switch ( fsm_state.ch )
+            {
+
+               case SP:
+               case HT:
+                  break;
+               case CR:
+                  state = CR_AFTER_CONTENT_TYPE;
+                  break;
+               default:
+                  return 400;
+
+            }
+            break;
+
+         case CR_AFTER_CONTENT_TYPE:
+            if ( fsm_state.ch == LF )
+               state = LF_AFTER_CONTENT_TYPE;
+            else
+               return 400;
+            break;
+         
+         case LF_AFTER_CONTENT_TYPE:
+            if ( fsm_state.ch == CR )
+               state = CR_BEFORE_BODY_PART;
+            else
+               return 400;
+            break;
+
+         case CR_BEFORE_BODY_PART:
+            if ( fsm_state.ch == LF )
+               state = LF_BEFORE_BODY_PART;
+            else
+               return 400;
+            break;
+
+         case LF_BEFORE_BODY_PART:
+            state = BODY_PART;
+            fsm_state.file->open ( fsm_state.filename , std::ios::app );
+            *fsm_state.file << fsm_state.ch;
+
+            // std::cerr << "name=" << fsm_state.name << "\n";
+            // std::cerr << "filename=" << fsm_state.filename << "\n";
+            // std::cerr << "content-type=" << fsm_state.content_type << "\n\n";
+            // std::cerr << fsm_state.ch;
+            break;
+         
+         case BODY_PART:
+            if ( fsm_state.ch == CR )
+               state = CR_AFTER_BODY_PART;
+            else
+               *fsm_state.file << fsm_state.ch;
+            break;
+
+         case CR_AFTER_BODY_PART:
+            if ( fsm_state.ch == LF )
+               state = LF_AFTER_BODY_PART;
+            else
+               return 400;
+            break;
+         
+         case LF_AFTER_BODY_PART:
+            fsm_state.file->close();
+            if ( fsm_state.ch == '-' )
+               state = BOUNDARY_DASH_1;
+            else
+               return 400;
+            break;
+
+         case CLOSE_DASH_1:
+            if ( fsm_state.ch == '-' )
+               state = CLOSE_DASH_2;
+            else
+               return 400;
+            break;
+
+         case CLOSE_DASH_2:
+            // if ( fsm_state.ch == SP or fsm_state.ch == HT )
+            //    state = TERMINAL_BWS;
+            fsm_state.state = 0;
+            b->pos = fsm_state.p;
+            return 1;
+
+         // case TERMINAL_BWS:
+         //    if ( fsm_state.ch == SP or fsm_state.ch == HT )
+         //       break;
+         //    return 1;
+         
+
+      }
+
+   }
+
+   fsm_state.state = state;
+   if ( state == CLOSE_DASH_2 )
+   {
+
+      fsm_state.state = 0;
+      b->pos = fsm_state.p;
+      return 1;
+
+   }
+   return 2;
+
+}
+
+int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
+{
+
+   bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
+   bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
+   bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
+   static char   *content_type_default_postman_form = ( char * )"multipart/form-data; boundary=";
+
+   int    content_len;
+   char   *content_type_str;
+   int i = 0, j = 0;
+
+   if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
+   {
+
+      if ( content_length )
+         return -1;
+      if ( content_type )
+      {
+         
+         if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
+            return -1;
+
+      }
+      if ( !fsm_state.file->is_open() )
+      {
+
+         if ( content_type )
+         {
+
+            fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+         }
+         else
+            fsm_state.file->open ( "nongenerative_chunked.txt" , std::ios::app );
+
+      }
+      
+         // std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
+         //file is content-type
+      // else
+      //    std::strcpy ( fsm_state.content_type , "text/plain" );
+         //file is text/plain
+      return unicore_http_parse_chunked_body ( fsm_state , b );
+
+   }
+
+   else if ( content_length )
+   {
+
+      content_len = std::atoi ( ( char * )content_length->value );
+      if ( content_len <= 0 /* or content-len > max_length */ )
+         return -1;
+      if ( fsm_state.content_length == 0 )
+         fsm_state.content_length = content_len;
+      // std::cout << "length is " << fsm_state.content_length << "\n";
+
+      if ( content_type )
+      {
+
+         content_type_str = ( char * )content_type->value;
+         for ( i = 0 ; i < 30 ; i++ )
+            if ( content_type_default_postman_form [ i ] != content_type_str [ i ] )
+               break;
+         if ( i == 30 )
+         {
+
+            for ( j = 0 ; content_type_str [ i ] ; i++, j++ )
+            {
+
+               if ( j == 70 )
+                  return -1;
+               fsm_state.boundary [ j ] = content_type_str [ i ]; 
+
+            }
+            fsm_state.boundary_length = j;
+
+            // std::cout << "boundary=" << fsm_state.boundary;
+
+            // std::cout << "multi" << "\n"; exit(1);
+            return unicore_http_parse_multipart_body ( fsm_state , b );
+
+         }
+         else
+         {
+
+            if ( fsm_state.r->cgi )
+            {
+
+               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
+               {
+
+                  // std::cout << "hit\n";
+                  // std::cout << "lenfdf dgth is " << fsm_state.content_length << "\n";
+                  if ( fsm_state.content_length == 0 )
+                  {
+
+                     b->pos = fsm_state.p;
+                     return 1;
+
+                  }
+                  fsm_state.r->route->message_body.append ( 1 , ( char )*fsm_state.p );
+                  fsm_state.content_length--;
+                  
+
+               }
+               if ( fsm_state.content_length == 0 )
+                  return 1;
+               // std::cout << "length is " << fsm_state.content_length;
+               return 2;
+
+            }
+
+            else
+            {
+
+               
+
+               if ( !fsm_state.file->is_open() )
+               {
+
+                  if ( content_type )
+                  {
+
+                     // mime types to extension
+                     fsm_state.file->open ( "nongenerative.txt" , std::ios::app );
+                     
+                  }
+                  else
+                     fsm_state.file->open ( "nongenerative.txt" , std::ios::app );
+                     // file is text/plain
+                  // produce to file
+
+               }
+               for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
+               {
+
+
+                  if ( fsm_state.content_length == 0 )
+                  {
+
+                     b->pos = fsm_state.p;
+                     fsm_state.file->close ();
+                     return 1;
+
+                  }
+                  *fsm_state.file << *fsm_state.p;
+                  fsm_state.content_length--;
+
+               }
+               if ( fsm_state.content_length == 0 )
+                  return 1;
+               // std::cout << "length is " << fsm_state.content_length << "ffff";
+               return 2;
+
+            }
+
+         }
+         
+
+
+      }
+      
+   }
+
+   return 1;
+
+}
+
+
+
 /*
 
-   client { chunked , received , buf }
 
-   parse_message_body ( client )
-      if transfer-encoding and content-length
-         error
-      else if transfer-encoding
-         client.chunked = 1
-         client.received := parse chunked ( client.received )
-         client.buf += client.received
-         if received last chunk
-            client.chunked = 0
-      else
-         naive fill
+   parse_message_body ( headers , body , route )
+      if ( headers has transfer-encoding and transfer-encoding is chunked )
+         if ( headers has content-length or ( headers has content-type and content-type is multipart ) )
+            error
+         if ( headers has content-type )
+            file is content-type
+         else
+            file is text/plain
+         parse chunked body and produce to file
+
+      else if ( headers has content-length and content-length > 0 and content-length <= max length )
+         if ( headers has multipart content-type )
+            parse multipart and produce to files
+      
+         else if ( route cgi is on )
+            buffer body
+
+         else
+            if ( headers has content-type )
+               file is content-type
+            else
+               file is text/plain
+            produce to file
+
+      
 
 */

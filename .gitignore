@@ -2,5 +2,12 @@
 notes.txt
 *.o
 parser_tests
-.vscode.vscode/
-test_dir/
+.vscode/
+quoted_tchar
+tchar
+238971-400596355.jpg
+download.jpg
+nongenerative_chunked.txt
+nongenerative.txt
+mamak.text
+dinreb.txt
