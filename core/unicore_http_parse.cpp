@@ -2553,8 +2553,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             if ( fsm_state.ch == LF )
             {
 
-               *fsm_state.file << fsm_state.crlf_guard;
-               fsm_state.crlf_guard = std::string ( 1 , fsm_state.ch );
+               // *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
                state = LF_AFTER_BODY_PART;
 
             }
@@ -2591,7 +2591,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case CLOSE_DASH_1:
-            // fsm_state.file->close();
             if ( fsm_state.ch == '-' )
                state = CLOSE_DASH_2;
             else
