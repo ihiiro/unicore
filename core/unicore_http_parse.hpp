@@ -5,6 +5,8 @@
 #include "unicore_request.hpp"
 #include "unicore_config_parse.hpp"
 
+#include <fstream>
+
 #include <string>
 
 #ifndef PYTHON
@@ -15,14 +17,21 @@
     #define PHP 1
 #endif
 
-typedef struct
+typedef struct shoot
 {
+
 
     u_char              *p;
     u_char              *key;
     u_char              *value;
     bucket              *bucket;
     unicore_request_t   *r;
+
+    char                boundary [ 70 ];
+    char                name [ 129 ];
+    char                filename [ 129 ];
+    char                content_type [ 129 ];
+
 
     size_t              chunk_size;
 
@@ -43,7 +52,15 @@ typedef struct
 
     int                 chunked_trailers_fsm_return;
 
+    int                 content_length;
+    int                 boundary_length;
+
+    int                 mp_i;
+
     bool                chunked;
+    
+    std::ofstream       *file;
+
 
 } fsm_state_t;
 
@@ -52,3 +69,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b 
 int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b );
 
 int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b );
+
+int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *b );
+
+int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b );
