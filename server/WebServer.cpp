@@ -93,7 +93,7 @@ int WebServer::init()
         }
         servers.push_back(srv);
         struct kevent listen_event;
-        connections[srv.listen_sockfd] = new server_conn(srv.listen_sockfd, &srv);
+        connections[srv.listen_sockfd] = new server_conn(srv.listen_sockfd, &servers.back());
         EV_SET(&listen_event, srv.listen_sockfd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, &connections[srv.listen_sockfd]);
         if (kevent(kq, &listen_event, 1, NULL, 0, NULL) < 0)
         {
@@ -252,15 +252,24 @@ int WebServer::run()
                             std::exit(1);
                         }
 
-                        if (conn->state.chunked == true)
+                        if ( conn->state.R == 2 )
                         {
-                            int valid = unicore_http_parse_chunked_body(conn->state , &buf_req);
+                            // exit (1);
+                            int valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                            if  ( valid == -1 )
+                            {
+
+                                std::cerr << "khroj ldin rbayeb rbek\n";
+                                exit (1);
+
+                            }
                             if (valid == 2)
                             {
-                                std::cerr << "state=" << conn->state.state << std::endl;
-                                std::cerr << "hex_count=" << conn->state.hex_count << std::endl;
-                                std::cerr << "modulo [" << conn->state.p << "]\n";
-                                std::cerr << "chunked parsed successfully\n";
+                                continue;
+                                // std::cerr << "state=" << conn->state.state << std::endl;
+                                // std::cerr << "hex_count=" << conn->state.hex_count << std::endl;
+                                // std::cerr << "modulo [" << conn->state.p << "]\n";
+                                // std::cerr << "chunked parsed successfully\n";
                             
                             }
                             else if (valid == 1)
@@ -282,21 +291,35 @@ int WebServer::run()
                         }
                         else
                         {
+                            
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
+                            // std::exit (1);
                             
                             if (req_line == 1)
                             {
                                 int valid = 0;
-                                conn->state.r->headers = new ht;
-                                conn->state.r->headers->buckets = new bucket[M];
-                                std::memset(conn->state.r->headers->buckets, 0, M * sizeof(bucket));
+                                // conn->state.r->headers = new ht;
+                                // conn->state.r->headers->buckets = new bucket[M];
+                                // std::memset(conn->state.r->headers->buckets, 0, M * sizeof(bucket));
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-                                if (!strcmp((char *)get(conn->state.r->headers, (u_char *)"transfer-encoding")->value , "chunked"))
+                                // exit (1);
+                                valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                                if ( valid == 2 )
+                                    continue;
+                                // if (!strcmp((char *)get(conn->state.r->headers, (u_char *)"transfer-encoding")->value , "chunked"))
+                                // {
+                                //     std::cerr << "chunked transfer-encoding detected" << std::endl;
+                                //     conn->state.chunked = true;
+                                //     valid = unicore_http_parse_message_body(conn->state , &buf_req);
+                                // }
+                                // std::cerr << "general parser==" << valid << "\n"; exit (1);
+                                if  ( valid == -1 )
                                 {
-                                    std::cerr << "chunked transfer-encoding detected" << std::endl;
-                                    conn->state.chunked = true;
-                                    valid = unicore_http_parse_chunked_body(conn->state , &buf_req);
+
+                                    std::cerr << "khroj ldin rbayeb rbek\n";
+                                    // exit (1);
+
                                 }
                                 if (valid == 1)
                                 {
