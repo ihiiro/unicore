@@ -61,6 +61,11 @@ int WebServer::init()
         return 0;
     }
 
+    // #1
+    // unicore_route_t *r = ( unicore_route_t * )get ( config [ 0 ].routes , ( u_char * )"/" )->value;
+    // std::cout << r->root << "\n";
+
+
     kq = kqueue();
     if (kq < 0)
     {
@@ -73,6 +78,17 @@ int WebServer::init()
     for (it = config.begin(); it != config.end(); ++it)
     {
         const unicore_config_t &info = *it;
+
+
+
+
+        // #2
+        // unicore_route_t *r = ( unicore_route_t * )get ( info.routes , ( u_char * )"/" )->value;
+        // std::cout << r->root << "\n";
+
+
+
+
         std::string host = info.host;
         if (server_already_exists(host, info.port))
         {
@@ -92,6 +108,22 @@ int WebServer::init()
             continue;
         }
         servers.push_back(srv);
+        
+
+
+
+
+
+
+        // #3
+        unicore_route_t *r = ( unicore_route_t * )get ( servers [ 0 ].info.routes , ( u_char * )"/" )->value;
+        std::cout << r->root << "\n";
+
+
+
+
+
+
         struct kevent listen_event;
         connections[srv.listen_sockfd] = new server_conn(srv.listen_sockfd, &srv);
         EV_SET(&listen_event, srv.listen_sockfd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, &connections[srv.listen_sockfd]);
@@ -282,6 +314,25 @@ int WebServer::run()
                         }
                         else
                         {
+
+
+
+
+
+
+
+                            // #4
+                            unicore_route_t *r = ( unicore_route_t * )get ( conn->info.routes , ( u_char * )"/" )->value;
+                            std::cout << r->root << "\n";
+
+
+
+
+
+
+
+
+
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
                             if (req_line == 1)
                             {
