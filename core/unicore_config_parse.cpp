@@ -2,12 +2,12 @@
 #include "unicore_config_parse.hpp"
 #include "unicore_defines.hpp"
 
-#include <iostream>
+#include <fstream>
 
 int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& c )
 {
 
-    int digit_count = 0, i = 0, j = 0, len = 0;
+    int digit_count = 0, i = 0, j = 0, len = 0, root_slash_count = 0;
     char ch = 0, error_pages[] = "ERROR_PAGES=", routes[] = "ROUTES=",
                 mcms[] = "MAX_CLIENT_MESSAGE_SIZE=", server_name[] = "SERVER_NAME=",
                 primary_buf [ 512 ] , secondary_buf [ 512 ],
@@ -201,15 +201,15 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 switch ( ch )
                 {
 
-                    case 'S':
-                        state = SERVER_NAME;
-                        break;
-                    case 'R':
-                        state = ROUTES;
-                        break;
-                    case 'E':
-                        state = ERROR_PAGES;
-                        break;
+                    // case 'S':
+                    //     state = SERVER_NAME;
+                    //     break;
+                    // case 'R':
+                    //     state = ROUTES;
+                    //     break;
+                    // case 'E':
+                    //     state = ERROR_PAGES;
+                    //     break;
                     case 'M':
                         state = MCMS;
                         break;
@@ -425,6 +425,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                     std::memset ( primary_buf , 0 , 512 );
                     i = 0;
                     primary_buf [ i++ ] = ch;
+                    root_slash_count = 0;
+                    if ( ch == '/' )
+                        root_slash_count++;
                     state = ROUTES_ROOT;
 
                 }
@@ -438,7 +441,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 else if ( VCHAR( ch ) )
                 {
 
-                    if ( i > 510 )
+                    if ( ch == '/' )
+                        root_slash_count++;
+                    if ( i > 510 or root_slash_count > 2 )
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
                     primary_buf [ i++ ] = ch;
                     break;
@@ -618,6 +623,8 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 for ( int k = 0 ; k < len ; k++ )
                     route->file_if_directory_request [ k ] = secondary_buf [ k ];
                 route->file_if_directory_request [ i ] = '\0';
+                if ( !std::ifstream ( "./" + std::string ( route->file_if_directory_request ) ).is_open() )
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 if ( ch == '0' or ch == '1' )
                 {
 
@@ -709,12 +716,12 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 switch ( ch )
                 {
 
-                    case 'E':
-                        state = ERROR_PAGES;
-                        break;
-                    case 'M':
-                        state = MCMS;
-                        break;
+                    // case 'E':
+                    //     state = ERROR_PAGES;
+                    //     break;
+                    // case 'M':
+                    //     state = MCMS;
+                    //     break;
                     case '/':
                         c [ j ].redirection_list = new ht;
                         c [ j ].redirection_list->buckets = new bucket [ M ];
@@ -978,13 +985,15 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 for ( int k = 0 ; k < i ; k++ )
                     value [ k ] = secondary_buf [ k ];
                 value [ i ] = '\0';
+                if ( !std::ifstream ( "./" + std::string ( value ) ).is_open() )
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
                 insert ( c [ j ].error_pages , (u_char *)key , value );
                 switch ( ch )
                 {
 
-                    case LF:
-                        state = SERVER_BLOCK_TERMINAL_LF;
-                        break;
+                    // case LF:
+                    //     state = SERVER_BLOCK_TERMINAL_LF;
+                    //     break;
                     case HT:
                         state = ERROR_PAGES_HT;
                         break;
@@ -1012,9 +1021,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                     case 'R':
                         state = ROUTES;
                         break;
-                    case 'M':
-                        state = MCMS;
-                        break;
+                    // case 'M':
+                    //     state = MCMS;
+                    //     break;
                     default:
                         return UNICORE_INVALID_CONFIG_FILE_ERROR;
 
@@ -1121,9 +1130,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 switch ( ch )
                 {
 
-                    case LF:
-                        state = SERVER_BLOCK_TERMINAL_LF;
-                        break;
+                    // case LF:
+                    //     state = SERVER_BLOCK_TERMINAL_LF;
+                    //     break;
                     case HT:
                         state = MCMS_HT;
                         break;
@@ -1137,9 +1146,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 switch ( ch )
                 {
 
-                    case 'R':
-                        state = ROUTES;
-                        break;
+                    // case 'R':
+                    //     state = ROUTES;
+                    //     break;
                     case 'E':
                         state = ERROR_PAGES;
                         break;

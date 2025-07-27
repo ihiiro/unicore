@@ -17,50 +17,55 @@
     #define PHP 1
 #endif
 
-typedef struct shoot
+typedef struct
 {
 
 
-    u_char              *p;
-    u_char              *key;
-    u_char              *value;
-    bucket              *bucket;
-    unicore_request_t   *r;
+    u_char                              *p;
+    u_char                              *key;
+    u_char                              *value;
+    bucket                              *buckett;
+    unicore_request_t                   *r;
 
-    char                boundary [ 70 ];
-    char                name [ 129 ];
-    char                filename [ 129 ];
-    char                content_type [ 129 ];
+    char                                boundary [ 70 ];
+    char                                name [ 129 ];
+    char                                filename [ 129 ];
+    char                                content_type [ 129 ];
 
 
-    size_t              chunk_size;
+    size_t                              chunk_size;
 
-    u_char              ch;
-    u_char              primary_buf [ 512 ];
-    u_char              secondary_buf [ 512 ];
-    u_char              tertiary_buf [ 512 ];
+    u_char                              ch;
+    u_char                              primary_buf [ 512 ];
+    u_char                              secondary_buf [ 512 ];
+    u_char                              tertiary_buf [ 512 ];
 
-    int                 primary_i;
-    int                 secondary_i;
-    int                 tertiary_i;
+    int                                 primary_i;
+    int                                 secondary_i;
+    int                                 tertiary_i;
 
-    int                 path_info_start;
-    int                 portion;
-    int                 state;
-    
-    int                 hex_count;
+    int                                 path_info_start;
+    int                                 portion;
+    int                                 state;
 
-    int                 chunked_trailers_fsm_return;
+    int                                 hex_count;
 
-    int                 content_length;
-    int                 boundary_length;
+    int                                 chunked_trailers_fsm_return;
 
-    int                 mp_i;
+    int                                 content_length;
+    int                                 boundary_length;
 
-    bool                chunked;
-    
-    std::ofstream       *file;
+    int                                 mp_i;
 
+    bool                                chunked;
+
+    std::ofstream                       *file;
+
+    ht                                  *mimes;
+
+    bucket                              *selected_mime_type;
+
+    int                                 R;
 
 } fsm_state_t;
 
