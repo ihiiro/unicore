@@ -1911,6 +1911,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case BOUNDARY_DASH_1:
+            fsm_state.file->close();
             std::memset ( fsm_state.content_type , 0 , 129 );
             std::memset ( fsm_state.name , 0 , 129 );
             std::memset ( fsm_state.filename , 0 , 129 );
@@ -2535,28 +2536,62 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
          
          case BODY_PART:
+            // std::cout << fsm_state.ch;
             if ( fsm_state.ch == CR )
+            {
+
+               fsm_state.crlf_guard = std::string ( 1 , fsm_state.ch );
                state = CR_AFTER_BODY_PART;
+
+            }
             else
                *fsm_state.file << fsm_state.ch;
             break;
 
          case CR_AFTER_BODY_PART:
+            // std::cout << fsm_state.ch;
             if ( fsm_state.ch == LF )
+            {
+
+               *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard = std::string ( 1 , fsm_state.ch );
                state = LF_AFTER_BODY_PART;
+
+            }
             else
-               return 400;
+            {
+
+               // std::cerr << "FAILURE\n";
+               // return 400;
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
+               *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard.clear();
+               state = BODY_PART;
+
+
+            }
             break;
          
          case LF_AFTER_BODY_PART:
-            fsm_state.file->close();
             if ( fsm_state.ch == '-' )
+            {
+
                state = BOUNDARY_DASH_1;
+
+            }
             else
-               return 400;
+            {
+
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
+               *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard.clear();
+               state = BODY_PART;
+
+            }
             break;
 
          case CLOSE_DASH_1:
+            // fsm_state.file->close();
             if ( fsm_state.ch == '-' )
                state = CLOSE_DASH_2;
             else
@@ -2592,6 +2627,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
       return 1;
 
    }
+   fsm_state.R = 2;
    return 2;
 
 }
@@ -2693,6 +2729,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    else if ( content_length )
    {
 
+      // std::cout << (charcontent_length->value; exit (1);
       content_len = std::atoi ( ( char * )content_length->value );
       if ( content_len <= 0 /* or content-len > max_length */ )
          return -1;
@@ -2780,23 +2817,25 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                      fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative.txt" , std::ios::app );
                      // file is text/plain
                   // produce to file
-                  // if ( !fsm_state.file->is_open() )
-                  // {
+                  if ( !fsm_state.file->is_open() )
+                  {
 
-                  //    std::cerr << "Error opening file for writing: " << fsm_state.r->route->upload_path << "\n";
-                  //    exit (1);
+                     std::cerr << "Error opening file for writing: " << fsm_state.r->route->upload_path << "\n";
+                     exit (1);
 
-                  // }
+                  }
 
                }
+               // std::cout << "here"; exit(1);
                // std::cout << fsm_state.content_length; exit(1);
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
-                  // std::c << *fsm_state.p;
+                  // std::cout << *fsm_state.p;
                   if ( fsm_state.content_length == 0 )
                   {
 
+                     std::cout << "finished\n\n";
                      b->pos = fsm_state.p;
                      fsm_state.file->close ();
                      return 1;
@@ -2808,7 +2847,13 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
                }
                if ( fsm_state.content_length == 0 )
+               {
+
+                  fsm_state.file->close ();
                   return 1;
+
+
+               }
                // std::cout << fsm_state.content_length;
                // std::cout << fsm_state.content_length; exit(1);
                // std::cout << "length is " << fsm_state.content_length << "ffff";
@@ -2825,6 +2870,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       
    }
 
+   std::cout << "general end"; exit(1);
    return 1;
 
 }

@@ -1,6 +1,6 @@
 #ifndef WEBSERVER_HPP
 # define WEBSERVER_HPP
-# define BUFFER_READ 6000000
+# define BUFFER_READ 50000
 
 # include "server.hpp"
 
