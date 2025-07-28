@@ -313,6 +313,8 @@ int WebServer::run()
                         {
                             
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
+                            // std::cout << req_
+                            std::cout << req_line << "\n\n\n";
                             
                             if (req_line == 1)
                             {
@@ -344,8 +346,15 @@ int WebServer::run()
                                 std::cerr << "response not done yet" << std::endl;
                                 //request not done yet
                             }
-                            else if (req_line < 0)
+                            else
                             {
+                                /* HERE */
+
+
+                                
+
+
+                                /*  */
                                 std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
                                 EV_SET(&event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
                                 if (kevent(kq, &event, 1, NULL, 0, NULL) < 0)
