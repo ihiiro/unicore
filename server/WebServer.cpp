@@ -382,7 +382,7 @@ int WebServer::run()
                 // std::cout << "response is " << response << std::endl;
                 size_t bytes_sent = 0;
                 const char *buffer = response.c_str();
-                size_t total_size = response.size();
+                size_t total_size = response.size(); 
 
                 while (bytes_sent < total_size)
                 {
