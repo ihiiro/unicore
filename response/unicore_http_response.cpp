@@ -539,7 +539,7 @@ void format_http_response(client_conn &client, http_response_t &response)
                 if (file_size >= 0 && file_size < CHUNK_SIZE)
                 {
                     std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
-                    oss << "Content-Length: " << file_size << "\r\n";
+                    oss << "Content-Length: " << file_size << "\r\n\r\n";
                     std::ifstream file(client.filename.c_str(), std::ios::binary);
                     oss << file.rdbuf();
                     file.close();

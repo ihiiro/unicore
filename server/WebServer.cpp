@@ -403,6 +403,7 @@ int WebServer::run()
                 std::cerr << "Handling write event on fd " << event.ident << std::endl;
                 build_http_response(*conn, conn->request_line);
                 std::string response = conn->getBuffer();
+                std::cout << "response is " << response << std::endl;
                 size_t bytes_sent = 0;
                 const char *buffer = response.c_str();
                 size_t total_size = response.size();

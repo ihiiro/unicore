@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-
-# CGI Response: Must start with headers
-print("Content-Type: text/html")
-print("Status: 200 OK")  # Optional; server assumes 200 if omitted
-print()  # <--- Very important: blank line separates headers from body
-
-# Now the HTML content
-print("""\
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,4 +21,3 @@ print("""\
     <p>Try modifying this script to return JSON, plain text, or even interact with a database!</p>
 </body>
 </html>
-""")
