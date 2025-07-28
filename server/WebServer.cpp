@@ -306,13 +306,7 @@ int WebServer::run()
                                     std::cerr << "Error registering write event for request" << std::endl;
                             }
                             else
-                            {
-                                // std::cerr << "state=" << conn->state.state << "\n";
-                                // std::cerr << "fail byte=" << (int)conn->state.ch << "\n";
-                                // std::cerr << "modulo[" << conn->state.p;
-                                exit (1);
-
-                            }
+                                std::cerr << "bad message body\n";
 
                         }
                         else
@@ -325,10 +319,7 @@ int WebServer::run()
                                 int valid = 0;
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-                                
-                                
                                 valid = unicore_http_parse_message_body (conn->state , &buf_req);
-                                std::cerr << "gggggg\n";
                                 if  ( valid == 2 )
                                     std::cerr << "request not finished yet\n";
                                 else if ( valid == 1 )
@@ -346,13 +337,7 @@ int WebServer::run()
                                         std::cerr << "Error registering write event for request" << std::endl;
                                 }
                                 else
-                                {
-                                    // std::cerr << "state=" << conn->state.state << "\n";
-                                    // std::cerr << "fail byte=" << (int)conn->state.ch << "\n";
-                                    // std::cerr << "modulo[" << conn->state.p;
-                                    exit (1);
-
-                                }
+                                    std::cerr << "bad message body\n";
                             }
                             else if (req_line == 2)
                             {
@@ -362,7 +347,6 @@ int WebServer::run()
                             else if (req_line < 0)
                             {
                                 std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
-                                // std::cout << conn->state.tertiary_buf;
                                 EV_SET(&event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
                                 if (kevent(kq, &event, 1, NULL, 0, NULL) < 0)
                                     std::cerr << "Error unregistering socket from kqueue" << std::endl;

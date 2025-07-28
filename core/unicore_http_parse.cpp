@@ -1831,6 +1831,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       return 1;
 
    }
+   fsm_state.R = 2;
    return 2;
 
 }

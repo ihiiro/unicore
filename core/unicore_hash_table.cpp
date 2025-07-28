@@ -35,7 +35,6 @@ void insert ( ht *HT , const u_char *key , void *value )
     while ( 1 )
     {
 
-        std::cout << index << "\n";
         if ( index == M )
         {
 
@@ -57,8 +56,6 @@ void insert ( ht *HT , const u_char *key , void *value )
     }
 
 }
-
-#include <iostream>
 
 bucket *get ( ht *HT , const u_char *key )
 {
