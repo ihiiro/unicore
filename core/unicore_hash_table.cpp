@@ -24,6 +24,8 @@ uint64_t hash ( const u_char *k )
 
 }
 
+#include <iostream>
+
 void insert ( ht *HT , const u_char *key , void *value )
 {
 
@@ -33,6 +35,7 @@ void insert ( ht *HT , const u_char *key , void *value )
     while ( 1 )
     {
 
+        std::cout << index << "\n";
         if ( index == M )
         {
 
@@ -55,6 +58,8 @@ void insert ( ht *HT , const u_char *key , void *value )
 
 }
 
+#include <iostream>
+
 bucket *get ( ht *HT , const u_char *key )
 {
 
@@ -63,6 +68,7 @@ bucket *get ( ht *HT , const u_char *key )
     while ( 1 )
     {
 
+        // std::cout << "f";
         if ( HT->buckets [ index ].key == NULL )
             return NULL;
         if ( index == M )
@@ -72,7 +78,7 @@ bucket *get ( ht *HT , const u_char *key )
             continue;
 
         }
-        if ( key and HT->buckets [ index ].key and 
+        if ( key and HT->buckets [ index ].key and
             std::strcmp ( (char *)key , (char *)HT->buckets [ index ].key  ) == 0 )
             return &HT->buckets [ index ];
 

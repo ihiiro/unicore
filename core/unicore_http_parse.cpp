@@ -1897,9 +1897,11 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++, fsm_state.content_length-- )
    {
 
-      // std::cout << "a";
+      // std::cerr << "a";
       fsm_state.ch = *fsm_state.p;
       fsm_state.state = state;
+   // std::cout << "\n\n\nSTATE" << fsm_state.state  << "\n\n\n";
+      
       switch ( state )
       {
 
@@ -2494,6 +2496,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             if ( fsm_state.mimes)
             {
 
+
                if ( !*fsm_state.filename )
                {
 
@@ -2511,7 +2514,15 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                   }
                   else if ( !*fsm_state.name and *fsm_state.content_type )
                   {
+                        
+                     // if ( fsm_state.mimes->buckets == NULL )
+                     // {
 
+                     //    std::cout << "bad";exit(1);
+
+                     // }
+                     // std::cout << "\n\n\nGOOD\n\n\n\n";
+                     // std::cout << "\n\n\n\n[" << fsm_state.content_type << "]\n\n\n";
                      fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
                      if ( fsm_state.selected_mime_type )
                         fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_multipart" + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app );
@@ -2652,7 +2663,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    bucket *selected_mime_type;
    fsm_state.mimes = &mimes;
 
-   mimes.buckets = new bucket [ 29 ]; 
+   
+   mimes.buckets = new bucket [ M ];
+   std::memset ( mimes.buckets , 0 , M * sizeof ( bucket ) );
    insert ( &mimes , ( u_char * )"audio/aac" , ( char * )".aac" );
    insert ( &mimes , ( u_char * )"image/apng" , ( char * )".apng" );
    insert ( &mimes , ( u_char * )"application/x-freearc" , ( char * )".arc" );
@@ -2686,6 +2699,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    int    content_len;
    char   *content_type_str;
    int i = 0, j = 0;
+
 
    if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
    {
@@ -2727,6 +2741,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
    else if ( content_length )
    {
+      
 
       // std::cout << (charcontent_length->value; exit (1);
       content_len = std::atoi ( ( char * )content_length->value );
@@ -2869,7 +2884,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       
    }
 
-   std::cout << "general end"; exit(1);
+   // std::cout << "general end"; exit(1);
    return 1;
 
 }

@@ -287,8 +287,7 @@ int WebServer::run()
 
                         if ( conn->state.R == 2 )
                         {
-                            // exit (1);
-                            // std::cout << "rerjdfkldjf"; exit(1);
+
                             int valid = unicore_http_parse_message_body (conn->state , &buf_req);
                             if  ( valid == 2 )
                                 std::cerr << "request not finished yet\n";
@@ -308,45 +307,28 @@ int WebServer::run()
                             }
                             else
                             {
-                                std::cerr << "state=" << conn->state.state << "\n";
-                                std::cerr << "fail byte=" << (int)conn->state.ch << "\n";
-                                std::cerr << "modulo[" << conn->state.p;
+                                // std::cerr << "state=" << conn->state.state << "\n";
+                                // std::cerr << "fail byte=" << (int)conn->state.ch << "\n";
+                                // std::cerr << "modulo[" << conn->state.p;
                                 exit (1);
 
                             }
-                            // else if (valid == 1)
-                            // {
-                            //     std::cerr << "request finished\n";
-                            //     connections.erase(event.ident);
-                            //     connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
-                            //     delete conn;
-                            //     struct kevent tmp_event;
-                            //     EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-                            //     if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-                            //         std::cerr << "Error unregistering read event for chunked request" << std::endl;
-                            //     EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
-                            //     if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-                            //         std::cerr << "Error registering write event for chunked request" << std::endl;
-                            // }
-                            // else
-                            //     std::cerr << "chunked failed miserably\n";
+
                         }
                         else
                         {
                             
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
-                            // std::exit (1);
                             
                             if (req_line == 1)
                             {
                                 int valid = 0;
-                                // conn->state.r->headers = new ht;
-                                // conn->state.r->headers->buckets = new bucket[M];
-                                // std::memset(conn->state.r->headers->buckets, 0, M * sizeof(bucket));
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-                                // exit (1);
+                                
+                                
                                 valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                                std::cerr << "gggggg\n";
                                 if  ( valid == 2 )
                                     std::cerr << "request not finished yet\n";
                                 else if ( valid == 1 )
@@ -365,15 +347,16 @@ int WebServer::run()
                                 }
                                 else
                                 {
-                                    std::cerr << "state=" << conn->state.state << "\n";
-                                    std::cerr << "fail byte=" << (int)conn->state.ch << "\n";
-                                    std::cerr << "modulo[" << conn->state.p;
+                                    // std::cerr << "state=" << conn->state.state << "\n";
+                                    // std::cerr << "fail byte=" << (int)conn->state.ch << "\n";
+                                    // std::cerr << "modulo[" << conn->state.p;
                                     exit (1);
 
                                 }
                             }
                             else if (req_line == 2)
                             {
+                                std::cerr << "response not done yet" << std::endl;
                                 //request not done yet
                             }
                             else if (req_line < 0)
@@ -403,7 +386,7 @@ int WebServer::run()
                 std::cerr << "Handling write event on fd " << event.ident << std::endl;
                 build_http_response(*conn, conn->request_line);
                 std::string response = conn->getBuffer();
-                std::cout << "response is " << response << std::endl;
+                // std::cout << "response is " << response << std::endl;
                 size_t bytes_sent = 0;
                 const char *buffer = response.c_str();
                 size_t total_size = response.size();
