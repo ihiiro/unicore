@@ -518,6 +518,12 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                
                // std::cout << "PRIMARY BUF " << primary_buf;
                // std::exit (1);
+               if ( !c.routes )
+               {
+
+                  std::cout << "mamak ";
+
+               }
                fsm_state.buckett = get ( c.routes , fsm_state.primary_buf );
                /* if second hierarchy route exists then it is part of the route component 
                      and shouldn't be in SCRIPT_NAME which also uses primary_buf */
@@ -1825,6 +1831,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       return 1;
 
    }
+   fsm_state.R = 2;
    return 2;
 
 }
@@ -1891,9 +1898,11 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++, fsm_state.content_length-- )
    {
 
-      // std::cout << "a";
+      // std::cerr << "a";
       fsm_state.ch = *fsm_state.p;
       fsm_state.state = state;
+   // std::cout << "\n\n\nSTATE" << fsm_state.state  << "\n\n\n";
+      
       switch ( state )
       {
 
@@ -1905,6 +1914,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case BOUNDARY_DASH_1:
+            fsm_state.file->close();
             std::memset ( fsm_state.content_type , 0 , 129 );
             std::memset ( fsm_state.name , 0 , 129 );
             std::memset ( fsm_state.filename , 0 , 129 );
@@ -2487,6 +2497,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             if ( fsm_state.mimes)
             {
 
+
                if ( !*fsm_state.filename )
                {
 
@@ -2504,7 +2515,15 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                   }
                   else if ( !*fsm_state.name and *fsm_state.content_type )
                   {
+                        
+                     // if ( fsm_state.mimes->buckets == NULL )
+                     // {
 
+                     //    std::cout << "bad";exit(1);
+
+                     // }
+                     // std::cout << "\n\n\nGOOD\n\n\n\n";
+                     // std::cout << "\n\n\n\n[" << fsm_state.content_type << "]\n\n\n";
                      fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
                      if ( fsm_state.selected_mime_type )
                         fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_multipart" + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app );
@@ -2529,25 +2548,58 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
          
          case BODY_PART:
+            // std::cout << fsm_state.ch;
             if ( fsm_state.ch == CR )
+            {
+
+               fsm_state.crlf_guard = std::string ( 1 , fsm_state.ch );
                state = CR_AFTER_BODY_PART;
+
+            }
             else
                *fsm_state.file << fsm_state.ch;
             break;
 
          case CR_AFTER_BODY_PART:
+            // std::cout << fsm_state.ch;
             if ( fsm_state.ch == LF )
+            {
+
+               // *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
                state = LF_AFTER_BODY_PART;
+
+            }
             else
-               return 400;
+            {
+
+               // std::cerr << "FAILURE\n";
+               // return 400;
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
+               *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard.clear();
+               state = BODY_PART;
+
+
+            }
             break;
          
          case LF_AFTER_BODY_PART:
-            fsm_state.file->close();
             if ( fsm_state.ch == '-' )
+            {
+
                state = BOUNDARY_DASH_1;
+
+            }
             else
-               return 400;
+            {
+
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
+               *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard.clear();
+               state = BODY_PART;
+
+            }
             break;
 
          case CLOSE_DASH_1:
@@ -2586,6 +2638,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
       return 1;
 
    }
+   fsm_state.R = 2;
    return 2;
 
 }
@@ -2600,6 +2653,8 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    // fsm_state.r->route->upload_path = new char[100];
    // fsm_state.r->route->upload_path[0] = 'p';
 
+   // if ( !fsm_state )
+   //    exit (1);
    bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
@@ -2609,7 +2664,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    bucket *selected_mime_type;
    fsm_state.mimes = &mimes;
 
-   mimes.buckets = new bucket [ 29 ]; 
+   
+   mimes.buckets = new bucket [ M ];
+   std::memset ( mimes.buckets , 0 , M * sizeof ( bucket ) );
    insert ( &mimes , ( u_char * )"audio/aac" , ( char * )".aac" );
    insert ( &mimes , ( u_char * )"image/apng" , ( char * )".apng" );
    insert ( &mimes , ( u_char * )"application/x-freearc" , ( char * )".arc" );
@@ -2643,6 +2700,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    int    content_len;
    char   *content_type_str;
    int i = 0, j = 0;
+
 
    if ( transfer_encoding and !std::strcmp ( "chunked" , ( char * )transfer_encoding->value ) )
    {
@@ -2684,7 +2742,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
    else if ( content_length )
    {
+      
 
+      // std::cout << (charcontent_length->value; exit (1);
       content_len = std::atoi ( ( char * )content_length->value );
       if ( content_len <= 0 /* or content-len > max_length */ )
          return -1;
@@ -2759,6 +2819,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   if ( content_type )
                   {
 
+
                      // mime types to extension
                      selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
                      if ( selected_mime_type )
@@ -2771,14 +2832,25 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                      fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative.txt" , std::ios::app );
                      // file is text/plain
                   // produce to file
+                  if ( !fsm_state.file->is_open() )
+                  {
+
+                     std::cerr << "Error opening file for writing: " << fsm_state.r->route->upload_path << "\n";
+                     exit (1);
+
+                  }
 
                }
+               // std::cout << "here"; exit(1);
+               // std::cout << fsm_state.content_length; exit(1);
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
+                  // std::cout << *fsm_state.p;
                   if ( fsm_state.content_length == 0 )
                   {
 
+                     std::cout << "finished\n\n";
                      b->pos = fsm_state.p;
                      fsm_state.file->close ();
                      return 1;
@@ -2786,11 +2858,21 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   }
                   *fsm_state.file << *fsm_state.p;
                   fsm_state.content_length--;
+                  // std::cerr << fsm_state.content_length << "\n";
 
                }
                if ( fsm_state.content_length == 0 )
+               {
+
+                  fsm_state.file->close ();
                   return 1;
+
+
+               }
+               // std::cout << fsm_state.content_length;
+               // std::cout << fsm_state.content_length; exit(1);
                // std::cout << "length is " << fsm_state.content_length << "ffff";
+               fsm_state.R = 2;
                return 2;
 
             }
@@ -2803,6 +2885,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       
    }
 
+   // std::cout << "general end"; exit(1);
    return 1;
 
 }

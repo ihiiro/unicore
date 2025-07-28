@@ -4,12 +4,18 @@ listening_conn::listening_conn()
     : connection(), info(), state()
 {
     std::memset(&state, 0, sizeof(state));
+    state.R = 0;
+    state.file = new std::ofstream;
+
 }
 
 listening_conn::listening_conn(int fd, const unicore_config_t& info)
     : connection(fd), info(info)
 {
     std::memset(&state, 0, sizeof(state));
+    state.R = 0;
+    state.file = new std::ofstream;
+
 }
 
 listening_conn::listening_conn(const listening_conn& other)

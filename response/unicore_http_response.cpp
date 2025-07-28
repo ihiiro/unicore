@@ -103,7 +103,7 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
             response.status_code = 404;
             response.reason_phrase = "Not Found";
             response.headers["Content-Type"] = "text/html";
-            response.body = " <html><body><h1>cant be opened </h1></body></html>";
+            response.body = " <html><body><h1> Not Found a weld 9ahba </h1></body></html>";
             return;
         }
         else
@@ -429,14 +429,16 @@ void     build_http_response(client_conn &client, int req_line)
 {
     http_response_t response;
 
+    std::cout << "req_line = "  << req_line <<std::endl;
     if (req_line >= 100 && req_line < 600 && client.request.REQUEST_METHOD != POST)
     {
+        std::cout << "handling mmore than 1\n";
         std::ostringstream oss;
         oss << req_line;
         std::string req_line_str = oss.str();
         check_files_errors(client, response, get_all_errors(), req_line_str);
     }
-
+else{
     if (!client.chunked)
     {
         std::map<std::string, std::string> &mime_types_map = mime_types();
@@ -498,6 +500,7 @@ void     build_http_response(client_conn &client, int req_line)
             }
         }
     }
+}
     format_http_response(client, response);
 }
 
@@ -539,7 +542,7 @@ void format_http_response(client_conn &client, http_response_t &response)
                 if (file_size >= 0 && file_size < CHUNK_SIZE)
                 {
                     std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
-                    oss << "Content-Length: " << file_size << "\r\n";
+                    oss << "Content-Length: " << file_size << "\r\n\r\n";
                     std::ifstream file(client.filename.c_str(), std::ios::binary);
                     oss << file.rdbuf();
                     file.close();
