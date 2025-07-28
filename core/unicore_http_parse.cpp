@@ -2858,7 +2858,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   }
                   *fsm_state.file << *fsm_state.p;
                   fsm_state.content_length--;
-                  std::cerr << fsm_state.content_length << "\n";
+                  // std::cerr << fsm_state.content_length << "\n";
 
                }
                if ( fsm_state.content_length == 0 )

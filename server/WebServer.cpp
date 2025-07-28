@@ -348,9 +348,77 @@ int WebServer::run()
                             }
                             else
                             {
+                                std::cout << "HERE !!!!!\n";
                                 /* HERE */
+                                 client_conn *conn = dynamic_cast<client_conn *>(connections[event.ident]);
+                if (!conn)
+                {
+                    std::cerr << "Unknown connection type for write event on fd " << event.ident << std::endl;
+                    continue;
+                }
+                std::cerr << "Handling write event on fd " << event.ident << std::endl;
+                build_http_response(*conn, conn->request_line);
+                std::string response = conn->getBuffer();
+                // std::cout << "response is " << response << std::endl;
+                size_t bytes_sent = 0;
+                const char *buffer = response.c_str();
+                size_t total_size = response.size(); 
 
+                while (bytes_sent < total_size)
+                {
+                    ssize_t bytes = send(event.ident, buffer + bytes_sent, total_size - bytes_sent, 0);
+                    std::cerr << bytes << " " << total_size << " " << bytes_sent << " " << std::endl;
+                    conn->update_last_activity();
 
+                    if (bytes < 0)
+                    {
+                        std::cerr << "Error sending response on fd " << event.ident << std::endl;
+                        continue;
+                    }
+                    else if (bytes == 0)
+                    {
+                        std::cerr << "Client disconnected on fd " << event.ident << std::endl;
+                        close(event.ident);
+                        connections.erase(event.ident);
+                        break;
+                    }
+
+                    std::cerr << "Sent " << bytes << " bytes to client on fd " << event.ident << std::endl;
+                    bytes_sent += bytes;
+                }
+                if (bytes_sent <= 0)
+                    continue;
+                if (conn->offset == -1337)
+                {
+                    if (!conn->keep_alive)
+                    {
+                        struct kevent tmp_event;
+                        connections.erase(event.ident);
+                        delete conn;
+                        EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                        if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                            std::cerr << "Error unregistering socket from kqueue" << std::endl;
+                        close(event.ident);
+                        continue ;
+                    }
+                    std::cerr << "Keep-alive connection on fd " << event.ident << std::endl;
+                    connections.erase(event.ident);
+                    connections[event.ident] = new listening_conn(event.ident, conn->info);
+                    delete conn;
+                    struct kevent tmp_event;
+                    EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                        std::cerr << "Error unregistering write event for keep-alive connection" << std::endl;
+                    EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
+                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                        std::cerr << "Error re-registering read event for keep-alive connection" << std::endl;
+                }
+            
+            else
+            {
+                std::cerr << "Unhandled event type: " << event.filter << std::endl;
+            }
+                                
                                 
 
 
