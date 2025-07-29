@@ -2126,7 +2126,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case NAME_VALUE_DQUOTE_OPEN:
-            if ( TCHAR( fsm_state.ch ) )
+            if ( TCHAR( fsm_state.ch ) or fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
                state = NAME_VALUE_QUOTED_TCHAR;
@@ -2142,7 +2142,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
          
          case NAME_VALUE_QUOTED_TCHAR:
-            if ( TCHAR( fsm_state.ch ) )
+            if ( TCHAR( fsm_state.ch ) or fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
                if ( fsm_state.mp_i >= 128 )
@@ -2264,7 +2264,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case FILENAME_VALUE_DQUOTE_OPEN:
-            if ( TCHAR( fsm_state.ch ) )
+            if ( TCHAR( fsm_state.ch ) or fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
                state = FILENAME_VALUE_QUOTED_TCHAR;
@@ -2280,7 +2280,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
          
          case FILENAME_VALUE_QUOTED_TCHAR:
-            if ( TCHAR( fsm_state.ch ) )
+            if ( TCHAR( fsm_state.ch ) or fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
                if ( fsm_state.mp_i >= 128 )
