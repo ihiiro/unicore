@@ -26,4 +26,5 @@ typedef struct http_response
 
 void   build_http_response( client_conn &client, int req_line);
 void   format_http_response(client_conn &client, http_response_t &response);
+std::string  check_path_type(const std::string& path);
 

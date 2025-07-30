@@ -292,6 +292,7 @@ int WebServer::run()
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
                             if (req_line == 1)
                             {
+                                std::cout << "fffff\n";
                                 int valid = 0;
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
@@ -300,7 +301,7 @@ int WebServer::run()
                                     std::cerr << "request not finished yet 2\n";
                                 else if (valid == 1)
                                 {
-                                    std::cerr << "request finished\n";
+                                    std::cerr << "request finished bottom\n";
                                     connections.erase(event.ident);
                                     connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                     delete conn;

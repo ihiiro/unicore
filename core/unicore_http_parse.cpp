@@ -398,7 +398,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.primary_i > 510 or fsm_state.tertiary_i > 510  )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                fsm_state.tertiary_buf [ fsm_state.tertiary_i++ ] = fsm_state.ch;
                state = URI_SEGMENT;
@@ -425,7 +425,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
 
                      fsm_state.buckett = get ( c.routes , (u_char *)"/" );
                      if ( fsm_state.buckett == NULL )
-                        return 400; // or specific error
+                        return 400;
                      fsm_state.r->route = ( unicore_route_t * )fsm_state.buckett->value;
 
                   }
@@ -447,7 +447,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.tertiary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.tertiary_buf [ fsm_state.tertiary_i++ ] = fsm_state.ch;
                if ( ( fsm_state.portion == 1 or fsm_state.portion == 2 ) and fsm_state.p [ 0 ] == '.' and ( 
                   ( fsm_state.p [ 1 ] and fsm_state.p [ 1 ] == 'p' and fsm_state.p [ 2 ] and fsm_state.p [ 2 ] == 'y' ) or
@@ -461,7 +461,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                      // std::cout << "ROUTE " << "/" << "\n";
                      fsm_state.buckett = get ( c.routes , (u_char *)"/" );
                      if ( fsm_state.buckett == NULL )
-                        return 400; // or specific error
+                        return 400;
                      fsm_state.r->route = ( unicore_route_t * )fsm_state.buckett->value;
 
                   }
@@ -474,7 +474,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                      {
 
                         if ( fsm_state.primary_i > 510 )
-                           return 400; // or specific error
+                           return 400;
                         fsm_state.primary_buf [ fsm_state.primary_i++ ] = *fsm_state.p;
                      }
 
@@ -487,7 +487,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                      {
 
                         if ( fsm_state.primary_i > 510 )
-                           return 400; // or specific error
+                           return 400;
                         fsm_state.primary_buf [ fsm_state.primary_i++ ] = *fsm_state.p;
                      }
 
@@ -505,7 +505,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                {
 
                   if ( fsm_state.primary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
 
                }
@@ -540,7 +540,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   // std::cout << "ROUTE " << "/" << "\n";
                   fsm_state.buckett = get ( c.routes , (u_char *)"/" );
                   if ( fsm_state.buckett == NULL )
-                     return 400; // or specific error
+                     return 400;
 
                }
                fsm_state.r->route = ( unicore_route_t * )fsm_state.buckett->value;
@@ -566,7 +566,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
                case '/':
                   if ( fsm_state.primary_i > 510 or fsm_state.tertiary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   fsm_state.tertiary_buf [ fsm_state.tertiary_i++ ] = fsm_state.ch;
                   state = ORIGIN_FORM_FORWARD_SLASH;
@@ -596,7 +596,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.secondary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                state = QUERY_PCHAR;
                break;
@@ -615,13 +615,13 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
                case '/':
                   if ( fsm_state.secondary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   state = QUERY_FORWARD_SLASH;
                   break;
                case '?':
                   if ( fsm_state.secondary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   break;
                default:
@@ -635,7 +635,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.secondary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                state = QUERY_PCHAR;
                break;
@@ -653,13 +653,13 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
                case '?':
                   if ( fsm_state.secondary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                case '/':
                   if ( fsm_state.secondary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   break;
                default:
@@ -673,7 +673,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                if ( fsm_state.secondary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                break;
 
@@ -691,13 +691,13 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   break;
                case '?':
                   if ( fsm_state.secondary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   state = ORIGIN_FORM_QUESTION_MARK;
                   break;
                case '/':
                   if ( fsm_state.secondary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.secondary_buf [ fsm_state.secondary_i++ ] = fsm_state.ch;
                   state = QUERY_FORWARD_SLASH;
                   break;
@@ -972,7 +972,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
 
                if ( fsm_state.primary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                break;
 
@@ -1072,7 +1072,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
 
                if ( fsm_state.primary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_VCHAR;
                break;
@@ -1085,7 +1085,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                case SP:
                case HT:
                   if ( fsm_state.primary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION;
                   break;
@@ -1103,7 +1103,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
 
                if ( fsm_state.primary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_AND_LAST_VCHAR_SUPERPOSITION;
                break;
@@ -1114,13 +1114,13 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 
                case SP:
                   if ( fsm_state.primary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_VALUE_OPTIONAL_SP;
                   break;
                case HT:
                   if ( fsm_state.primary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_VALUE_OPTIONAL_HT;
                   break;
@@ -1139,7 +1139,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 
          case FIELD_VALUE_OPTIONAL_SP:
             if ( fsm_state.primary_i > 510 )
-               return 400; // or specific error
+               return 400;
             fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
             if ( VCHAR( fsm_state.ch ) )
             {
@@ -1165,7 +1165,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 
          case FIELD_VALUE_OPTIONAL_HT:
             if ( fsm_state.primary_i > 510 )
-               return 400; // or specific error
+               return 400;
             fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
             if ( VCHAR( fsm_state.ch ) )
             {
@@ -1193,7 +1193,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
             
                if ( fsm_state.primary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                break;
 
@@ -1205,7 +1205,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                case SP:
                case HT:
                   if ( fsm_state.primary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   state = FIELD_LINE_SP_AND_TERMINATING_OWS_SUPERPOSITION;
                   break;
@@ -1223,7 +1223,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
             {
 
                if ( fsm_state.primary_i > 510 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                state = FIELD_VALUE_OPTIONAL_FIRST_VCHAR;
                break;
@@ -1236,7 +1236,7 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
                case SP:
                case HT:
                   if ( fsm_state.primary_i > 510 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.primary_buf [ fsm_state.primary_i++ ] = fsm_state.ch;
                   break;
                case CR:
@@ -1799,7 +1799,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
                b->pos = fsm_state.p;
                fsm_state.state = 0;
-               return 1;
+               return 200;
 
             }
             return 400;
@@ -1815,7 +1815,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             b->pos = fsm_state.p;
             fsm_state.state = 0;
             fsm_state.file->close();
-            return 1;
+            return 200;
 
       }
 
@@ -1828,7 +1828,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       b->pos = fsm_state.p;
       fsm_state.state = 0;
       fsm_state.file->close();
-      return 1;
+      return 200;
 
    }
    fsm_state.R = 2;
@@ -1890,7 +1890,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
       LF_AFTER_BODY_PART,
       CLOSE_DASH_1,
       CLOSE_DASH_2,
-      // TERMINAL_BWS
 
    } state;
 
@@ -1898,11 +1897,9 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
    for ( fsm_state.p = b->pos; fsm_state.p <= b->end and fsm_state.content_length ; fsm_state.p++, fsm_state.content_length-- )
    {
 
-      // std::cerr << "a";
       fsm_state.ch = *fsm_state.p;
       fsm_state.state = state;
-   // std::cout << "\n\n\nSTATE" << fsm_state.state  << "\n\n\n";
-      
+   
       switch ( state )
       {
 
@@ -1914,20 +1911,32 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case BOUNDARY_DASH_1:
+            fsm_state.mp_r_i = 0;
+            if ( fsm_state.ch == '-' )
+               state = BOUNDARY_DASH_2;
+            else
+            {
+
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
+               *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard.clear();
+               state = BODY_PART;
+               break;
+
+            }
             fsm_state.file->close();
             std::memset ( fsm_state.content_type , 0 , 129 );
             std::memset ( fsm_state.name , 0 , 129 );
             std::memset ( fsm_state.filename , 0 , 129 );
-            if ( fsm_state.ch == '-' )
-               state = BOUNDARY_DASH_2;
-            else
-               return 400;
             break;
 
          case BOUNDARY_DASH_2:
-            for ( int i = 0 ; fsm_state.p <= b->end and i < fsm_state.boundary_length ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != fsm_state.boundary [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < fsm_state.boundary_length ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != fsm_state.boundary [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != fsm_state.boundary_length )
+               break;
+            fsm_state.mp_r_i = 0;
             state = BOUNDARY;
             fsm_state.p--;
             break;
@@ -1969,6 +1978,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case CR_AFTER_DASH_BOUNDARY:
+            fsm_state.mp_r_i = 0;
             if ( fsm_state.ch == LF )
                state = LF_AFTER_DASH_BOUNDARY;
             else
@@ -1983,9 +1993,12 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                break;
 
             }
-            for ( int i = 0 ; fsm_state.p <= b->end and i < cd_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != content_disposition [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < cd_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != content_disposition [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != cd_i )
+               break;
+            fsm_state.mp_r_i = 0;
             std::memset ( fsm_state.filename , 0 , 129 );
             state = CONTENT_DISPOSITION;
             fsm_state.p--;
@@ -1995,13 +2008,17 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             if ( fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
+               fsm_state.mp_r_i = 0;
                state = BWS_BEFORE_FORM_DATA;
                break;
 
             }
-            for ( int i = 0 ; fsm_state.p <= b->end and i < form_data_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != form_data [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < form_data_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != form_data [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != form_data_i )
+               break;
+            fsm_state.mp_r_i = 0;
             state = FORM_DATA;
             fsm_state.p--;
             break;
@@ -2009,9 +2026,12 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case BWS_BEFORE_FORM_DATA:
             if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            for ( int i = 0 ; fsm_state.p <= b->end and i < form_data_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != form_data [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < form_data_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != form_data [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != form_data_i )
+               break;
+            fsm_state.mp_r_i = 0;
             state = FORM_DATA;
             fsm_state.p--;
             break;
@@ -2044,6 +2064,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                case HT:
                   break;
                case ';':
+                  fsm_state.mp_r_i = 0;
                   state = SEMI_COLON_AFTER_FORM_DATA;
                   break;
                case CR:
@@ -2059,13 +2080,17 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             if ( fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
+               fsm_state.mp_r_i = 0;
                state = BWS_AFTER_FORM_DATA_SEMI_COLON;
                break;
 
             }
-            for ( int i = 0 ; fsm_state.p <= b->end and i < name_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != name [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < name_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != name [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != name_i )
+               break;
+            fsm_state.mp_r_i = 0;
             state = NAME;
             fsm_state.p--;
             break;
@@ -2073,9 +2098,12 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case BWS_AFTER_FORM_DATA_SEMI_COLON:
             if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            for ( int i = 0 ; fsm_state.p <= b->end and i < name_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != name [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < name_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != name [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != name_i )
+               break;
+            fsm_state.mp_r_i = 0;
             state = NAME;
             fsm_state.p--;
             break;
@@ -2085,7 +2113,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                state = NAME_VALUE_TCHAR;
-               // std::memset ( fsm_state.name , 0 , 129 );
                fsm_state.mp_i = 0;
                fsm_state.name [ fsm_state.mp_i++ ] = fsm_state.ch;
 
@@ -2101,7 +2128,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                if ( fsm_state.mp_i >= 128 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.name [ fsm_state.mp_i++ ] = fsm_state.ch;
                break;
 
@@ -2126,11 +2153,10 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case NAME_VALUE_DQUOTE_OPEN:
-            if ( TCHAR( fsm_state.ch ) )
+            if ( TCHAR( fsm_state.ch ) or fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
                state = NAME_VALUE_QUOTED_TCHAR;
-               // std::memset ( fsm_state.name , 0 , 129 );
                fsm_state.mp_i = 0;
                fsm_state.name [ fsm_state.mp_i++ ] = fsm_state.ch;
 
@@ -2142,7 +2168,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
          
          case NAME_VALUE_QUOTED_TCHAR:
-            if ( TCHAR( fsm_state.ch ) )
+            if ( TCHAR( fsm_state.ch ) or fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
                if ( fsm_state.mp_i >= 128 )
@@ -2185,6 +2211,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                case HT:
                   break;
                case ';':
+                  fsm_state.mp_r_i = 0;
                   state = SEMI_COLON_AFTER_NAME;
                   break;
                case CR:
@@ -2200,13 +2227,17 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             if ( fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
+               fsm_state.mp_r_i = 0;
                state = BWS_BEFORE_FILENAME;
                break;
 
             }
-            for ( int i = 0 ; fsm_state.p <= b->end and i < filename_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != filename [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < filename_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != filename [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != filename_i )
+               break;
+            fsm_state.mp_r_i = 0;
             state = FILENAME;
             fsm_state.p--;
             break;
@@ -2214,9 +2245,12 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case BWS_BEFORE_FILENAME:
             if ( fsm_state.ch == SP or fsm_state.ch == HT )
                break;
-            for ( int i = 0 ; fsm_state.p <= b->end and i < filename_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != filename [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < filename_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != filename [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != filename_i )
+               break;
+            fsm_state.mp_r_i = 0;
             state = FILENAME;
             fsm_state.p--;
             break;
@@ -2226,7 +2260,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                state = FILENAME_VALUE_TCHAR;
-               // std::memset ( fsm_state.filename , 0 , 129 );
                fsm_state.mp_i = 0;
                fsm_state.filename [ fsm_state.mp_i++ ] = fsm_state.ch;
 
@@ -2242,7 +2275,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                if ( fsm_state.mp_i >= 128 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.filename [ fsm_state.mp_i++ ] = fsm_state.ch;
                break;
 
@@ -2264,11 +2297,10 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case FILENAME_VALUE_DQUOTE_OPEN:
-            if ( TCHAR( fsm_state.ch ) )
+            if ( TCHAR( fsm_state.ch ) or fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
                state = FILENAME_VALUE_QUOTED_TCHAR;
-               // std::memset ( fsm_state.filename , 0 , 129 );
                fsm_state.mp_i = 0;
                fsm_state.filename [ fsm_state.mp_i++ ] = fsm_state.ch;
 
@@ -2280,11 +2312,11 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
          
          case FILENAME_VALUE_QUOTED_TCHAR:
-            if ( TCHAR( fsm_state.ch ) )
+            if ( TCHAR( fsm_state.ch ) or fsm_state.ch == SP or fsm_state.ch == HT )
             {
 
                if ( fsm_state.mp_i >= 128 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.filename [ fsm_state.mp_i++ ] = fsm_state.ch;
                break;
 
@@ -2343,9 +2375,12 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                break;
 
             }
-            for ( int i = 0 ; fsm_state.p <= b->end and i < ct_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != content_type [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < ct_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != content_type [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != ct_i )
+               break;
+            fsm_state.mp_r_i = 0;
             std::memset ( fsm_state.content_type , 0 , 129 );
             state = CONTENT_TYPE;
             fsm_state.p--;
@@ -2356,7 +2391,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                state = MEDIA_TYPE_TCHAR;
-               // std::memset ( fsm_state.content_type , 0 , 129 );
                fsm_state.mp_i = 0;
                fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
 
@@ -2374,7 +2408,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                state = MEDIA_TYPE_TCHAR;
-               // std::memset ( fsm_state.content_type , 0 , 129 );
                fsm_state.mp_i = 0;
                fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
 
@@ -2388,7 +2421,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                if ( fsm_state.mp_i >= 128 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
                break;
 
@@ -2402,7 +2435,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                   break;
                case '/':
                   if ( fsm_state.mp_i >= 128 )
-                     return 400; // or specific error
+                     return 400;
                   fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
                   state = MEDIA_TYPE_FORWARD_SLASH;
                   break;
@@ -2421,7 +2454,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
                state = MEDIA_SUBTYPE_TCHAR;
                if ( fsm_state.mp_i >= 128 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
 
             }
@@ -2434,7 +2467,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                if ( fsm_state.mp_i >= 128 )
-                  return 400; // or specific error
+                  return 400;
                fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
                break;
 
@@ -2516,14 +2549,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                   else if ( !*fsm_state.name and *fsm_state.content_type )
                   {
                         
-                     // if ( fsm_state.mimes->buckets == NULL )
-                     // {
-
-                     //    std::cout << "bad";exit(1);
-
-                     // }
-                     // std::cout << "\n\n\nGOOD\n\n\n\n";
-                     // std::cout << "\n\n\n\n[" << fsm_state.content_type << "]\n\n\n";
                      fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
                      if ( fsm_state.selected_mime_type )
                         fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_multipart" + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app );
@@ -2540,15 +2565,9 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             else
                fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + fsm_state.filename , std::ios::app );
             *fsm_state.file << fsm_state.ch;
-
-            // std::cerr << "name=" << fsm_state.name << "\n";
-            // std::cerr << "filename=" << fsm_state.filename << "\n";
-            // std::cerr << "content-type=" << fsm_state.content_type << "\n\n";
-            // std::cerr << fsm_state.ch;
             break;
          
          case BODY_PART:
-            // std::cout << fsm_state.ch;
             if ( fsm_state.ch == CR )
             {
 
@@ -2561,11 +2580,9 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case CR_AFTER_BODY_PART:
-            // std::cout << fsm_state.ch;
             if ( fsm_state.ch == LF )
             {
 
-               // *fsm_state.file << fsm_state.crlf_guard;
                fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
                state = LF_AFTER_BODY_PART;
 
@@ -2573,8 +2590,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             else
             {
 
-               // std::cerr << "FAILURE\n";
-               // return 400;
                fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
                *fsm_state.file << fsm_state.crlf_guard;
                fsm_state.crlf_guard.clear();
@@ -2588,6 +2603,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             if ( fsm_state.ch == '-' )
             {
 
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
                state = BOUNDARY_DASH_1;
 
             }
@@ -2610,17 +2626,9 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case CLOSE_DASH_2:
-            // if ( fsm_state.ch == SP or fsm_state.ch == HT )
-            //    state = TERMINAL_BWS;
             fsm_state.state = 0;
             b->pos = fsm_state.p;
-            return 1;
-
-         // case TERMINAL_BWS:
-         //    if ( fsm_state.ch == SP or fsm_state.ch == HT )
-         //       break;
-         //    return 1;
-         
+            return 200;         
 
       }
 
@@ -2635,7 +2643,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
       std::memset ( fsm_state.content_type , 0 , 129 );
       fsm_state.state = 0;
       b->pos = fsm_state.p;
-      return 1;
+      return 200;
 
    }
    fsm_state.R = 2;
@@ -2646,15 +2654,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
 {
 
-   // if ( !fsm_state.r->route->upload_path or fsm_state.r->REQUEST_METHOD != POST )
-   //    return -1;
-
-   // temp
-   // fsm_state.r->route->upload_path = new char[100];
-   // fsm_state.r->route->upload_path[0] = 'p';
-
-   // if ( !fsm_state )
-   //    exit (1);
    bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
@@ -2663,6 +2662,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    ht mimes;
    bucket *selected_mime_type;
    fsm_state.mimes = &mimes;
+
+   if ( ( content_length or transfer_encoding ) and ( !fsm_state.r->route->upload_path or fsm_state.r->REQUEST_METHOD != POST ) )
+      return 400;
 
    
    mimes.buckets = new bucket [ M ];
@@ -2706,12 +2708,12 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    {
 
       if ( content_length )
-         return -1;
+         return 400;
       if ( content_type )
       {
          
          if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
-            return -1;
+            return 400;
 
       }
       if ( !fsm_state.file->is_open() )
@@ -2730,12 +2732,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked.txt" , std::ios::app );
 
       }
-      
-         // std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
-         //file is content-type
-      // else
-      //    std::strcpy ( fsm_state.content_type , "text/plain" );
-         //file is text/plain
       return unicore_http_parse_chunked_body ( fsm_state , b );
 
    }
@@ -2743,14 +2739,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    else if ( content_length )
    {
       
-
-      // std::cout << (charcontent_length->value; exit (1);
       content_len = std::atoi ( ( char * )content_length->value );
       if ( content_len <= 0 /* or content-len > max_length */ )
-         return -1;
+         return 204;
       if ( fsm_state.content_length == 0 )
          fsm_state.content_length = content_len;
-      // std::cout << "length is " << fsm_state.content_length << "\n";
 
       if ( content_type )
       {
@@ -2766,15 +2759,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             {
 
                if ( j == 70 )
-                  return -1;
+                  return 400;
                fsm_state.boundary [ j ] = content_type_str [ i ]; 
 
             }
             fsm_state.boundary_length = j;
-
-            // std::cout << "boundary=" << fsm_state.boundary;
-
-            // std::cout << "multi" << "\n"; exit(1);
             return unicore_http_parse_multipart_body ( fsm_state , b );
 
          }
@@ -2787,13 +2776,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
-                  // std::cout << "hit\n";
-                  // std::cout << "lenfdf dgth is " << fsm_state.content_length << "\n";
                   if ( fsm_state.content_length == 0 )
                   {
 
                      b->pos = fsm_state.p;
-                     return 1;
+                     return 201;
 
                   }
                   fsm_state.r->route->message_body.append ( 1 , ( char )*fsm_state.p );
@@ -2802,16 +2789,12 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
                }
                if ( fsm_state.content_length == 0 )
-                  return 1;
-               // std::cout << "length is " << fsm_state.content_length;
+                  return 201;
                return 2;
 
             }
-
             else
             {
-
-               
 
                if ( !fsm_state.file->is_open() )
                {
@@ -2820,7 +2803,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   {
 
 
-                     // mime types to extension
                      selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
                      if ( selected_mime_type )
                         fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative" + std::string ( ( char * )selected_mime_type->value ) );
@@ -2830,95 +2812,44 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   }
                   else
                      fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative.txt" , std::ios::app );
-                     // file is text/plain
-                  // produce to file
                   if ( !fsm_state.file->is_open() )
-                  {
-
                      std::cerr << "Error opening file for writing: " << fsm_state.r->route->upload_path << "\n";
-                     exit (1);
-
-                  }
-
                }
-               // std::cout << "here"; exit(1);
-               // std::cout << fsm_state.content_length; exit(1);
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
-                  // std::cout << *fsm_state.p;
                   if ( fsm_state.content_length == 0 )
                   {
 
                      std::cout << "finished\n\n";
                      b->pos = fsm_state.p;
                      fsm_state.file->close ();
-                     return 1;
+                     return 201;
 
                   }
                   *fsm_state.file << *fsm_state.p;
                   fsm_state.content_length--;
-                  // std::cerr << fsm_state.content_length << "\n";
 
                }
                if ( fsm_state.content_length == 0 )
                {
 
                   fsm_state.file->close ();
-                  return 1;
+                  return 201;
 
 
                }
-               // std::cout << fsm_state.content_length;
-               // std::cout << fsm_state.content_length; exit(1);
-               // std::cout << "length is " << fsm_state.content_length << "ffff";
                fsm_state.R = 2;
                return 2;
 
             }
 
          }
-         
-
 
       }
       
    }
 
-   // std::cout << "general end"; exit(1);
-   return 1;
+   return 204;
 
 }
-
-
-
-/*
-
-
-   parse_message_body ( headers , body , route )
-      if ( headers has transfer-encoding and transfer-encoding is chunked )
-         if ( headers has content-length or ( headers has content-type and content-type is multipart ) )
-            error
-         if ( headers has content-type )
-            file is content-type
-         else
-            file is text/plain
-         parse chunked body and produce to file
-
-      else if ( headers has content-length and content-length > 0 and content-length <= max length )
-         if ( headers has multipart content-type )
-            parse multipart and produce to files
-      
-         else if ( route cgi is on )
-            buffer body
-
-         else
-            if ( headers has content-type )
-               file is content-type
-            else
-               file is text/plain
-            produce to file
-
-      
-
-*/
