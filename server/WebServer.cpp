@@ -176,9 +176,7 @@ int WebServer::run()
                 server_conn *conn = dynamic_cast<server_conn *>(&gen_conn);
                 if (conn)
                 {
-
                     server *srv = conn->srv;
-                    
                     if (event.ident == static_cast<uintptr_t>(srv->listen_sockfd))
                     {
                         srv->sockfd = accept(srv->listen_sockfd, NULL, NULL);
@@ -187,7 +185,6 @@ int WebServer::run()
                             std::cerr << "Error accepting connection on " << srv->host << ":" << srv->port << std::endl;
                             continue;
                         }
-
                         int flags = fcntl(srv->sockfd, F_GETFL, 0);
                         fcntl(srv->sockfd, F_SETFL, flags | O_NONBLOCK);
 
@@ -200,7 +197,6 @@ int WebServer::run()
                             close(srv->sockfd);
                             continue;
                         }
-
                         std::cerr << "Accepted connection on " << srv->host << ":" << srv->port << std::endl;
                     }
                 }
@@ -225,17 +221,17 @@ int WebServer::run()
                         close(event.ident);
                         break;
                     }
-                    buf_req.pos = (u_char *)buf;
+                    buf_req.pos = ( u_char * )buf;
                     buf_req.start = buf_req.pos;
                     buf_req.end = buf_req.start + bytes - 1;
                     // write ( 2 , buf , bytes );
                     if (bytes <= 0)
                     {
-                        std::cerr << "Client disconnected or error on fd " << event.ident << std::endl;
                         if (bytes < 0)
                             std::cerr << "Read error on fd " << event.ident << std::endl;
                         else
                             std::cerr << "Client disconnected on fd " << event.ident << std::endl;
+
                         struct kevent tmp_event;
                         EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
                         if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
@@ -248,17 +244,13 @@ int WebServer::run()
                     else
                     {
                         int req_line;
-                        if (conn->info.routes == NULL)
-                        {
-                            std::cerr << "\033[31mNo routes defined for server " << conn->info.server_name << "\033[0m" << std::endl;
-                            exit(1);
-                        }
                         if (conn->state.R == 2)
                         {
-                            int valid = unicore_http_parse_message_body(conn->state , &buf_req);
+                            int valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                            req_line = valid;
                             if  (valid == 2)
-                                std::cerr << "request not finished yet 1\n";
-                            else if (valid == 1)
+                                std::cerr << "request not finished yet\n";
+                            else
                             {
                                 std::cerr << "request finished\n";
                                 connections.erase(event.ident);
@@ -272,34 +264,20 @@ int WebServer::run()
                                 if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
                                     std::cerr << "Error registering write event for request" << std::endl;
                             }
-                            else
-                            {
-                                std::cerr << "bad message body\n";
-                                connections.erase(event.ident);
-                                connections[event.ident] = new client_conn(event.ident, conn->info, 400, *conn->state.r);
-                                delete conn;
-                                struct kevent tmp_event;
-                                EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-                                if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-                                    std::cerr << "Error unregistering read event for request" << std::endl;
-                                EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
-                                if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-                                    std::cerr << "Error registering write event for request" << std::endl;
-                            }
                         }
                         else
                         {
-                            req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
+                            req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);                            
                             if (req_line == 1)
                             {
-                                std::cout << "fffff\n";
                                 int valid = 0;
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-                                valid = unicore_http_parse_message_body(conn->state , &buf_req);
+                                valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                                req_line = valid;
                                 if  (valid == 2)
-                                    std::cerr << "request not finished yet 2\n";
-                                else if (valid == 1)
+                                    std::cerr << "request not finished yet\n";
+                                else
                                 {
                                     std::cerr << "request finished bottom\n";
                                     connections.erase(event.ident);
@@ -313,26 +291,12 @@ int WebServer::run()
                                     if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
                                         std::cerr << "Error registering write event for request" << std::endl;
                                 }
-                                else
-                                {
-                                    std::cerr << "bad message body " << valid << std::endl;
-                                    connections.erase(event.ident);
-                                    connections[event.ident] = new client_conn(event.ident, conn->info, 400, *conn->state.r);
-                                    delete conn;
-                                    struct kevent tmp_event;
-                                    EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-                                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-                                        std::cerr << "Error unregistering read event for request" << std::endl;
-                                    EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, connections[event.ident]);
-                                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
-                                        std::cerr << "Error registering write event for request" << std::endl;
-                                }
                             }
                             else if (req_line == 2)
-                                std::cerr << "response not done yet" << std::endl;
+                                std::cerr << "request not done yet" << std::endl;
                             else
                             {
-                                std::cerr << "bad request line" << std::endl;
+                                std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
                                 connections.erase(event.ident);
                                 connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                 delete conn;
@@ -347,7 +311,6 @@ int WebServer::run()
                         }
                     }
                 }
-                std::cerr << "event filter is: " << event.filter << std::endl;
             }
             else if (event.filter == EVFILT_WRITE)
             {
@@ -357,8 +320,7 @@ int WebServer::run()
                     std::cerr << "Unknown connection type for write event on fd " << event.ident << std::endl;
                     continue;
                 }
-                std::cerr << "Handling correct write event on fd " << event.ident << std::endl;
-                std::cerr << "Filename: " << conn->filename << std::endl;
+                std::cerr << "Handling write event on fd " << event.ident << std::endl;
                 build_http_response(*conn, conn->request_line);
                 std::string response = "";
                 if (conn->rest.size() > 0)
@@ -386,7 +348,15 @@ int WebServer::run()
                 }
                 else
                 {
-                    std::cerr << "Unexpected bytes sent on fd " << event.ident << ": " << bytes_sent << std::endl;
+                    std::cerr << "Client disconnected while sending response on fd " << event.ident << std::endl;
+                    struct kevent tmp_event;
+                    EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+                    if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
+                        std::cerr << "Error unregistering socket from kqueue" << std::endl;
+                    close(event.ident);
+                    connections.erase(event.ident);
+                    delete conn;
+                    continue ;
                 }
                 if (conn->offset == -1337)
                 {
@@ -420,9 +390,7 @@ int WebServer::run()
                     std::cerr << "Response sent on fd " << event.ident << std::endl;
             }
             else
-            {
                 std::cerr << "Unhandled event type: " << event.filter << std::endl;
-            }
         }
         check_events_timeout();
     }
