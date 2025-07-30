@@ -57,6 +57,8 @@ typedef struct
 
     int                                 mp_i;
 
+    int                                 mp_r_i;
+
     bool                                chunked;
 
     std::ofstream                       *file;

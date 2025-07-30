@@ -306,7 +306,14 @@ int WebServer::run()
                                     std::cerr << "Error registering write event for request" << std::endl;
                             }
                             else
+                            {
+
+
                                 std::cerr << "bad message body\n";
+                                std::cerr << conn->state.state << "\n\n\n";
+                                std::cerr << conn->state.ch << "\n\n\n";
+
+                            }
 
                         }
                         else
@@ -318,6 +325,7 @@ int WebServer::run()
                             
                             if (req_line == 1)
                             {
+                                std::cout << "fffff\n";
                                 int valid = 0;
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
@@ -326,7 +334,7 @@ int WebServer::run()
                                     std::cerr << "request not finished yet\n";
                                 else if ( valid == 1 )
                                 {
-                                    std::cerr << "request finished\n";
+                                    std::cerr << "request finished bottom\n";
                                     connections.erase(event.ident);
                                     connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                     delete conn;
@@ -339,7 +347,12 @@ int WebServer::run()
                                         std::cerr << "Error registering write event for request" << std::endl;
                                 }
                                 else
+                                {
+
                                     std::cerr << "bad message body\n";
+                                    std::cerr << conn->state.p;
+
+                                }
                             }
                             else if (req_line == 2)
                             {

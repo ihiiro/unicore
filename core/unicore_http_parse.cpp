@@ -1914,14 +1914,23 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case BOUNDARY_DASH_1:
+            
+            if ( fsm_state.ch == '-' )
+               state = BOUNDARY_DASH_2;
+            else
+            {
+
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
+               *fsm_state.file << fsm_state.crlf_guard;
+               fsm_state.crlf_guard.clear();
+               state = BODY_PART;
+               break;
+
+            }
             fsm_state.file->close();
             std::memset ( fsm_state.content_type , 0 , 129 );
             std::memset ( fsm_state.name , 0 , 129 );
             std::memset ( fsm_state.filename , 0 , 129 );
-            if ( fsm_state.ch == '-' )
-               state = BOUNDARY_DASH_2;
-            else
-               return 400;
             break;
 
          case BOUNDARY_DASH_2:
@@ -1969,6 +1978,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             break;
 
          case CR_AFTER_DASH_BOUNDARY:
+            fsm_state.mp_r_i = 0;
             if ( fsm_state.ch == LF )
                state = LF_AFTER_DASH_BOUNDARY;
             else
@@ -1983,9 +1993,12 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                break;
 
             }
-            for ( int i = 0 ; fsm_state.p <= b->end and i < cd_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != content_disposition [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < cd_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != content_disposition [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != cd_i )
+               break;
+            fsm_state.mp_r_i = 0;
             std::memset ( fsm_state.filename , 0 , 129 );
             state = CONTENT_DISPOSITION;
             fsm_state.p--;
@@ -2343,9 +2356,12 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                break;
 
             }
-            for ( int i = 0 ; fsm_state.p <= b->end and i < ct_i ; i++, fsm_state.p++ )
-               if ( *fsm_state.p != content_type [ i ] )
+            for ( ; fsm_state.p <= b->end and fsm_state.mp_r_i < ct_i ; fsm_state.mp_r_i++, fsm_state.p++ )
+               if ( *fsm_state.p != content_type [ fsm_state.mp_r_i ] )
                   return 400;
+            if ( fsm_state.mp_r_i != ct_i )
+               break;
+            fsm_state.mp_r_i = 0;
             std::memset ( fsm_state.content_type , 0 , 129 );
             state = CONTENT_TYPE;
             fsm_state.p--;
@@ -2356,7 +2372,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             {
 
                state = MEDIA_TYPE_TCHAR;
-               // std::memset ( fsm_state.content_type , 0 , 129 );
                fsm_state.mp_i = 0;
                fsm_state.content_type [ fsm_state.mp_i++ ] = fsm_state.ch;
 
@@ -2588,6 +2603,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
             if ( fsm_state.ch == '-' )
             {
 
+               fsm_state.crlf_guard = std::string ( fsm_state.crlf_guard + std::string ( 1 , fsm_state.ch ) );
                state = BOUNDARY_DASH_1;
 
             }
@@ -2706,12 +2722,12 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    {
 
       if ( content_length )
-         return -1;
+         return 400;
       if ( content_type )
       {
          
          if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
-            return -1;
+            return 400;
 
       }
       if ( !fsm_state.file->is_open() )
@@ -2730,12 +2746,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked.txt" , std::ios::app );
 
       }
-      
-         // std::strcpy ( fsm_state.content_type , ( char * )content_type->value );
-         //file is content-type
-      // else
-      //    std::strcpy ( fsm_state.content_type , "text/plain" );
-         //file is text/plain
       return unicore_http_parse_chunked_body ( fsm_state , b );
 
    }
@@ -2743,14 +2753,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    else if ( content_length )
    {
       
-
-      // std::cout << (charcontent_length->value; exit (1);
       content_len = std::atoi ( ( char * )content_length->value );
       if ( content_len <= 0 /* or content-len > max_length */ )
-         return -1;
+         return 400;
       if ( fsm_state.content_length == 0 )
          fsm_state.content_length = content_len;
-      // std::cout << "length is " << fsm_state.content_length << "\n";
 
       if ( content_type )
       {
@@ -2766,15 +2773,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             {
 
                if ( j == 70 )
-                  return -1;
+                  return 400;
                fsm_state.boundary [ j ] = content_type_str [ i ]; 
 
             }
             fsm_state.boundary_length = j;
-
-            // std::cout << "boundary=" << fsm_state.boundary;
-
-            // std::cout << "multi" << "\n"; exit(1);
             return unicore_http_parse_multipart_body ( fsm_state , b );
 
          }
@@ -2787,8 +2790,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
-                  // std::cout << "hit\n";
-                  // std::cout << "lenfdf dgth is " << fsm_state.content_length << "\n";
                   if ( fsm_state.content_length == 0 )
                   {
 
@@ -2803,15 +2804,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                }
                if ( fsm_state.content_length == 0 )
                   return 1;
-               // std::cout << "length is " << fsm_state.content_length;
                return 2;
 
             }
-
             else
             {
-
-               
 
                if ( !fsm_state.file->is_open() )
                {
@@ -2820,7 +2817,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   {
 
 
-                     // mime types to extension
                      selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
                      if ( selected_mime_type )
                         fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative" + std::string ( ( char * )selected_mime_type->value ) );
@@ -2830,23 +2826,12 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   }
                   else
                      fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative.txt" , std::ios::app );
-                     // file is text/plain
-                  // produce to file
                   if ( !fsm_state.file->is_open() )
-                  {
-
                      std::cerr << "Error opening file for writing: " << fsm_state.r->route->upload_path << "\n";
-                     exit (1);
-
-                  }
-
                }
-               // std::cout << "here"; exit(1);
-               // std::cout << fsm_state.content_length; exit(1);
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
-                  // std::cout << *fsm_state.p;
                   if ( fsm_state.content_length == 0 )
                   {
 
@@ -2858,7 +2843,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   }
                   *fsm_state.file << *fsm_state.p;
                   fsm_state.content_length--;
-                  // std::cerr << fsm_state.content_length << "\n";
 
                }
                if ( fsm_state.content_length == 0 )
@@ -2869,56 +2853,17 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
 
                }
-               // std::cout << fsm_state.content_length;
-               // std::cout << fsm_state.content_length; exit(1);
-               // std::cout << "length is " << fsm_state.content_length << "ffff";
                fsm_state.R = 2;
                return 2;
 
             }
 
          }
-         
-
 
       }
       
    }
 
-   // std::cout << "general end"; exit(1);
    return 1;
 
 }
-
-
-
-/*
-
-
-   parse_message_body ( headers , body , route )
-      if ( headers has transfer-encoding and transfer-encoding is chunked )
-         if ( headers has content-length or ( headers has content-type and content-type is multipart ) )
-            error
-         if ( headers has content-type )
-            file is content-type
-         else
-            file is text/plain
-         parse chunked body and produce to file
-
-      else if ( headers has content-length and content-length > 0 and content-length <= max length )
-         if ( headers has multipart content-type )
-            parse multipart and produce to files
-      
-         else if ( route cgi is on )
-            buffer body
-
-         else
-            if ( headers has content-type )
-               file is content-type
-            else
-               file is text/plain
-            produce to file
-
-      
-
-*/
