@@ -289,9 +289,10 @@ int WebServer::run()
                         {
 
                             int valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                            req_line = valid;
                             if  ( valid == 2 )
                                 std::cerr << "request not finished yet\n";
-                            else if ( valid == 1 )
+                            else if ( valid == 200 or valid == 204 or valid == 201 )
                             {
                                 std::cerr << "request finished\n";
                                 connections.erase(event.ident);
@@ -320,8 +321,7 @@ int WebServer::run()
                         {
                             
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
-                            // std::cout << req_
-                            std::cout << req_line << "\n\n\n";
+                            std::cout << "FUCK:" << req_line << "\n\n\n";
                             
                             if (req_line == 1)
                             {
@@ -330,9 +330,10 @@ int WebServer::run()
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
                                 valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                                req_line = valid;
                                 if  ( valid == 2 )
                                     std::cerr << "request not finished yet\n";
-                                else if ( valid == 1 )
+                                else if ( valid == 200 or valid == 204 or valid == 201 )
                                 {
                                     std::cerr << "request finished bottom\n";
                                     connections.erase(event.ident);
@@ -349,7 +350,8 @@ int WebServer::run()
                                 else
                                 {
 
-                                    std::cerr << "bad message body\n";
+                                    std::cerr << "bad message body bottom\n";
+                                    std::cerr << valid << "\n";
                                     std::cerr << conn->state.p;
 
                                 }

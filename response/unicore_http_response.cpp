@@ -190,7 +190,41 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             response.headers["Location"] = static_uri_path+ "/";
             return;
         }
-        if (client.request.route->file_if_directory_request)
+        if (client.request.route->directory_listing)
+        {
+            std::cout << "path of directory: " << path << std::endl;
+            std::cout << "there is a directory listing" << std::endl;
+            DIR *dir = opendir(path.c_str());
+            client.filename.clear();
+            if (dir == NULL)
+            {
+                check_files_errors(client, response, status_codes, "403");
+                return;
+            }
+            std::ostringstream html;
+            html << "<html><head><title>Directory Listing</title></head><body>";
+            html << "<h1>Directory Listing for " << static_uri_path << "</h1><ul>";
+
+            struct dirent *entry;
+            while ((entry = readdir(dir)) != NULL)
+            {
+                std::string name = entry->d_name;
+                std::cerr << name << std::endl;
+                if (name == "." || name == "..")
+                    continue;
+                html << "<li><a href=\"/" << name << "\">" << "go to " << name << "</a></li>";
+            }
+
+            closedir(dir);
+            html << "</ul></body></html>";
+
+            response.status_code = 200;
+            response.reason_phrase = "OK";
+            response.headers["Content-Type"] = "text/html";
+            response.body = html.str();
+            std::cout << "end listing directory" << std::endl;
+        }
+        else if (client.request.route->file_if_directory_request)
         {
             std::cout << "there is a file_if_directory_request" << std::endl;
             client.filename = "./" + std::string((char *)client.request.route->file_if_directory_request);
@@ -210,39 +244,6 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             else
                 response.headers["Content-Type"] = "application/octet-stream";
             return;
-        }
-        else if (client.request.route->directory_listing)
-        {
-            std::cout << "path of directory: " << path << std::endl;
-            std::cout << "there is a directory listing" << std::endl;
-            DIR *dir = opendir(path.c_str());
-            client.filename.clear();
-            if (dir == NULL)
-            {
-                check_files_errors(client, response, status_codes, "403");
-                return;
-            }
-            std::ostringstream html;
-            html << "<html><head><title>Directory Listing</title></head><body>";
-            html << "<h1>Directory Listing for " << static_uri_path << "</h1><ul>";
-
-            struct dirent *entry;
-            while ((entry = readdir(dir)) != NULL)
-            {
-                std::string name = entry->d_name;
-                if (name == "." || name == "..")
-                    continue;
-                html << "<li><a href=\"" << static_uri_path << "/" << name << "\">" << name << "</a></li>";
-            }
-
-            closedir(dir);
-            html << "</ul></body></html>";
-
-            response.status_code = 200;
-            response.reason_phrase = "OK";
-            response.headers["Content-Type"] = "text/html";
-            response.body = html.str();
-            std::cout << "end listing directory" << std::endl;
         }
         else
             check_files_errors(client, response, status_codes, "403");

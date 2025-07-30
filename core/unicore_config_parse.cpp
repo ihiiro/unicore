@@ -4,6 +4,8 @@
 
 #include <fstream>
 
+#include "../response/unicore_http_response.hpp"
+
 int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& c )
 {
 
@@ -372,7 +374,7 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
 
                 c [ j ].routes = new ht;
                 c [ j ].routes->buckets = new bucket [ M ];
-                std::memset ( c [ j ].routes->buckets , 0 , M );
+                std::memset ( c [ j ].routes->buckets , 0 , M * sizeof ( bucket ) );
 
                 if ( ch == '0' or ch == '1' )
                 {
@@ -625,6 +627,9 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 route->file_if_directory_request [ i ] = '\0';
                 if ( !std::ifstream ( "./" + std::string ( route->file_if_directory_request ) ).is_open() )
                     return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                if ( check_path_type ( "./" + std::string ( route->file_if_directory_request ) )  == "directory" )
+                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+
                 if ( ch == '0' or ch == '1' )
                 {
 
@@ -725,7 +730,7 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                     case '/':
                         c [ j ].redirection_list = new ht;
                         c [ j ].redirection_list->buckets = new bucket [ M ];
-                        std::memset ( c [ j ].redirection_list->buckets , 0 , M );
+                        std::memset ( c [ j ].redirection_list->buckets , 0 , M * sizeof ( bucket ) );
                         std::memset ( primary_buf , 0 , 512 );
                         i = 0;
                         primary_buf [ i++ ] = ch;
@@ -904,7 +909,7 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
 
                 c [ j ].error_pages = new ht;
                 c [ j ].error_pages->buckets = new bucket [ M ];
-                std::memset ( c [ j ].error_pages->buckets , 0 , M );
+                std::memset ( c [ j ].error_pages->buckets , 0 , M * sizeof ( bucket ) );
 
                 if ( ch >= '0' and ch <= '9' )
                 {

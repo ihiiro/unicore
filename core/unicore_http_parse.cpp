@@ -1799,7 +1799,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
                b->pos = fsm_state.p;
                fsm_state.state = 0;
-               return 1;
+               return 200;
 
             }
             return 400;
@@ -1815,7 +1815,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             b->pos = fsm_state.p;
             fsm_state.state = 0;
             fsm_state.file->close();
-            return 1;
+            return 200;
 
       }
 
@@ -1828,7 +1828,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       b->pos = fsm_state.p;
       fsm_state.state = 0;
       fsm_state.file->close();
-      return 1;
+      return 200;
 
    }
    fsm_state.R = 2;
@@ -2628,7 +2628,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case CLOSE_DASH_2:
             fsm_state.state = 0;
             b->pos = fsm_state.p;
-            return 1;         
+            return 200;         
 
       }
 
@@ -2643,7 +2643,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
       std::memset ( fsm_state.content_type , 0 , 129 );
       fsm_state.state = 0;
       b->pos = fsm_state.p;
-      return 1;
+      return 200;
 
    }
    fsm_state.R = 2;
@@ -2741,7 +2741,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       
       content_len = std::atoi ( ( char * )content_length->value );
       if ( content_len <= 0 /* or content-len > max_length */ )
-         return 400;
+         return 204;
       if ( fsm_state.content_length == 0 )
          fsm_state.content_length = content_len;
 
@@ -2780,7 +2780,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   {
 
                      b->pos = fsm_state.p;
-                     return 1;
+                     return 201;
 
                   }
                   fsm_state.r->route->message_body.append ( 1 , ( char )*fsm_state.p );
@@ -2789,7 +2789,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
                }
                if ( fsm_state.content_length == 0 )
-                  return 1;
+                  return 201;
                return 2;
 
             }
@@ -2824,7 +2824,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                      std::cout << "finished\n\n";
                      b->pos = fsm_state.p;
                      fsm_state.file->close ();
-                     return 1;
+                     return 201;
 
                   }
                   *fsm_state.file << *fsm_state.p;
@@ -2835,7 +2835,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                {
 
                   fsm_state.file->close ();
-                  return 1;
+                  return 201;
 
 
                }
@@ -2850,6 +2850,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       
    }
 
-   return 1;
+   return 204;
 
 }

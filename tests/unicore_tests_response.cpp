@@ -93,7 +93,7 @@ int main ( )
 
         r.headers = new ht;
         r.headers->buckets = new bucket [ M ];
-        std::memset ( r.headers->buckets , 0 , M );
+        std::memset ( r.headers->buckets , 0 , M * sizeof ( bucket ) );
         if ( unicore_http_parse_field_lines ( &r , &b ) != -1 )
             std::cout << "field lines parsed\n";
 
