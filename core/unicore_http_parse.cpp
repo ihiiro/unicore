@@ -2665,7 +2665,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
    if ( ( content_length or transfer_encoding ) and ( !fsm_state.r->route->upload_path or fsm_state.r->REQUEST_METHOD != POST ) )
       return 400;
-
    
    mimes.buckets = new bucket [ M ];
    std::memset ( mimes.buckets , 0 , M * sizeof ( bucket ) );
