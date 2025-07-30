@@ -95,11 +95,11 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
     buck = get(client.info.error_pages, error);
     if (buck && buck->value)
     {
-        std::cout << "bucket->value: " << (char *)buck->value << std::endl;
+        std::cerr << "bucket->value: " << (char *)buck->value << std::endl;
         client.filename  =  "." + std::string((char *)buck->value);
         if (!std::ifstream(client.filename).is_open())
         {
-            std::cout << "could not open file: " << client.filename << std::endl;
+            std::cerr << "could not open file: " << client.filename << std::endl;
             response.status_code = 404;
             response.reason_phrase = "Not Found";
             response.headers["Content-Type"] = "text/html";
@@ -123,10 +123,11 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
 //--------------------------------------------------------------------GET________________METHOD-----------------------------------------------------------------------------//
 void    getmethod(client_conn &client, http_response_t &response, std::map<int, std::string> &status_codes, std::map<std::string, std::string> &mime_types_map)
 {
-    std::cout << "getmethod called" << std::endl;
+    std::cerr << "getmethod called" << std::endl;
     bucket *bucket;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
+    std::cerr << "root: " << root << std::endl;
     if (client.request.static_uri_path != NULL)
     {
         static_uri_path = (char *)client.request.static_uri_path;
@@ -137,21 +138,21 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         std::string script_name = (char *)client.request.SCRIPT_NAME;
         path = "." + root + script_name;
     }
-    std::cout << "SCRIPT_NAME: " << client.request.SCRIPT_NAME << std::endl;
-    std::cout << "PATH_TRNANSLATED: " << client.request.PATH_TRANSLATED << std::endl;
+    std::cerr << "SCRIPT_NAME: " << client.request.SCRIPT_NAME << std::endl;
+    std::cerr << "PATH_TRNANSLATED: " << client.request.PATH_TRANSLATED << std::endl;
     //check if file exists
     std::string type = check_path_type(path);
-    std::cout << "type : " << type << std::endl;
-    std::cout << "path : " << path << std::endl;
+    std::cerr << "type : " << type << std::endl;
+    std::cerr << "path : " << path << std::endl;
 
     if(type == "file")
     {
         if (client.request.cgi)
         {
-            std::cout << "cgi request" << std::endl;
+            std::cerr << "cgi request" << std::endl;
             if (client.request.route->CGI_GET)
             {
-                std::cout << "CGI GET request" << std::endl;
+                std::cerr << "CGI GET request" << std::endl;
                 execute_cgi(client.request,response.body);
                 // cgi(client, response);
             }
@@ -163,7 +164,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         }
         else
         {
-            std::cout << "not a cgi request" << std::endl;
+            std::cerr << "not a cgi request" << std::endl;
         }
         std::ifstream file(path, std::ios::binary);
         if (!file.is_open())
@@ -192,13 +193,13 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         }
         if (client.request.route->file_if_directory_request)
         {
-            std::cout << "there is a file_if_directory_request" << std::endl;
+            std::cerr << "there is a file_if_directory_request" << std::endl;
             client.filename = path + client.request.route->file_if_directory_request;
-            std::cout << "client.filename2: " << client.filename << std::endl;
+            std::cerr << "client.filename2: " << client.filename << std::endl;
             std::ifstream file(client.filename, std::ios::binary);
             if (!file.is_open())
             {
-                std::cout << "could not open file: " << client.filename << std::endl;
+                std::cerr << "could not open file: " << client.filename << std::endl;
                 check_files_errors(client, response, status_codes, "404");
                 return;
             }
@@ -213,7 +214,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         }
         else if (client.request.route->directory_listing)
         {
-            std::cout << "there is a directory listing" << std::endl;
+            std::cerr << "there is a directory listing" << std::endl;
             DIR *dir = opendir(path.c_str());
             if (dir == NULL)
             {
@@ -287,7 +288,7 @@ bool remove_directory_recursive(const std::string &path)
 }
 void    deletemethod(client_conn &client, http_response_t &response)
 {
-    std::cout << "deletemethod called" << std::endl;
+    std::cerr << "deletemethod called" << std::endl;
     bucket *bucket;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
@@ -305,8 +306,8 @@ void    deletemethod(client_conn &client, http_response_t &response)
     // path = "." + root + static_uri_path;
     //check if file exists
     std::string type = check_path_type(path);
-    std::cout << "type : " << type << std::endl;
-    std::cout << "path : " << path << std::endl;
+    std::cerr << "type : " << type << std::endl;
+    std::cerr << "path : " << path << std::endl;
     if(type == "file")
     {
         if (remove(path.c_str()) == 0)
@@ -353,6 +354,7 @@ void    postmethod(client_conn &client, http_response_t & response, int req_line
 {
     if (!client.request.route->ROUTE_POST)
     {
+        std::cout << "route post not allowed" << std::endl;
         std::string path;
         std::string static_uri_path;
         std::string root;
@@ -416,8 +418,8 @@ void    postmethod(client_conn &client, http_response_t & response, int req_line
     }
     else
     {
-        std::cout << "postmethod called" << std::endl;
-        std::cout << "req_line: " << req_line << std::endl;
+        std::cerr << "postmethod called" << std::endl;
+        std::cerr << "req_line: " << req_line << std::endl;
         std::ostringstream oss;
         oss << req_line;
         std::string req_line_str = oss.str();
@@ -429,10 +431,11 @@ void     build_http_response(client_conn &client, int req_line)
 {
     http_response_t response;
 
-    std::cout << "req_line = "  << req_line <<std::endl;
+    std::cerr << "req_line = "  << req_line <<std::endl;
     if (req_line >= 100 && req_line < 600 && client.request.REQUEST_METHOD != POST)
     {
-        std::cout << "handling mmore than 1\n";
+        response.http_version = "HTTP/1.1";
+        std::cerr << "handling mmore than 1\n";
         std::ostringstream oss;
         oss << req_line;
         std::string req_line_str = oss.str();
@@ -482,9 +485,9 @@ else{
         }
         else
         {
-            std::cout << "the redirection list is empty" << std::endl;
+            std::cerr << "the redirection list is empty" << std::endl;
             int method = client.request.REQUEST_METHOD;
-            std::cout << "the method is: " << method << std::endl;
+            std::cerr << "the method is: " << method << std::endl;
             if (method == GET || method == POST || method == DELETE)
             {
                 if (method == GET && client.request.route->ROUTE_GET)
@@ -517,19 +520,19 @@ void format_http_response(client_conn &client, http_response_t &response)
     else
     {
         const std::size_t CHUNK_SIZE = 65536;
-        std::cout << "client.filename: ' " << client.filename << "'"<< std::endl;
+        std::cerr << "client.filename: ' " << client.filename << "'"<< std::endl;
 
         // First-time response (headers)
         std::cerr << "client.chunked: " << client.chunked << std::endl;
         if (!client.chunked)
         {
-            std::cout << "not chunked" << std::endl;
+            std::cerr << "not chunked" << std::endl;
             if (client.filename != "")
             {
-                std::cout << "client.filename: " << client.filename<<" not empty " << std::endl;
+                std::cerr << "client.filename: " << client.filename<<" not empty " << std::endl;
                 std::ifstream file(client.filename.c_str(), std::ios::binary);
                 if (!file.is_open())
-                    std::cout << "could not open file: " << client.filename << std::endl;
+                    std::cerr << "could not open file: " << client.filename << std::endl;
             }
             oss << response.http_version << " " << response.status_code << " " << response.reason_phrase << "\r\n";
             for (std::map<std::string, std::string>::iterator it = response.headers.begin(); it != response.headers.end(); ++it) {
@@ -538,7 +541,7 @@ void format_http_response(client_conn &client, http_response_t &response)
             if (client.filename != "")
             {
                 std::streamsize file_size = get_file_size(client.filename);
-                std::cout << "file_size: " << file_size << std::endl;
+                std::cerr << "file_size: " << file_size << std::endl;
                 if (file_size >= 0 && file_size < CHUNK_SIZE)
                 {
                     std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
@@ -567,7 +570,7 @@ void format_http_response(client_conn &client, http_response_t &response)
                     }
                     else
                     {
-                        std::cout << "it is chunked" << std::endl;
+                        std::cerr << "it is chunked" << std::endl;
                         oss << "Transfer-Encoding: chunked\r\n\r\n";
                         client.chunked = true;
                     }
@@ -577,13 +580,13 @@ void format_http_response(client_conn &client, http_response_t &response)
             {
                 if (response.body != "")
                 {
-                    std::cout << "response.body is not empty" << std::endl;
+                    std::cerr << "response.body is not empty" << std::endl;
                     oss << "Content-Length: " << response.body.size() << "\r\n\r\n";
                     oss << response.body; // Add body content
                 }
                 else
                 {
-                    std::cout << "response.body is empty" << std::endl;
+                    std::cerr << "response.body is empty" << std::endl;
                 }
                 oss << "\r\n"; // End of headers
                 client.getBuffer() = oss.str();
@@ -593,11 +596,11 @@ void format_http_response(client_conn &client, http_response_t &response)
 
         if (client.chunked)
         {
-            std::cout << "chunked transfer" << std::endl;
+            std::cerr << "chunked transfer" << std::endl;
             std::ifstream file(client.filename.c_str(), std::ios::binary);
             if (file.is_open())
             {
-                std::cout << "file is open" << std::endl;
+                std::cerr << "file is open" << std::endl;
                 file.seekg(client.offset, std::ios::beg);
 
                 char *buffer_chunk = new char[CHUNK_SIZE];
@@ -624,7 +627,7 @@ void format_http_response(client_conn &client, http_response_t &response)
                 delete[] buffer_chunk;
             }
             else
-                std::cout << "could not open file : "<< client.filename << std::endl;
+                std::cerr << "could not open file : "<< client.filename << std::endl;
         }
     }
     client.getBuffer() = oss.str();
