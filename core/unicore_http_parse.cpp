@@ -2654,15 +2654,6 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
 {
 
-   // if ( !fsm_state.r->route->upload_path or fsm_state.r->REQUEST_METHOD != POST )
-   //    return -1;
-
-   // temp
-   // fsm_state.r->route->upload_path = new char[100];
-   // fsm_state.r->route->upload_path[0] = 'p';
-
-   // if ( !fsm_state )
-   //    exit (1);
    bucket *transfer_encoding = get ( fsm_state.r->headers , ( u_char * )"transfer-encoding" );
    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
@@ -2671,6 +2662,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    ht mimes;
    bucket *selected_mime_type;
    fsm_state.mimes = &mimes;
+
+   if ( ( content_length or transfer_encoding ) and ( !fsm_state.r->route->upload_path or fsm_state.r->REQUEST_METHOD != POST ) )
+      return 400;
 
    
    mimes.buckets = new bucket [ M ];
