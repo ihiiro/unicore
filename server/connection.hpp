@@ -69,11 +69,13 @@ class client_conn : public connection
         bool                chunked;
         bool                keep_alive;
         long				offset;
+        std::string         rest;
 		std::string 		filename;
         unicore_config_t    info;
 		unicore_request_t	request;
 
         std::string&        getBuffer();
+        client_conn(client_conn const& other);
         client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request);
         ~client_conn();
 };

@@ -40,6 +40,14 @@ client_conn::client_conn(int fd, const unicore_config_t& info, int request_line,
 {
 }
 
+client_conn::client_conn(client_conn const& other)
+    : connection(other.sockfd), offset(other.offset), filename(other.filename),
+      info(other.info), request_line(other.request_line), request(other.request),
+      chunked(other.chunked), rest(other.rest)
+{
+    buffer = other.buffer;
+}
+
 std::string& client_conn::getBuffer()
 {
     return buffer;
