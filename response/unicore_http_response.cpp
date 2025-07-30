@@ -193,7 +193,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         if (client.request.route->file_if_directory_request)
         {
             std::cout << "there is a file_if_directory_request" << std::endl;
-            client.filename = path + client.request.route->file_if_directory_request;
+            client.filename = "./" + std::string((char *)client.request.route->file_if_directory_request);
             std::cout << "client.filename2: " << client.filename << std::endl;
             std::ifstream file(client.filename, std::ios::binary);
             if (!file.is_open())
@@ -213,8 +213,10 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         }
         else if (client.request.route->directory_listing)
         {
+            std::cout << "path of directory: " << path << std::endl;
             std::cout << "there is a directory listing" << std::endl;
             DIR *dir = opendir(path.c_str());
+            client.filename.clear();
             if (dir == NULL)
             {
                 check_files_errors(client, response, status_codes, "403");
@@ -234,14 +236,13 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             }
 
             closedir(dir);
-
             html << "</ul></body></html>";
 
             response.status_code = 200;
             response.reason_phrase = "OK";
             response.headers["Content-Type"] = "text/html";
             response.body = html.str();
-
+            std::cout << "end listing directory" << std::endl;
         }
         else
             check_files_errors(client, response, status_codes, "403");
