@@ -2527,43 +2527,48 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
          case LF_BEFORE_BODY_PART:
             state = BODY_PART;
-            if ( fsm_state.mimes)
+            if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
             {
 
-
-               if ( !*fsm_state.filename )
+               if ( fsm_state.mimes)
                {
 
-                  if ( *fsm_state.name and !*fsm_state.content_type )
-                     fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + std::string ( fsm_state.name ) + ".txt" , std::ios::app ); // generate random filename
-                  else if ( *fsm_state.name and *fsm_state.content_type )
+
+                  if ( !*fsm_state.filename )
                   {
 
-                     fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
-                     if ( fsm_state.selected_mime_type )
-                        fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + std::string ( fsm_state.name ) + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app ); // generate random filename
+                     if ( *fsm_state.name and !*fsm_state.content_type )
+                        fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + std::string ( fsm_state.name ) + ".txt" , std::ios::app ); // generate random filename
+                     else if ( *fsm_state.name and *fsm_state.content_type )
+                     {
+
+                        fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
+                        if ( fsm_state.selected_mime_type )
+                           fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + std::string ( fsm_state.name ) + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app ); // generate random filename
+                        else
+                           fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + std::string ( fsm_state.name ) + ".txt" , std::ios::app ); // generate random filename
+
+                     }
+                     else if ( !*fsm_state.name and *fsm_state.content_type )
+                     {
+                           
+                        fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
+                        if ( fsm_state.selected_mime_type )
+                           fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_multipart" + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app );
+
+                     }
                      else
-                        fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + std::string ( fsm_state.name ) + ".txt" , std::ios::app ); // generate random filename
-
-                  }
-                  else if ( !*fsm_state.name and *fsm_state.content_type )
-                  {
-                        
-                     fsm_state.selected_mime_type = get ( fsm_state.mimes , ( u_char * )fsm_state.content_type );
-                     if ( fsm_state.selected_mime_type )
-                        fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_multipart" + std::string ( ( char * )fsm_state.selected_mime_type->value ) , std::ios::app );
+                        fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_multipart.txt" , std::ios::app ); // generate random filename
 
                   }
                   else
-                     fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_multipart.txt" , std::ios::app ); // generate random filename
+                     fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + fsm_state.filename , std::ios::app );
 
                }
                else
-                  fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + fsm_state.filename , std::ios::app );
-
+                  fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + fsm_state.filename , std::ios::app );
+               
             }
-            else
-               fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + fsm_state.filename , std::ios::app );
             *fsm_state.file << fsm_state.ch;
             break;
          
@@ -2663,8 +2668,8 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    bucket *selected_mime_type;
    fsm_state.mimes = &mimes;
 
-   if ( ( content_length or transfer_encoding ) and ( !fsm_state.r->route->upload_path or fsm_state.r->REQUEST_METHOD != POST ) )
-      return 400;
+   // if ( ( content_length or transfer_encoding ) and ( !fsm_state.r->route->upload_path or fsm_state.r->REQUEST_METHOD != POST ) )
+   //    return 400;
    
    mimes.buckets = new bucket [ M ];
    std::memset ( mimes.buckets , 0 , M * sizeof ( bucket ) );
@@ -2710,25 +2715,30 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
          return 400;
       if ( content_type )
       {
-         
+
          if ( !std::strncmp ( "multipart" , ( char * )content_type->value , 9 ) )
             return 400;
 
       }
-      if ( !fsm_state.file->is_open() )
+      if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
       {
 
-         if ( content_type )
+         if ( !fsm_state.file->is_open() )
          {
 
-            selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
-            if ( selected_mime_type )
-               fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked" + std::string ( ( char * )selected_mime_type->value ) );
+            if ( content_type )
+            {
+
+               selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
+               if ( selected_mime_type )
+                  fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked" + std::string ( ( char * )selected_mime_type->value ) );
+               else
+                  fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked.txt" , std::ios::app );
+            }
             else
-               fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked.txt" , std::ios::app );
+               fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked.txt" , std::ios::app );
+
          }
-         else
-            fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked.txt" , std::ios::app );
 
       }
       return unicore_http_parse_chunked_body ( fsm_state , b );
@@ -2795,24 +2805,29 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else
             {
 
-               if ( !fsm_state.file->is_open() )
+               if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
                {
 
-                  if ( content_type )
+                  if ( !fsm_state.file->is_open() )
                   {
 
+                     if ( content_type )
+                     {
 
-                     selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
-                     if ( selected_mime_type )
-                        fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative" + std::string ( ( char * )selected_mime_type->value ) );
+
+                        selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
+                        if ( selected_mime_type )
+                           fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative" + std::string ( ( char * )selected_mime_type->value ) );
+                        else
+                           fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative.txt" , std::ios::app );
+                        
+                     }
                      else
-                        fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative.txt" , std::ios::app );
-                     
+                        fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative.txt" , std::ios::app );
+                     if ( !fsm_state.file->is_open() )
+                        std::cerr << "Error opening file for writing: " << fsm_state.r->route->upload_path << "\n";
                   }
-                  else
-                     fsm_state.file->open ( "./" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative.txt" , std::ios::app );
-                  if ( !fsm_state.file->is_open() )
-                     std::cerr << "Error opening file for writing: " << fsm_state.r->route->upload_path << "\n";
+
                }
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
