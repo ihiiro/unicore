@@ -95,8 +95,8 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
     buck = get(client.info.error_pages, error);
     if (buck && buck->value)
     {
-        std::cerr << "bucket->value: " << (char *)buck->value << std::endl;
-        client.filename  =  "." + std::string((char *)buck->value);
+        std::cout << "bucket->value: " << (char *)buck->value << std::endl;
+        client.filename  =  "./_ROOT_/" + std::string((char *)buck->value);
         if (!std::ifstream(client.filename).is_open())
         {
             std::cerr << "could not open file: " << client.filename << std::endl;
@@ -117,7 +117,10 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
         response.status_code = std::stoi(error_number);
         response.reason_phrase = status_codes[response.status_code];
         response.headers["Content-Type"] = "text/html";
-        response.body = "<!DOCTYPE html>\n<html><body><h1>" + status_codes[response.status_code]+ "</h1></body></html>";
+        if (response.status_code > 300)
+            response.body = "<!DOCTYPE html>\n<html><body><h1>" + status_codes[response.status_code]+ "</h1></body></html>";
+        else
+            response.headers["Content-Length"] = "0";
     }
 }
 //--------------------------------------------------------------------GET________________METHOD-----------------------------------------------------------------------------//
@@ -131,12 +134,12 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     if (client.request.static_uri_path != NULL)
     {
         static_uri_path = (char *)client.request.static_uri_path;
-        path = "." + root + static_uri_path;
+        path = "./_ROOT_/" + root + static_uri_path;
     }
     else
     {
         std::string script_name = (char *)client.request.SCRIPT_NAME;
-        path = "." + root + script_name;
+        path = "./_ROOT_/" + root + script_name;
     }
     std::cerr << "SCRIPT_NAME: " << client.request.SCRIPT_NAME << std::endl;
     std::cerr << "PATH_TRNANSLATED: " << client.request.PATH_TRANSLATED << std::endl;
@@ -297,12 +300,12 @@ void    deletemethod(client_conn &client, http_response_t &response)
     if (client.request.static_uri_path != NULL)
     {
         static_uri_path = (char *)client.request.static_uri_path;
-        path = "." + root + static_uri_path;
+        path = "./_ROOT_/"+ root + static_uri_path;
     }
     else
     {
         std::string script_name = (char *)client.request.SCRIPT_NAME;
-        path = "." + root + script_name;
+        path = "./_ROOT_/"+ root + script_name;
     }
     // static_uri_path = (char *)client.request.static_uri_path;
     // path = "." + root + static_uri_path;
@@ -363,12 +366,12 @@ void    postmethod(client_conn &client, http_response_t & response, int req_line
         if (client.request.static_uri_path != NULL)
         {
             static_uri_path = (char *)client.request.static_uri_path;
-            path = "." + root + static_uri_path;
+            path = "./_ROOT_/" + root + static_uri_path;
         }
         else
         {
             std::string script_name = (char *)client.request.SCRIPT_NAME;
-            path = "." + root + script_name;
+            path = "./_ROOT_/" + root + script_name;
         }
         // std::string path = "." + std::string(client.request.route->root) + std::string((char *)client.request.static_uri_path);
         if (!std::ifstream(path).is_open())
