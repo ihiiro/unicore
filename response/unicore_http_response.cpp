@@ -117,7 +117,10 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
         response.status_code = std::stoi(error_number);
         response.reason_phrase = status_codes[response.status_code];
         response.headers["Content-Type"] = "text/html";
-        response.body = "<!DOCTYPE html>\n<html><body><h1>" + status_codes[response.status_code]+ "</h1></body></html>";
+        if (response.status_code > 300)
+            response.body = "<!DOCTYPE html>\n<html><body><h1>" + status_codes[response.status_code]+ "</h1></body></html>";
+        else
+            response.headers["Content-Length"] = "0";
     }
 }
 //--------------------------------------------------------------------GET________________METHOD-----------------------------------------------------------------------------//
