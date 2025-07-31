@@ -2750,7 +2750,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       
       content_len = std::atoi ( ( char * )content_length->value );
       if ( content_len <= 0 /* or content-len > max_length */ )
-         return 204;
+         return 200;
       if ( fsm_state.content_length == 0 )
          fsm_state.content_length = content_len;
 
@@ -2864,6 +2864,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       
    }
 
-   return 204;
+   return 200;
 
 }
