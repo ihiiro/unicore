@@ -75,13 +75,6 @@ server::server(const std::string &host, const size_t &port, const unicore_config
     }
 }
 
-server::server(const std::string &host, const size_t &port, const unicore_config_t &info, int listen_sockfd)
-    : failed(false), listen_sockfd(listen_sockfd), port(port), host(host), info(info)
-{
-    std::cerr << "Shadow server created for " << host << ":" << port << std::endl;
-    return;
-}
-
 server::~server()
 {
 }

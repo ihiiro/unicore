@@ -15,33 +15,6 @@ bool WebServer::server_already_exists(const std::string &host, size_t port) cons
     return false;
 }
 
-bool WebServer::has_same_name(const std::string &host, size_t port, const std::string &name) const
-{
-    std::vector<server>::const_iterator it;
-    for (it = servers.begin(); it != servers.end(); ++it)
-    {
-        if (it->host == host && it->port == port)
-        {
-            if (it->info.server_name == name)
-                return true;
-        }
-    }
-    return false;
-}
-
-int WebServer::get_socket_fd(const std::string &host, size_t port) const
-{
-    std::vector<server>::const_iterator it;
-    for (it = servers.begin(); it != servers.end(); ++it)
-    {
-        if (it->host == host && it->port == port)
-        {
-            return it->listen_sockfd;
-        }
-    }
-    return -1;
-}
-
 int WebServer::init()
 {
     std::vector<unicore_config_t> config;
@@ -76,14 +49,8 @@ int WebServer::init()
         std::string host = info.host;
         if (server_already_exists(host, info.port))
         {
-            if (has_same_name(host, info.port, info.server_name))
-            {
-                std::cerr << "Server already exists for " << host << ":" << info.port << std::endl;
-                return 0;
-            }
-            int fd = get_socket_fd(host, info.port);
-            server srv(host, info.port, info, fd);
-            continue;
+            std::cerr << "Server already exists for " << host << ":" << info.port << std::endl;
+            return 0;
         }
         server srv(host, info.port, info);
         if (srv.failed)
@@ -221,10 +188,9 @@ int WebServer::run()
                         close(event.ident);
                         break;
                     }
-                    buf_req.pos = ( u_char * )buf;
+                    buf_req.pos = (u_char *)buf;
                     buf_req.start = buf_req.pos;
                     buf_req.end = buf_req.start + bytes - 1;
-                    // write ( 2 , buf , bytes );
                     if (bytes <= 0)
                     {
                         if (bytes < 0)
@@ -247,7 +213,9 @@ int WebServer::run()
                         if (conn->state.R == 2)
                         {
                             int valid = unicore_http_parse_message_body (conn->state , &buf_req);
-                            if ( conn->state.r->REQUEST_METHOD == POST or ( valid >= 400 and valid < 600 ) )
+                            if (valid == 201 && conn->state.r->REQUEST_METHOD != POST)
+                                req_line = 1;
+                            else
                                 req_line = valid;
                             else
                                 req_line = 1;
@@ -327,7 +295,8 @@ int WebServer::run()
                     continue;
                 }
                 std::cerr << "Handling write event on fd " << event.ident << std::endl;
-                build_http_response(*conn, conn->request_line);
+                if (conn->offset != -1337)
+                    build_http_response(*conn, conn->request_line);
                 std::string response = "";
                 if (conn->rest.size() > 0)
                 {
@@ -341,7 +310,7 @@ int WebServer::run()
                 bytes_sent = send(event.ident, response.c_str(), total_size, 0);
                 if (bytes_sent < 0 || bytes_sent < total_size)
                 {
-                    std::cerr << "Response not fully sent on fd " << event.ident << ": " << strerror(errno) << std::endl;
+                    std::cerr << "Response not fully sent on fd " << event.ident << std::endl;
                     if (bytes_sent < 0)
                         conn->rest = response;
                     else
@@ -364,7 +333,7 @@ int WebServer::run()
                     delete conn;
                     continue ;
                 }
-                if (conn->offset == -1337)
+                if (conn->offset == -1337 && conn->rest.size() == 0)
                 {
                     if (!conn->keep_alive)
                     {
@@ -381,7 +350,6 @@ int WebServer::run()
                         int ready = select(event.ident, &readfds, NULL, NULL, &timeout);
                         if (ready > 0 && FD_ISSET(event.ident, &readfds))
                         {
-                            std::cerr << "Entered here" << std::endl;
                             char tmp[1];
                             recv(event.ident, tmp, 1, 0);
                         }
