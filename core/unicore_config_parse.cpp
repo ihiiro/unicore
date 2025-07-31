@@ -461,6 +461,13 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 for ( int k = 0 ; k < len ; k++ )
                     route->root [ k ] = primary_buf [ k ];
                 route->root [ i ] = '\0';
+                if ( check_path_type ( "./_ROOT_/" + std::string ( route->root ) )  != "directory" )
+                {
+
+                    std::cerr << "No " << route->root << " directory in ./_ROOT_\n";
+                    std::exit ( 1 );
+
+                }
                 if ( ch == '/' )
                 {
 
@@ -554,6 +561,13 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                     for ( int k = 0 ; k < len ; k++ )
                         route->upload_path [ k ] = secondary_buf [ k ];
                     route->upload_path [ i ] = '\0';
+                    if ( check_path_type ( "./_ROOT_/" + std::string ( route->root ) + "/" + std::string ( route->upload_path )  ) != "directory" )
+                    {
+
+                        std::cerr << "No " << route->upload_path << " directory inside ./_ROOT_/" << route->root << "\n";
+                        std::exit ( 1 );
+
+                    }
                     state = ROUTES_SEPARATOR_AFTER_UPLOAD_PATH;
 
                 }
@@ -625,11 +639,21 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 for ( int k = 0 ; k < len ; k++ )
                     route->file_if_directory_request [ k ] = secondary_buf [ k ];
                 route->file_if_directory_request [ i ] = '\0';
-                if ( !std::ifstream ( "./" + std::string ( route->file_if_directory_request ) ).is_open() )
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
-                if ( check_path_type ( "./" + std::string ( route->file_if_directory_request ) )  == "directory" )
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                if ( !std::ifstream ( "./_ROOT_/" + std::string ( route->file_if_directory_request ) ).is_open() )
+                {
 
+                    std::cerr << "No " << route->file_if_directory_request << " file in ./_ROOT_\n";
+                    std::exit ( 1 );
+
+                }
+                if ( check_path_type ( "./_ROOT_/" + std::string ( route->file_if_directory_request ) )  == "directory" )
+                {
+
+                    std::cerr << "No " << route->file_if_directory_request << " file in ./_ROOT_\n";
+                    std::cerr << "Directories aren't allowed\n";
+                    std::exit ( 1 );
+
+                }
                 if ( ch == '0' or ch == '1' )
                 {
 
@@ -990,8 +1014,21 @@ int unicore_config_parse ( std::ifstream &s , std::vector < unicore_config_t >& 
                 for ( int k = 0 ; k < i ; k++ )
                     value [ k ] = secondary_buf [ k ];
                 value [ i ] = '\0';
-                if ( !std::ifstream ( "./" + std::string ( value ) ).is_open() )
-                    return UNICORE_INVALID_CONFIG_FILE_ERROR;
+                if ( !std::ifstream ( "./_ROOT_/" + std::string ( value ) ).is_open() )
+                {
+
+                    std::cerr << "No " << value << " file in _ROOT_\n";
+                    std::exit ( 1 );
+
+                }
+                if ( check_path_type ( "./_ROOT_/" + std::string ( value ) ) == "directory" )
+                {
+
+                    std::cerr << "No " << value << " file in _ROOT_\n";
+                    std::cerr << "Directories aren't allowed\n";
+                    std::exit ( 1 );
+
+                }
                 insert ( c [ j ].error_pages , (u_char *)key , value );
                 switch ( ch )
                 {
