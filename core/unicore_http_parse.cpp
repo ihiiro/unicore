@@ -1799,7 +1799,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
                b->pos = fsm_state.p;
                fsm_state.state = 0;
-               return 200;
+               return 201;
 
             }
             return 400;
@@ -1815,7 +1815,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             b->pos = fsm_state.p;
             fsm_state.state = 0;
             fsm_state.file->close();
-            return 200;
+            return 201;
 
       }
 
@@ -1828,7 +1828,7 @@ int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       b->pos = fsm_state.p;
       fsm_state.state = 0;
       fsm_state.file->close();
-      return 200;
+      return 201;
 
    }
    fsm_state.R = 2;
@@ -2633,7 +2633,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
          case CLOSE_DASH_2:
             fsm_state.state = 0;
             b->pos = fsm_state.p;
-            return 200;         
+            return 201;         
 
       }
 
@@ -2648,7 +2648,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
       std::memset ( fsm_state.content_type , 0 , 129 );
       fsm_state.state = 0;
       b->pos = fsm_state.p;
-      return 200;
+      return 201;
 
    }
    fsm_state.R = 2;
