@@ -188,7 +188,7 @@ int WebServer::run()
                         close(event.ident);
                         break;
                     }
-                    buf_req.pos = ( u_char * )buf;
+                    buf_req.pos = (u_char *)buf;
                     buf_req.start = buf_req.pos;
                     buf_req.end = buf_req.start + bytes - 1;
                     if (bytes <= 0)
@@ -213,7 +213,7 @@ int WebServer::run()
                         if (conn->state.R == 2)
                         {
                             int valid = unicore_http_parse_message_body (conn->state , &buf_req);
-                            if ( valid == 201 and conn->state.r->REQUEST_METHOD != POST )
+                            if (valid == 201 && conn->state.r->REQUEST_METHOD != POST)
                                 req_line = 1;
                             else
                                 req_line = valid;
@@ -308,7 +308,7 @@ int WebServer::run()
                 bytes_sent = send(event.ident, response.c_str(), total_size, 0);
                 if (bytes_sent < 0 || bytes_sent < total_size)
                 {
-                    std::cerr << "Response not fully sent on fd " << event.ident << ": " << strerror(errno) << std::endl;
+                    std::cerr << "Response not fully sent on fd " << event.ident << std::endl;
                     if (bytes_sent < 0)
                         conn->rest = response;
                     else
@@ -335,6 +335,22 @@ int WebServer::run()
                 {
                     if (!conn->keep_alive)
                     {
+                        std::cerr << "Gracefully shutting down fd " << event.ident << std::endl;
+                        shutdown(event.ident, SHUT_WR);
+
+                        fd_set readfds;
+                        struct timeval timeout;
+                        FD_ZERO(&readfds);
+                        FD_SET(event.ident, &readfds);
+                        timeout.tv_sec = 1;
+                        timeout.tv_usec = 0;
+
+                        int ready = select(event.ident, &readfds, NULL, NULL, &timeout);
+                        if (ready > 0 && FD_ISSET(event.ident, &readfds))
+                        {
+                            char tmp[1];
+                            recv(event.ident, tmp, 1, 0);
+                        }
                         std::cerr << "Closing connection on fd " << event.ident << std::endl;
                         struct kevent tmp_event;
                         connections.erase(event.ident);
@@ -342,6 +358,7 @@ int WebServer::run()
                         EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
                         if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
                             std::cerr << "Error unregistering socket from kqueue" << std::endl;
+                        close(event.ident);
                     }
                     else
                     {

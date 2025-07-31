@@ -2,6 +2,7 @@
 
 int execute_cgi(unicore_request_t &req, std::string &result)
 {
+    static int cgi_count = 0;
     int in_pipe[2];
     int out_pipe[2];
     char **env = NULL;
@@ -14,7 +15,7 @@ int execute_cgi(unicore_request_t &req, std::string &result)
             close(in_pipe[0]);
         if (in_pipe[1] >= 0)
             close(in_pipe[1]);
-        return -1;
+        return 500;
     }
 
     pid_t pid = fork();
@@ -26,7 +27,7 @@ int execute_cgi(unicore_request_t &req, std::string &result)
         close(in_pipe[1]);
         close(out_pipe[0]);
         close(out_pipe[1]);
-        return -1;
+        return 500;
     }
     else if (pid == 0)
     {
