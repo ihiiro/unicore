@@ -421,7 +421,6 @@ void    postmethod(client_conn &client, http_response_t & response, int req_line
     else
     {
         std::cerr << "postmethod called" << std::endl;
-        std::cerr << "req_line: " << req_line << std::endl;
         std::ostringstream oss;
         oss << req_line;
         std::string req_line_str = oss.str();
@@ -434,6 +433,9 @@ void     build_http_response(client_conn &client, int req_line)
     http_response_t response;
 
     std::cerr << "req_line = "  << req_line <<std::endl;
+    std::cerr << "client.keep_alive = " << client.keep_alive << std::endl;
+    if (req_line >= 400 && req_line < 600)
+        client.keep_alive = false;
     if (req_line >= 100 && req_line < 600 && client.request.REQUEST_METHOD != POST)
     {
         response.http_version = "HTTP/1.1";
