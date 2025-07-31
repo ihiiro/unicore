@@ -15,33 +15,6 @@ bool WebServer::server_already_exists(const std::string &host, size_t port) cons
     return false;
 }
 
-bool WebServer::has_same_name(const std::string &host, size_t port, const std::string &name) const
-{
-    std::vector<server>::const_iterator it;
-    for (it = servers.begin(); it != servers.end(); ++it)
-    {
-        if (it->host == host && it->port == port)
-        {
-            if (it->info.server_name == name)
-                return true;
-        }
-    }
-    return false;
-}
-
-int WebServer::get_socket_fd(const std::string &host, size_t port) const
-{
-    std::vector<server>::const_iterator it;
-    for (it = servers.begin(); it != servers.end(); ++it)
-    {
-        if (it->host == host && it->port == port)
-        {
-            return it->listen_sockfd;
-        }
-    }
-    return -1;
-}
-
 int WebServer::init()
 {
     std::vector<unicore_config_t> config;
@@ -76,14 +49,8 @@ int WebServer::init()
         std::string host = info.host;
         if (server_already_exists(host, info.port))
         {
-            if (has_same_name(host, info.port, info.server_name))
-            {
-                std::cerr << "Server already exists for " << host << ":" << info.port << std::endl;
-                return 0;
-            }
-            int fd = get_socket_fd(host, info.port);
-            server srv(host, info.port, info, fd);
-            continue;
+            std::cerr << "Server already exists for " << host << ":" << info.port << std::endl;
+            return 0;
         }
         server srv(host, info.port, info);
         if (srv.failed)
@@ -224,7 +191,6 @@ int WebServer::run()
                     buf_req.pos = ( u_char * )buf;
                     buf_req.start = buf_req.pos;
                     buf_req.end = buf_req.start + bytes - 1;
-                    // write ( 2 , buf , bytes );
                     if (bytes <= 0)
                     {
                         if (bytes < 0)
@@ -321,7 +287,8 @@ int WebServer::run()
                     continue;
                 }
                 std::cerr << "Handling write event on fd " << event.ident << std::endl;
-                build_http_response(*conn, conn->request_line);
+                if (conn->offset != -1337)
+                    build_http_response(*conn, conn->request_line);
                 std::string response = "";
                 if (conn->rest.size() > 0)
                 {
@@ -358,7 +325,7 @@ int WebServer::run()
                     delete conn;
                     continue ;
                 }
-                if (conn->offset == -1337)
+                if (conn->offset == -1337 && conn->rest.size() == 0)
                 {
                     if (!conn->keep_alive)
                     {
@@ -369,7 +336,6 @@ int WebServer::run()
                         EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
                         if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
                             std::cerr << "Error unregistering socket from kqueue" << std::endl;
-                        close(event.ident);
                     }
                     else
                     {

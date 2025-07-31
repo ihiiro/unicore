@@ -73,17 +73,22 @@ int execute_cgi(unicore_request_t &req, std::string &result)
     else
     {
         close(in_pipe[0]);
+        close(in_pipe[1]);
         close(out_pipe[1]);
 
-        close(in_pipe[1]);
-
+        std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
+        std::chrono::duration<double> duration = std::chrono::steady_clock::now() - last_activity;
+        while (duration.count() < 5)
+        { 
+            waitpid(pid, NULL, WNOHANG);
+            duration = std::chrono::steady_clock::now() - last_activity;
+        }
         char buffer[4096];
         ssize_t bytes;
         result.append("HTTP/1.1 200 OK\r\n");
         while ((bytes = read(out_pipe[0], buffer, sizeof(buffer))) > 0)
             result.append(buffer, bytes);
         close(out_pipe[0]);
-        waitpid(pid, NULL, 0);
         return 1;
     }
 }

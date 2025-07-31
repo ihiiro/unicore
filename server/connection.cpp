@@ -6,7 +6,6 @@ listening_conn::listening_conn()
     std::memset(&state, 0, sizeof(state));
     state.R = 0;
     state.file = new std::ofstream;
-
 }
 
 listening_conn::listening_conn(int fd, const unicore_config_t& info)
@@ -15,7 +14,6 @@ listening_conn::listening_conn(int fd, const unicore_config_t& info)
     std::memset(&state, 0, sizeof(state));
     state.R = 0;
     state.file = new std::ofstream;
-
 }
 
 listening_conn::listening_conn(const listening_conn& other)
@@ -27,12 +25,6 @@ listening_conn::listening_conn(const listening_conn& other)
 
 listening_conn::~listening_conn()
 {
-    if (state.r)
-    {
-        // delete[] state.r->headers->buckets;
-        // delete state.r->headers;
-        // delete state.r;
-    }
 }
 
 client_conn::client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request)

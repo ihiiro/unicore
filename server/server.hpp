@@ -17,7 +17,6 @@ class	server
 		std::string			host;
 		unicore_config_t	info;
 		server(const std::string& host, const size_t& port, const unicore_config_t& info);
-		server(const std::string& host, const size_t& port, const unicore_config_t& info, int listen_sockfd);
 		server(const server& other);
 		~server();
 		void create_and_bind_socket();
