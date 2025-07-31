@@ -96,7 +96,7 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
     if (buck && buck->value)
     {
         std::cout << "bucket->value: " << (char *)buck->value << std::endl;
-        client.filename  =  "." + std::string((char *)buck->value);
+        client.filename  =  "./_ROOT_/" + std::string((char *)buck->value);
         if (!std::ifstream(client.filename).is_open())
         {
             std::cout << "could not open file: " << client.filename << std::endl;
@@ -130,12 +130,12 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     if (client.request.static_uri_path != NULL)
     {
         static_uri_path = (char *)client.request.static_uri_path;
-        path = "." + root + static_uri_path;
+        path = "./_ROOT_/" + root + static_uri_path;
     }
     else
     {
         std::string script_name = (char *)client.request.SCRIPT_NAME;
-        path = "." + root + script_name;
+        path = "./_ROOT_/" + root + script_name;
     }
     std::cout << "SCRIPT_NAME: " << client.request.SCRIPT_NAME << std::endl;
     std::cout << "PATH_TRNANSLATED: " << client.request.PATH_TRANSLATED << std::endl;
@@ -296,12 +296,12 @@ void    deletemethod(client_conn &client, http_response_t &response)
     if (client.request.static_uri_path != NULL)
     {
         static_uri_path = (char *)client.request.static_uri_path;
-        path = "." + root + static_uri_path;
+        path = "./_ROOT_/"+ root + static_uri_path;
     }
     else
     {
         std::string script_name = (char *)client.request.SCRIPT_NAME;
-        path = "." + root + script_name;
+        path = "./_ROOT_/"+ root + script_name;
     }
     // static_uri_path = (char *)client.request.static_uri_path;
     // path = "." + root + static_uri_path;
@@ -361,12 +361,12 @@ void    postmethod(client_conn &client, http_response_t & response, int req_line
         if (client.request.static_uri_path != NULL)
         {
             static_uri_path = (char *)client.request.static_uri_path;
-            path = "." + root + static_uri_path;
+            path = "./_ROOT_/" + root + static_uri_path;
         }
         else
         {
             std::string script_name = (char *)client.request.SCRIPT_NAME;
-            path = "." + root + script_name;
+            path = "./_ROOT_/" + root + script_name;
         }
         // std::string path = "." + std::string(client.request.route->root) + std::string((char *)client.request.static_uri_path);
         if (!std::ifstream(path).is_open())
