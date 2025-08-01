@@ -1,7 +1,7 @@
 #include "connection.hpp"
 
 listening_conn::listening_conn()
-    : connection(), info()/*, state() */
+    : connection(), info()
 {
     std::memset(&state, 0, sizeof( fsm_state_t ));
     state.mimes->buckets = new bucket [ M ];
@@ -76,10 +76,9 @@ listening_conn::listening_conn(int fd, const unicore_config_t& info)
 }
 
 listening_conn::listening_conn(const listening_conn& other)
-    : connection(other.sockfd), info(other.info)/*, state(other.state) */
+    : connection(other.sockfd), info(other.info)
 {
-    
-    std::memset ( &state , 0 , sizeof ( fsm_state_t ) );
+    std::memset(&state, 0, sizeof(fsm_state_t));
     state.mimes = new ht;
     state.mimes->buckets = new bucket [ M ];
     std::memset ( state.mimes->buckets , 0 , M * sizeof ( bucket ) );
@@ -112,28 +111,14 @@ listening_conn::listening_conn(const listening_conn& other)
     insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
     state.file = new std::ofstream;
     state.R = 0;
-
-
-    // if (!other.state.r)
-    //     state.r = NULL;
 }
 
 listening_conn::~listening_conn()
 {
-
-    std::cerr << "LISTEN DESTR\n\n";
+    delete state.r;
     delete state.file;
-    // delete state.r->absolute_path;
-    // delete state.r->static_uri_path;
-    // delete state.r->SCRIPT_NAME;
-    // delete state.r->PATH_INFO;
-    // delete state.r->PATH_TRANSLATED;
-    // delete state.r->QUERY_STRING;
-    // delete state.r->GATEWAY_INTERFACE;
     delete[] state.mimes->buckets;
     delete state.mimes;
-    delete state.r;
-
 }
 
 client_conn::client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request)
@@ -156,24 +141,20 @@ std::string& client_conn::getBuffer()
 
 client_conn::~client_conn()
 {
-
-    for ( int i = 0 ; i < M ; i++ )
+    for (int i = 0; i < M; i++)
     {
-
-        delete request.headers->buckets [ i ].key;
-        delete ( char * )request.headers->buckets [ i ].value;
-
+        delete request.headers->buckets[i].key;
+        delete (char *)request.headers->buckets[i].value;
     }
-    delete request.static_uri_path;
-    delete request.absolute_path;
     delete[] request.headers->buckets;
-    delete request.SCRIPT_NAME;
-    delete request.PATH_INFO;
-    delete request.PATH_TRANSLATED;
-    delete request.QUERY_STRING;
-    delete request.GATEWAY_INTERFACE;
     delete request.headers;
-
+    delete request.PATH_INFO;
+    delete request.SCRIPT_NAME;
+    delete request.QUERY_STRING;
+    delete request.absolute_path;
+    delete request.static_uri_path;
+    delete request.PATH_TRANSLATED;
+    delete request.GATEWAY_INTERFACE;
 }
 
 connection::connection() : sockfd(-1)
