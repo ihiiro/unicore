@@ -2532,7 +2532,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
          case LF_BEFORE_BODY_PART:
             state = BODY_PART;
-            if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
+            if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST and !fsm_state.redirect_guard )
             {
 
                if ( fsm_state.mimes)
@@ -2686,11 +2686,12 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             return 400;
 
       }
-      if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
+      if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST and !fsm_state.redirect_guard )
       {
 
          if ( !fsm_state.file->is_open() )
          {
+            std::cerr << "\n\n\nFILE OPENED\n\n\n";
 
             if ( content_type )
             {
@@ -2778,7 +2779,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             else
             {
 
-               if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
+               if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST and !fsm_state.redirect_guard )
                {
 
                   if ( !fsm_state.file->is_open() )
