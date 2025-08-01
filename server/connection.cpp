@@ -31,9 +31,7 @@ listening_conn::listening_conn()
     insert ( state.mimes , ( u_char * )"audio/webm" , ( char * )".weba" );
     insert ( state.mimes , ( u_char * )"video/webm" , ( char * )".webm" );
     insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
     insert ( state.mimes , ( u_char * )"application/xhtml+xml" , ( char * )".xhtml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
     insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
     state.R = 0;
     state.file = new std::ofstream;
@@ -71,9 +69,7 @@ listening_conn::listening_conn(int fd, const unicore_config_t& info)
     insert ( state.mimes , ( u_char * )"audio/webm" , ( char * )".weba" );
     insert ( state.mimes , ( u_char * )"video/webm" , ( char * )".webm" );
     insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
     insert ( state.mimes , ( u_char * )"application/xhtml+xml" , ( char * )".xhtml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
     insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
     state.R = 0;
     state.file = new std::ofstream;
@@ -112,9 +108,7 @@ listening_conn::listening_conn(const listening_conn& other)
     insert ( state.mimes , ( u_char * )"audio/webm" , ( char * )".weba" );
     insert ( state.mimes , ( u_char * )"video/webm" , ( char * )".webm" );
     insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
     insert ( state.mimes , ( u_char * )"application/xhtml+xml" , ( char * )".xhtml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
     insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
     state.file = new std::ofstream;
     state.R = 0;
