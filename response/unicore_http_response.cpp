@@ -141,8 +141,10 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         std::string script_name = (char *)client.request.SCRIPT_NAME;
         path = "./_ROOT_/" + root + script_name;
     }
-    std::cerr << "SCRIPT_NAME: " << client.request.SCRIPT_NAME << std::endl;
-    std::cerr << "PATH_TRNANSLATED: " << client.request.PATH_TRANSLATED << std::endl;
+    if (client.request.SCRIPT_NAME)
+        std::cerr << "SCRIPT_NAME: " << client.request.SCRIPT_NAME << std::endl;
+    if (client.request.PATH_TRANSLATED)
+        std::cerr << "PATH_TRNANSLATED: " << client.request.PATH_TRANSLATED << std::endl;
     //check if file exists
     std::string type = check_path_type(path);
     std::cerr << "type : " << type << std::endl;

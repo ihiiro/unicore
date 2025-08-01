@@ -109,7 +109,9 @@ void    WebServer::check_events_timeout()
         EV_SET(&tmp_event, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
         if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
             std::cerr << "Error unregistering socket from kqueue" << std::endl;
+        connection *conn = connections[fd];
         connections.erase(fd);
+        delete conn;
         close(fd);
     }
 }

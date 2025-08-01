@@ -25,8 +25,8 @@ class connection
 {
     protected:
         int                                     sockfd;
+        struct timeval                          last_activity;
         std::string                             buffer;
-        std::chrono::steady_clock::time_point   last_activity;
 
     public:
         connection();

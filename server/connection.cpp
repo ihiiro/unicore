@@ -173,8 +173,6 @@ client_conn::~client_conn()
     delete request.static_uri_path;
     delete request.absolute_path;
     delete[] request.headers->buckets;
-    delete request.absolute_path;
-    delete request.static_uri_path;
     delete request.SCRIPT_NAME;
     delete request.PATH_INFO;
     delete request.PATH_TRANSLATED;
@@ -186,13 +184,13 @@ client_conn::~client_conn()
 
 connection::connection() : sockfd(-1)
 {
-    last_activity = std::chrono::steady_clock::now();
+    gettimeofday(&last_activity, NULL);
     buffer.clear();
 }
 
 connection::connection(int fd) : sockfd(fd)
 {
-    last_activity = std::chrono::steady_clock::now();
+    gettimeofday(&last_activity, NULL);
     buffer.clear();
 }
 
@@ -225,19 +223,21 @@ server_conn::~server_conn()
 
 void connection::update_last_activity()
 {
-    last_activity = std::chrono::steady_clock::now();
+    gettimeofday(&last_activity, NULL);
 }
 
 bool connection::has_timed_out() const
 {
-    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-    std::chrono::duration<double> duration = now - last_activity;
-    return duration.count() > 30;
+    struct timeval  now;
+
+    gettimeofday(&now, NULL);
+    double elapsed = (now.tv_sec - last_activity.tv_sec) + (now.tv_usec - last_activity.tv_usec) / 1000000.0;
+    return elapsed > 30.0;
 }
 
 void connection::reset()
 {
     std::cerr << "Connection reset on fd " << sockfd << std::endl;
     buffer.clear();
-    last_activity = std::chrono::steady_clock::now();
+    gettimeofday(&last_activity, NULL);
 }

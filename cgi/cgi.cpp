@@ -77,12 +77,15 @@ int execute_cgi(unicore_request_t &req, std::string &result)
         close(in_pipe[1]);
         close(out_pipe[1]);
 
-        std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
-        std::chrono::duration<double> duration = std::chrono::steady_clock::now() - last_activity;
-        while (duration.count() < 5)
-        { 
+        struct timeval start, now;
+        gettimeofday(&start, NULL);
+
+        double elapsed = 0.0;
+        while (elapsed < 5.0)
+        {
             waitpid(pid, NULL, WNOHANG);
-            duration = std::chrono::steady_clock::now() - last_activity;
+            gettimeofday(&now, NULL);
+            elapsed = (now.tv_sec - start.tv_sec) + (now.tv_usec - start.tv_usec) / 1000000.0;
         }
         char buffer[4096];
         ssize_t bytes;
