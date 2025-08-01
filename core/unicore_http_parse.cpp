@@ -81,11 +81,11 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             fsm_state.r->headers = new ht;
             fsm_state.r->headers->buckets = new bucket[M];
             std::memset( fsm_state.r->headers->buckets , 0 , M * sizeof(bucket) );
-            fsm_state.r->SCRIPT_NAME = (u_char *)"";
-            fsm_state.r->PATH_INFO = (u_char *)"";
-            fsm_state.r->PATH_TRANSLATED = (u_char *)"";
-            fsm_state.r->QUERY_STRING = (u_char *)"";
-            fsm_state.r->GATEWAY_INTERFACE = (u_char *)"CGI/1.1";
+            fsm_state.r->SCRIPT_NAME = NULL;
+            fsm_state.r->PATH_INFO = NULL;
+            fsm_state.r->PATH_TRANSLATED = NULL;
+            fsm_state.r->QUERY_STRING = NULL;
+            fsm_state.r->GATEWAY_INTERFACE = NULL;
             fsm_state.r->http_version = 101;
             switch ( fsm_state.ch )
             {
@@ -390,7 +390,6 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                fsm_state.p--;
-               fsm_state.dotdot_guard = 1;
                state = URI_SEGMENT;
                break;
 
@@ -444,10 +443,12 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             break;
 
          case URI_SEGMENT:
-            if ( fsm_state.ch != '.' )
-               fsm_state.dotdot_guard = 0;
             if ( fsm_state.ch == '.' and fsm_state.dotdot_guard )
                return 403;
+            else if ( fsm_state.ch == '.' )
+               fsm_state.dotdot_guard = 1;
+            else if ( fsm_state.ch != '.' )
+               fsm_state.dotdot_guard = 0;
             if ( PCHAR( fsm_state.ch ) )
             {
 
@@ -2667,46 +2668,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    bucket *content_type = get ( fsm_state.r->headers , ( u_char * )"content-type" );
    bucket *content_length = get ( fsm_state.r->headers , ( u_char * )"content-length" );
    static char   *content_type_default_postman_form = ( char * )"multipart/form-data; boundary=";
-   // free hash table after
-   ht mimes;
    bucket *selected_mime_type;
-   fsm_state.mimes = &mimes;
-
-   // if ( ( content_length or transfer_encoding ) and ( !fsm_state.r->route->upload_path or fsm_state.r->REQUEST_METHOD != POST ) )
-   //    return 400;
-   
-   mimes.buckets = new bucket [ M ];
-   std::memset ( mimes.buckets , 0 , M * sizeof ( bucket ) );
-   insert ( &mimes , ( u_char * )"audio/aac" , ( char * )".aac" );
-   insert ( &mimes , ( u_char * )"image/apng" , ( char * )".apng" );
-   insert ( &mimes , ( u_char * )"application/x-freearc" , ( char * )".arc" );
-   insert ( &mimes , ( u_char * )"image/avif" , ( char * )".avif" );
-   insert ( &mimes , ( u_char * )"video/x-msvideo" , ( char * )".avi" );
-   insert ( &mimes , ( u_char * )"application/octet-stream" , ( char * )".bin" );
-   insert ( &mimes , ( u_char * )"image/bmp" , ( char * )".bmp" );
-   insert ( &mimes , ( u_char * )"text/css" , ( char * )".css" );
-   insert ( &mimes , ( u_char * )"text/csv" , ( char * )".csv" );
-   insert ( &mimes , ( u_char * )"application/epub+zip" , ( char * )".epub" );
-   insert ( &mimes , ( u_char * )"image/gif" , ( char * )".gif" );
-   insert ( &mimes , ( u_char * )"text/html" , ( char * )".html" );
-   insert ( &mimes , ( u_char * )"image/jpeg" , ( char * )".jpg" );
-   insert ( &mimes , ( u_char * )"text/markdown" , ( char * )".md" );
-   insert ( &mimes , ( u_char * )"audio/mpeg" , ( char * )".mp3" );
-   insert ( &mimes , ( u_char * )"video/mp4" , ( char * )".mp4" );
-   insert ( &mimes , ( u_char * )"video/mpeg" , ( char * )".mpeg" );
-   insert ( &mimes , ( u_char * )"image/png" , ( char * )".png" );
-   insert ( &mimes , ( u_char * )"application/pdf" , ( char * )".pdf" );
-   insert ( &mimes , ( u_char * )"image/svg+xml" , ( char * )".svg" );
-   insert ( &mimes , ( u_char * )"video/mp2t" , ( char * )".ts" );
-   insert ( &mimes , ( u_char * )"audio/wav" , ( char * )".wav" );
-   insert ( &mimes , ( u_char * )"audio/webm" , ( char * )".weba" );
-   insert ( &mimes , ( u_char * )"video/webm" , ( char * )".webm" );
-   insert ( &mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-   insert ( &mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-   insert ( &mimes , ( u_char * )"application/xhtml+xml" , ( char * )".xhtml" );
-   insert ( &mimes , ( u_char * )"application/xml" , ( char * )".xml" );
-   insert ( &mimes , ( u_char * )"application/xml" , ( char * )".xml" );
-
    int    content_len;
    char   *content_type_str;
    int i = 0, j = 0;
@@ -2733,7 +2695,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( content_type )
             {
 
-               selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
+               selected_mime_type = get ( fsm_state.mimes , ( u_char * )content_type->value );
                if ( selected_mime_type )
                   fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked" + std::string ( ( char * )selected_mime_type->value ) );
                else
@@ -2819,7 +2781,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                      {
 
 
-                        selected_mime_type = get ( &mimes , ( u_char * )content_type->value );
+                        selected_mime_type = get ( fsm_state.mimes , ( u_char * )content_type->value );
                         if ( selected_mime_type )
                            fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative" + std::string ( ( char * )selected_mime_type->value ) );
                         else
