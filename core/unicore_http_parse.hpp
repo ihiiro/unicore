@@ -71,6 +71,8 @@ typedef struct
 
     std::string                         crlf_guard;
 
+    bool                                dotdot_guard;
+
 } fsm_state_t;
 
 int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b , unicore_config_t& c );

@@ -390,6 +390,7 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             {
 
                fsm_state.p--;
+               fsm_state.dotdot_guard = 1;
                state = URI_SEGMENT;
                break;
 
@@ -443,6 +444,10 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
             break;
 
          case URI_SEGMENT:
+            if ( fsm_state.ch != '.' )
+               fsm_state.dotdot_guard = 0;
+            if ( fsm_state.ch == '.' and fsm_state.dotdot_guard )
+               return 403;
             if ( PCHAR( fsm_state.ch ) )
             {
 
@@ -458,7 +463,6 @@ int unicore_http_parse_request_line ( fsm_state_t& fsm_state , unicore_buf_t *b
                   if ( fsm_state.portion == 1 )
                   {
 
-                     // std::cout << "ROUTE " << "/" << "\n";
                      fsm_state.buckett = get ( c.routes , (u_char *)"/" );
                      if ( fsm_state.buckett == NULL )
                         return 400;

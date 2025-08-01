@@ -213,9 +213,7 @@ int WebServer::run()
                         if (conn->state.R == 2)
                         {
                             int valid = unicore_http_parse_message_body (conn->state , &buf_req);
-                            if (valid == 201 && conn->state.r->REQUEST_METHOD != POST)
-                                req_line = 1;
-                            else
+                            if ( conn->state.r->REQUEST_METHOD == POST or ( valid >= 400 and valid < 600 ))
                                 req_line = valid;
                             else
                                 req_line = 1;
@@ -245,8 +243,8 @@ int WebServer::run()
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
                                 valid = unicore_http_parse_message_body (conn->state , &buf_req);
-                                if ( conn->state.r->REQUEST_METHOD == POST or ( valid >= 400 and valid < 600 ) )
-                                    req_line = valid;
+                                if ( conn->state.r->REQUEST_METHOD == POST or ( valid >= 400 and valid < 600 ))
+                                req_line = valid;
                                 else
                                     req_line = 1;
                                 if  (valid == 2)
