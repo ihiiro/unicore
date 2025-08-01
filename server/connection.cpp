@@ -1,40 +1,38 @@
 #include "connection.hpp"
 
 listening_conn::listening_conn()
-    : connection(), info()/*, state() */
+    : connection(), info()
 {
-    std::memset(&state, 0, sizeof( fsm_state_t ));
-    state.mimes->buckets = new bucket [ M ];
-    std::memset ( state.mimes->buckets , 0 , M * sizeof ( bucket ) );
-    insert ( state.mimes , ( u_char * )"audio/aac" , ( char * )".aac" );
-    insert ( state.mimes , ( u_char * )"image/apng" , ( char * )".apng" );
-    insert ( state.mimes , ( u_char * )"application/x-freearc" , ( char * )".arc" );
-    insert ( state.mimes , ( u_char * )"image/avif" , ( char * )".avif" );
-    insert ( state.mimes , ( u_char * )"video/x-msvideo" , ( char * )".avi" );
-    insert ( state.mimes , ( u_char * )"application/octet-stream" , ( char * )".bin" );
-    insert ( state.mimes , ( u_char * )"image/bmp" , ( char * )".bmp" );
-    insert ( state.mimes , ( u_char * )"text/css" , ( char * )".css" );
-    insert ( state.mimes , ( u_char * )"text/csv" , ( char * )".csv" );
-    insert ( state.mimes , ( u_char * )"application/epub+zip" , ( char * )".epub" );
-    insert ( state.mimes , ( u_char * )"image/gif" , ( char * )".gif" );
-    insert ( state.mimes , ( u_char * )"text/html" , ( char * )".html" );
-    insert ( state.mimes , ( u_char * )"image/jpeg" , ( char * )".jpg" );
-    insert ( state.mimes , ( u_char * )"text/markdown" , ( char * )".md" );
-    insert ( state.mimes , ( u_char * )"audio/mpeg" , ( char * )".mp3" );
-    insert ( state.mimes , ( u_char * )"video/mp4" , ( char * )".mp4" );
-    insert ( state.mimes , ( u_char * )"video/mpeg" , ( char * )".mpeg" );
-    insert ( state.mimes , ( u_char * )"image/png" , ( char * )".png" );
-    insert ( state.mimes , ( u_char * )"application/pdf" , ( char * )".pdf" );
-    insert ( state.mimes , ( u_char * )"image/svg+xml" , ( char * )".svg" );
-    insert ( state.mimes , ( u_char * )"video/mp2t" , ( char * )".ts" );
-    insert ( state.mimes , ( u_char * )"audio/wav" , ( char * )".wav" );
-    insert ( state.mimes , ( u_char * )"audio/webm" , ( char * )".weba" );
-    insert ( state.mimes , ( u_char * )"video/webm" , ( char * )".webm" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"application/xhtml+xml" , ( char * )".xhtml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
+    std::memset(&state, 0, sizeof(fsm_state_t));
+    state.mimes->buckets = new bucket[M];
+    std::memset(state.mimes->buckets, 0, M * sizeof(bucket));
+    insert(state.mimes, (u_char *)"audio/aac", (char *)".aac");
+    insert(state.mimes, (u_char *)"image/apng", (char *)".apng");
+    insert(state.mimes, (u_char *)"application/x-freearc", (char *)".arc");
+    insert(state.mimes, (u_char *)"image/avif", (char *)".avif");
+    insert(state.mimes, (u_char *)"video/x-msvideo", (char *)".avi");
+    insert(state.mimes, (u_char *)"application/octet-stream", (char *)".bin");
+    insert(state.mimes, (u_char *)"image/bmp", (char *)".bmp");
+    insert(state.mimes, (u_char *)"text/css", (char *)".css");
+    insert(state.mimes, (u_char *)"text/csv", (char *)".csv");
+    insert(state.mimes, (u_char *)"application/epub+zip", (char *)".epub");
+    insert(state.mimes, (u_char *)"image/gif", (char *)".gif");
+    insert(state.mimes, (u_char *)"text/html", (char *)".html");
+    insert(state.mimes, (u_char *)"image/jpeg", (char *)".jpg");
+    insert(state.mimes, (u_char *)"text/markdown", (char *)".md");
+    insert(state.mimes, (u_char *)"audio/mpeg", (char *)".mp3");
+    insert(state.mimes, (u_char *)"video/mp4", (char *)".mp4");
+    insert(state.mimes, (u_char *)"video/mpeg", (char *)".mpeg");
+    insert(state.mimes, (u_char *)"image/png", (char *)".png");
+    insert(state.mimes, (u_char *)"application/pdf", (char *)".pdf");
+    insert(state.mimes, (u_char *)"image/svg+xml", (char *)".svg");
+    insert(state.mimes, (u_char *)"video/mp2t", (char *)".ts");
+    insert(state.mimes, (u_char *)"audio/wav", (char *)".wav");
+    insert(state.mimes, (u_char *)"audio/webm", (char *)".weba");
+    insert(state.mimes, (u_char *)"video/webm", (char *)".webm");
+    insert(state.mimes, (u_char *)"image/webp", (char *)".webp");
+    insert(state.mimes, (u_char *)"application/xhtml+xml", (char *)".xhtml");
+    insert(state.mimes, (u_char *)"application/xml", (char *)".xml");
     state.R = 0;
     state.file = new std::ofstream;
 }
@@ -45,101 +43,82 @@ listening_conn::listening_conn(int fd, const unicore_config_t& info)
     std::memset(&state, 0, sizeof( fsm_state_t ));
     state.mimes = new ht;
     state.mimes->buckets = new bucket [ M ];
-    std::memset ( state.mimes->buckets , 0 , M * sizeof ( bucket ) );
-    insert ( state.mimes , ( u_char * )"audio/aac" , ( char * )".aac" );
-    insert ( state.mimes , ( u_char * )"image/apng" , ( char * )".apng" );
-    insert ( state.mimes , ( u_char * )"application/x-freearc" , ( char * )".arc" );
-    insert ( state.mimes , ( u_char * )"image/avif" , ( char * )".avif" );
-    insert ( state.mimes , ( u_char * )"video/x-msvideo" , ( char * )".avi" );
-    insert ( state.mimes , ( u_char * )"application/octet-stream" , ( char * )".bin" );
-    insert ( state.mimes , ( u_char * )"image/bmp" , ( char * )".bmp" );
-    insert ( state.mimes , ( u_char * )"text/css" , ( char * )".css" );
-    insert ( state.mimes , ( u_char * )"text/csv" , ( char * )".csv" );
-    insert ( state.mimes , ( u_char * )"application/epub+zip" , ( char * )".epub" );
-    insert ( state.mimes , ( u_char * )"image/gif" , ( char * )".gif" );
-    insert ( state.mimes , ( u_char * )"text/html" , ( char * )".html" );
-    insert ( state.mimes , ( u_char * )"image/jpeg" , ( char * )".jpg" );
-    insert ( state.mimes , ( u_char * )"text/markdown" , ( char * )".md" );
-    insert ( state.mimes , ( u_char * )"audio/mpeg" , ( char * )".mp3" );
-    insert ( state.mimes , ( u_char * )"video/mp4" , ( char * )".mp4" );
-    insert ( state.mimes , ( u_char * )"video/mpeg" , ( char * )".mpeg" );
-    insert ( state.mimes , ( u_char * )"image/png" , ( char * )".png" );
-    insert ( state.mimes , ( u_char * )"application/pdf" , ( char * )".pdf" );
-    insert ( state.mimes , ( u_char * )"image/svg+xml" , ( char * )".svg" );
-    insert ( state.mimes , ( u_char * )"video/mp2t" , ( char * )".ts" );
-    insert ( state.mimes , ( u_char * )"audio/wav" , ( char * )".wav" );
-    insert ( state.mimes , ( u_char * )"audio/webm" , ( char * )".weba" );
-    insert ( state.mimes , ( u_char * )"video/webm" , ( char * )".webm" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"application/xhtml+xml" , ( char * )".xhtml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
+    std::memset ( state.mimes->buckets , 0 , M * sizeof ( bucket ));
+    insert(state.mimes, (u_char *)"audio/aac" , (char *)".aac");
+    insert(state.mimes, (u_char *)"image/apng" , (char *)".apng");
+    insert(state.mimes, (u_char *)"application/x-freearc" , (char *)".arc");
+    insert(state.mimes, (u_char *)"image/avif" , (char *)".avif");
+    insert(state.mimes, (u_char *)"video/x-msvideo" , (char *)".avi");
+    insert(state.mimes, (u_char *)"application/octet-stream" , (char *)".bin");
+    insert(state.mimes, (u_char *)"image/bmp" , (char *)".bmp");
+    insert(state.mimes, (u_char *)"text/css" , (char *)".css");
+    insert(state.mimes, (u_char *)"text/csv" , (char *)".csv");
+    insert(state.mimes, (u_char *)"application/epub+zip" , (char *)".epub");
+    insert(state.mimes, (u_char *)"image/gif" , (char *)".gif");
+    insert(state.mimes, (u_char *)"text/html" , (char *)".html");
+    insert(state.mimes, (u_char *)"image/jpeg" , (char *)".jpg");
+    insert(state.mimes, (u_char *)"text/markdown" , (char *)".md");
+    insert(state.mimes, (u_char *)"audio/mpeg" , (char *)".mp3");
+    insert(state.mimes, (u_char *)"video/mp4" , (char *)".mp4");
+    insert(state.mimes, (u_char *)"video/mpeg" , (char *)".mpeg");
+    insert(state.mimes, (u_char *)"image/png" , (char *)".png");
+    insert(state.mimes, (u_char *)"application/pdf" , (char *)".pdf");
+    insert(state.mimes, (u_char *)"image/svg+xml" , (char *)".svg");
+    insert(state.mimes, (u_char *)"video/mp2t" , (char *)".ts");
+    insert(state.mimes, (u_char *)"audio/wav" , (char *)".wav");
+    insert(state.mimes, (u_char *)"audio/webm" , (char *)".weba");
+    insert(state.mimes, (u_char *)"video/webm" , (char *)".webm");
+    insert(state.mimes, (u_char *)"image/webp" , (char *)".webp");
+    insert(state.mimes, (u_char *)"application/xhtml+xml" , (char *)".xhtml");
+    insert(state.mimes, (u_char *)"application/xml" , (char *)".xml");
     state.R = 0;
     state.file = new std::ofstream;
 }
 
 listening_conn::listening_conn(const listening_conn& other)
-    : connection(other.sockfd), info(other.info)/*, state(other.state) */
+    : connection(other.sockfd), info(other.info)
 {
-    
-    std::memset ( &state , 0 , sizeof ( fsm_state_t ) );
+    std::memset(&state, 0, sizeof(fsm_state_t));
     state.mimes = new ht;
-    state.mimes->buckets = new bucket [ M ];
-    std::memset ( state.mimes->buckets , 0 , M * sizeof ( bucket ) );
-    insert ( state.mimes , ( u_char * )"audio/aac" , ( char * )".aac" );
-    insert ( state.mimes , ( u_char * )"image/apng" , ( char * )".apng" );
-    insert ( state.mimes , ( u_char * )"application/x-freearc" , ( char * )".arc" );
-    insert ( state.mimes , ( u_char * )"image/avif" , ( char * )".avif" );
-    insert ( state.mimes , ( u_char * )"video/x-msvideo" , ( char * )".avi" );
-    insert ( state.mimes , ( u_char * )"application/octet-stream" , ( char * )".bin" );
-    insert ( state.mimes , ( u_char * )"image/bmp" , ( char * )".bmp" );
-    insert ( state.mimes , ( u_char * )"text/css" , ( char * )".css" );
-    insert ( state.mimes , ( u_char * )"text/csv" , ( char * )".csv" );
-    insert ( state.mimes , ( u_char * )"application/epub+zip" , ( char * )".epub" );
-    insert ( state.mimes , ( u_char * )"image/gif" , ( char * )".gif" );
-    insert ( state.mimes , ( u_char * )"text/html" , ( char * )".html" );
-    insert ( state.mimes , ( u_char * )"image/jpeg" , ( char * )".jpg" );
-    insert ( state.mimes , ( u_char * )"text/markdown" , ( char * )".md" );
-    insert ( state.mimes , ( u_char * )"audio/mpeg" , ( char * )".mp3" );
-    insert ( state.mimes , ( u_char * )"video/mp4" , ( char * )".mp4" );
-    insert ( state.mimes , ( u_char * )"video/mpeg" , ( char * )".mpeg" );
-    insert ( state.mimes , ( u_char * )"image/png" , ( char * )".png" );
-    insert ( state.mimes , ( u_char * )"application/pdf" , ( char * )".pdf" );
-    insert ( state.mimes , ( u_char * )"image/svg+xml" , ( char * )".svg" );
-    insert ( state.mimes , ( u_char * )"video/mp2t" , ( char * )".ts" );
-    insert ( state.mimes , ( u_char * )"audio/wav" , ( char * )".wav" );
-    insert ( state.mimes , ( u_char * )"audio/webm" , ( char * )".weba" );
-    insert ( state.mimes , ( u_char * )"video/webm" , ( char * )".webm" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"image/webp" , ( char * )".webp" );
-    insert ( state.mimes , ( u_char * )"application/xhtml+xml" , ( char * )".xhtml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
-    insert ( state.mimes , ( u_char * )"application/xml" , ( char * )".xml" );
+    state.mimes->buckets = new bucket[M];
+    std::memset(state.mimes->buckets, 0, M * sizeof(bucket));
+    insert(state.mimes,(u_char *)"audio/aac", (char *)".aac");
+    insert(state.mimes,(u_char *)"image/apng", (char *)".apng");
+    insert(state.mimes,(u_char *)"application/x-freearc", (char *)".arc");
+    insert(state.mimes,(u_char *)"image/avif", (char *)".avif");
+    insert(state.mimes,(u_char *)"video/x-msvideo", (char *)".avi");
+    insert(state.mimes,(u_char *)"application/octet-stream", (char *)".bin");
+    insert(state.mimes,(u_char *)"image/bmp", (char *)".bmp");
+    insert(state.mimes,(u_char *)"text/css", (char *)".css");
+    insert(state.mimes,(u_char *)"text/csv", (char *)".csv");
+    insert(state.mimes,(u_char *)"application/epub+zip" , (char *)".epub");
+    insert(state.mimes,(u_char *)"image/gif", (char *)".gif");
+    insert(state.mimes,(u_char *)"text/html", (char *)".html");
+    insert(state.mimes,(u_char *)"image/jpeg", (char *)".jpg");
+    insert(state.mimes,(u_char *)"text/markdown", (char *)".md");
+    insert(state.mimes,(u_char *)"audio/mpeg", (char *)".mp3");
+    insert(state.mimes,(u_char *)"video/mp4", (char *)".mp4");
+    insert(state.mimes,(u_char *)"video/mpeg", (char *)".mpeg");
+    insert(state.mimes,(u_char *)"image/png", (char *)".png");
+    insert(state.mimes,(u_char *)"application/pdf", (char *)".pdf");
+    insert(state.mimes,(u_char *)"image/svg+xml", (char *)".svg");
+    insert(state.mimes,(u_char *)"video/mp2t", (char *)".ts");
+    insert(state.mimes,(u_char *)"audio/wav", (char *)".wav");
+    insert(state.mimes,(u_char *)"audio/webm", (char *)".weba");
+    insert(state.mimes,(u_char *)"video/webm", (char *)".webm");
+    insert(state.mimes,(u_char *)"image/webp", (char *)".webp");
+    insert(state.mimes,(u_char *)"application/xhtml+xml", (char *)".xhtml");
+    insert(state.mimes,(u_char *)"application/xml", (char *)".xml");
     state.file = new std::ofstream;
     state.R = 0;
-
-
-    // if (!other.state.r)
-    //     state.r = NULL;
 }
 
 listening_conn::~listening_conn()
 {
-
-    std::cerr << "LISTEN DESTR\n\n";
+    delete state.r;
     delete state.file;
-    // delete state.r->absolute_path;
-    // delete state.r->static_uri_path;
-    // delete state.r->SCRIPT_NAME;
-    // delete state.r->PATH_INFO;
-    // delete state.r->PATH_TRANSLATED;
-    // delete state.r->QUERY_STRING;
-    // delete state.r->GATEWAY_INTERFACE;
     delete[] state.mimes->buckets;
     delete state.mimes;
-    delete state.r;
-
 }
 
 client_conn::client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request)
@@ -162,24 +141,20 @@ std::string& client_conn::getBuffer()
 
 client_conn::~client_conn()
 {
-
-    for ( int i = 0 ; i < M ; i++ )
+    for (int i = 0; i < M; i++)
     {
-
-        delete request.headers->buckets [ i ].key;
-        delete ( char * )request.headers->buckets [ i ].value;
-
+        delete request.headers->buckets[i].key;
+        delete (char *)request.headers->buckets[i].value;
     }
-    delete request.static_uri_path;
-    delete request.absolute_path;
     delete[] request.headers->buckets;
-    delete request.SCRIPT_NAME;
-    delete request.PATH_INFO;
-    delete request.PATH_TRANSLATED;
-    delete request.QUERY_STRING;
-    delete request.GATEWAY_INTERFACE;
     delete request.headers;
-
+    delete request.PATH_INFO;
+    delete request.SCRIPT_NAME;
+    delete request.QUERY_STRING;
+    delete request.absolute_path;
+    delete request.static_uri_path;
+    delete request.PATH_TRANSLATED;
+    delete request.GATEWAY_INTERFACE;
 }
 
 connection::connection() : sockfd(-1)
