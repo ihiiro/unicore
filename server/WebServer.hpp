@@ -16,9 +16,8 @@ class   WebServer
 		std::map<int, connection *> connections;
 		bool				check_all_failed() const;
 		bool				server_already_exists(const std::string& host, size_t port) const;
-        bool                has_same_name(const std::string &host, size_t port, const std::string &name) const;
-		int					get_socket_fd(const std::string& host, size_t port) const;
 		void				check_events_timeout();
+		void				run_multiple_responses(std::string &request_rest, std::string &response, client_conn *conn, fsm_state_t &latest_state);
 
 	public:
 		WebServer(const std::string& config_file);

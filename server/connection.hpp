@@ -24,10 +24,10 @@ class server;
 class connection
 {
     protected:
-        int                                     sockfd;
         struct timeval                          last_activity;
 
     public:
+        int                                     sockfd;
         std::string                             buffer;
         connection();
         connection(int fd);
