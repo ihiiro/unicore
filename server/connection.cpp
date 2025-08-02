@@ -121,15 +121,15 @@ listening_conn::~listening_conn()
     delete state.mimes;
 }
 
-client_conn::client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request)
-    : connection(fd), offset(0), filename(""), info(info), request_line(request_line), request(request), chunked(false)
+client_conn::client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request, std::string request_rest)
+    : connection(fd), offset(0), filename(""), info(info), request_line(request_line), request(request), chunked(false), request_rest(request_rest)
 {
 }
 
 client_conn::client_conn(client_conn const& other)
     : connection(other.sockfd), offset(other.offset), filename(other.filename),
       info(other.info), request_line(other.request_line), request(other.request),
-      chunked(other.chunked), rest(other.rest)
+      chunked(other.chunked), rest(other.rest), request_rest(other.request_rest)
 {
     buffer = other.buffer;
 }
@@ -166,7 +166,7 @@ connection::connection() : sockfd(-1)
 connection::connection(int fd) : sockfd(fd)
 {
     gettimeofday(&last_activity, NULL);
-    buffer.clear();
+    buffer = "";
 }
 
 connection::connection(const connection& other)

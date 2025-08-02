@@ -26,9 +26,9 @@ class connection
     protected:
         int                                     sockfd;
         struct timeval                          last_activity;
-        std::string                             buffer;
 
     public:
+        std::string                             buffer;
         connection();
         connection(int fd);
 		connection(const connection& other);
@@ -70,13 +70,14 @@ class client_conn : public connection
         bool                keep_alive;
         long				offset;
         std::string         rest;
+        std::string         request_rest;
 		std::string 		filename;
         unicore_config_t    info;
 		unicore_request_t	request;
 
         std::string&        getBuffer();
         client_conn(client_conn const& other);
-        client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request);
+        client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request, std::string request_rest);
         ~client_conn();
 };
 

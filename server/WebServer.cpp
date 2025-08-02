@@ -183,6 +183,10 @@ int WebServer::run()
                     std::memset(buf, 0, sizeof(buf));
                     ssize_t bytes;
                     bytes = recv(event.ident, buf, BUFFER_READ, 0);
+                    if (bytes != -1)
+                        conn->buffer += std::string(buf, bytes);
+                    // std::cout << conn->buffer << std::endl;
+                    // std::cout << conn->buffer.size() << std::endl;
                     conn->update_last_activity();
                     if (bytes > BUFFER_READ)
                     {
@@ -190,9 +194,10 @@ int WebServer::run()
                         close(event.ident);
                         break;
                     }
-                    buf_req.pos = (u_char *)buf;
+                    std::cerr << "\n\n\nBUFFER=" << conn->buffer.c_str() << "|\n\n\n";
+                    buf_req.pos = (u_char *)conn->buffer.c_str();
                     buf_req.start = buf_req.pos;
-                    buf_req.end = buf_req.start + bytes - 1;
+                    buf_req.end = buf_req.start + conn->buffer.length() - 1;
                     if (bytes <= 0)
                     {
                         if (bytes < 0)
@@ -215,6 +220,7 @@ int WebServer::run()
                         if (conn->state.R == 2)
                         {
                             int valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                            conn->buffer = std::string ( ( char * )buf_req.pos , buf_req.end - buf_req.pos );
                             if ( conn->info.redirection_list and get ( conn->info.redirection_list , conn->state.r->absolute_path ) and !( valid >= 400 and valid < 600 ) )
                                 req_line = 1;
                             else if ( conn->state.r->REQUEST_METHOD == POST or ( valid >= 400 and valid < 600 ) )
@@ -222,12 +228,16 @@ int WebServer::run()
                             else
                                 req_line = 1;
                             if  (valid == 2)
+                            {
                                 std::cerr << "request not finished yet\n";
+                                // conn->buffer = "";
+                            }
                             else
                             {
                                 std::cerr << "request finished\n";
                                 connections.erase(event.ident);
-                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
+                                conn->buffer = std::string(buf);
+                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r, conn->buffer);
                                 delete conn;
                                 struct kevent tmp_event;
                                 EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -241,13 +251,18 @@ int WebServer::run()
                         else
                         {
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
-                            conn->state.redirect_guard = conn->info.redirection_list and get ( conn->info.redirection_list , conn->state.r->absolute_path );
+                            if ( !( req_line >= 400 and req_line < 600 ) )
+                                conn->state.redirect_guard = conn->info.redirection_list and get ( conn->info.redirection_list , conn->state.r->absolute_path );
                             if (req_line == 1)
                             {
                                 int valid = 0;
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
                                 valid = unicore_http_parse_message_body (conn->state , &buf_req);
+                                std::cerr << "" << (char *)buf_req.pos << "<-- NEXT REQUEST\n";
+                                // std::cerr << (int)(buf_req.end - buf_req.pos) << "\n";
+                                // conn->buffer = std::string ( ( char * )buf_req.pos , buf_req.end - buf_req.pos );
+                                // conn->buffer = "";
                                 if ( conn->info.redirection_list and get ( conn->info.redirection_list , conn->state.r->absolute_path ) and !( valid >= 400 and valid < 600 ) )
                                     req_line = 1;
                                 else if ( conn->state.r->REQUEST_METHOD == POST or ( valid >= 400 and valid < 600 ))
@@ -260,7 +275,7 @@ int WebServer::run()
                                 {
                                     std::cerr << "request finished bottom\n";
                                     connections.erase(event.ident);
-                                    connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
+                                    connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r, conn->buffer);
                                     delete conn;
                                     struct kevent tmp_event;
                                     EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -277,7 +292,7 @@ int WebServer::run()
                             {
                                 std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
                                 connections.erase(event.ident);
-                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
+                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r, conn->buffer);
                                 delete conn;
                                 struct kevent tmp_event;
                                 EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -287,6 +302,7 @@ int WebServer::run()
                                 if (kevent(kq, &tmp_event, 1, NULL, 0, NULL) < 0)
                                     std::cerr << "Error registering write event for request" << std::endl;
                             }
+                            conn->buffer = "";
                         }
                     }
                 }
@@ -372,6 +388,7 @@ int WebServer::run()
                         std::cerr << "Keep-alive connection on fd " << event.ident << std::endl;
                         connections.erase(event.ident);
                         connections[event.ident] = new listening_conn(event.ident, conn->info);
+                        connections[event.ident]->buffer = conn->request_rest;
                         delete conn;
                         struct kevent tmp_event;
                         EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);

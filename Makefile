@@ -39,22 +39,22 @@ MAIN_OFILES = $(MAIN_CFILES:.cpp=.o)
 RESPONSE_OFILES = $(RESPONSE_CFILES:.cpp=.o)
 TESTS_OFILES = $(TESTS_CFILES:.cpp=.o)
 
-response/%.o: response/%.cpp
+response/%.o: response/%.cpp $(HEADERS)
 	c++ -g $(CFLAGS) -c $< -o $@
 
-tests/%.o: tests/%.cpp
+tests/%.o: tests/%.cpp $(HEADERS)
 	c++ -g $(CFLAGS) -c $< -o $@
 
-core/%.o: core/%.cpp
+core/%.o: core/%.cpp $(HEADERS)
 	c++ -g $(CFLAGS) -c $< -o $@
 
-server/%.o: server/%.cpp
+server/%.o: server/%.cpp $(HEADERS)
 	c++  -g $(CFLAGS) -c $< -o $@
 
-cgi/%.o: cgi/%.cpp
+cgi/%.o: cgi/%.cpp $(HEADERS)
 	c++  -g $(CFLAGS) -c $< -o $@
 
-%.o: %.cpp
+%.o: %.cpp $(HEADERS)
 	c++ -g $(CFLAGS) -c $<
 
 all: $(NAME)
