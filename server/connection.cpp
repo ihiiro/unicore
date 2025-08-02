@@ -40,10 +40,10 @@ listening_conn::listening_conn()
 listening_conn::listening_conn(int fd, const unicore_config_t& info)
     : connection(fd), info(info)
 {
-    std::memset(&state, 0, sizeof( fsm_state_t ));
+    std::memset(&state, 0, sizeof(fsm_state_t));
     state.mimes = new ht;
-    state.mimes->buckets = new bucket [ M ];
-    std::memset ( state.mimes->buckets , 0 , M * sizeof ( bucket ));
+    state.mimes->buckets = new bucket [M];
+    std::memset (state.mimes->buckets, 0, M * sizeof (bucket));
     insert(state.mimes, (u_char *)"audio/aac" , (char *)".aac");
     insert(state.mimes, (u_char *)"image/apng" , (char *)".apng");
     insert(state.mimes, (u_char *)"application/x-freearc" , (char *)".arc");
