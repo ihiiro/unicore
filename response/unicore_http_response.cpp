@@ -95,7 +95,7 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
     buck = get(client.info.error_pages, error);
     if (buck && buck->value)
     {
-        std::cout << "bucket->value: " << (char *)buck->value << std::endl;
+        std::cerr << "bucket->value: " << (char *)buck->value << std::endl;
         client.filename  =  "./_ROOT_/" + std::string((char *)buck->value);
         if (!std::ifstream(client.filename).is_open())
         {
@@ -198,8 +198,8 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         }
         if (client.request.route->directory_listing)
         {
-            std::cout << "path of directory: " << path << std::endl;
-            std::cout << "there is a directory listing" << std::endl;
+            std::cerr << "path of directory: " << path << std::endl;
+            std::cerr << "there is a directory listing" << std::endl;
             DIR *dir = opendir(path.c_str());
             client.filename.clear();
             if (dir == NULL)
@@ -228,13 +228,13 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             response.reason_phrase = "OK";
             response.headers["Content-Type"] = "text/html";
             response.body = html.str();
-            std::cout << "end listing directory" << std::endl;
+            std::cerr << "end listing directory" << std::endl;
         }
         else if (client.request.route->file_if_directory_request)
         {
-            std::cout << "there is a file_if_directory_request" << std::endl;
+            std::cerr << "there is a file_if_directory_request" << std::endl;
             client.filename = "./" + std::string((char *)client.request.route->file_if_directory_request);
-            std::cout << "client.filename2: " << client.filename << std::endl;
+            std::cerr << "client.filename2: " << client.filename << std::endl;
             std::ifstream file(client.filename, std::ios::binary);
             if (!file.is_open())
             {
@@ -361,7 +361,7 @@ void    postmethod(client_conn &client, http_response_t & response, int req_line
 {
     if (!client.request.route->ROUTE_POST)
     {
-        std::cout << "route post not allowed" << std::endl;
+        std::cerr << "route post not allowed" << std::endl;
         std::string path;
         std::string static_uri_path;
         std::string root;

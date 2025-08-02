@@ -2532,7 +2532,7 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
 
          case LF_BEFORE_BODY_PART:
             state = BODY_PART;
-            if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
+            if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST and !fsm_state.redirect_guard )
             {
 
                if ( fsm_state.mimes)
@@ -2686,11 +2686,12 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             return 400;
 
       }
-      if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
+      if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST and !fsm_state.redirect_guard )
       {
 
          if ( !fsm_state.file->is_open() )
          {
+            std::cerr << "\n\n\nFILE OPENED\n\n\n";
 
             if ( content_type )
             {
@@ -2715,7 +2716,9 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
    {
       
       content_len = std::atoi ( ( char * )content_length->value );
-      if ( content_len <= 0 /* or content-len > max_length */ )
+      // if ( /* or content-len > max_length */ )
+      //    return 400;
+      if ( content_len <= 0 )
          return 200;
       if ( fsm_state.content_length == 0 )
          fsm_state.content_length = content_len;
@@ -2764,14 +2767,19 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
                }
                if ( fsm_state.content_length == 0 )
-                  return 201;
+               {
+
+                     b->pos = fsm_state.p;
+                     return 201;
+
+               }
                return 2;
 
             }
             else
             {
 
-               if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST )
+               if ( fsm_state.r->route->upload_path and fsm_state.r->REQUEST_METHOD == POST and !fsm_state.redirect_guard )
                {
 
                   if ( !fsm_state.file->is_open() )
@@ -2801,7 +2809,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   if ( fsm_state.content_length == 0 )
                   {
 
-                     std::cout << "finished\n\n";
                      b->pos = fsm_state.p;
                      fsm_state.file->close ();
                      return 201;
@@ -2815,6 +2822,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                {
 
                   fsm_state.file->close ();
+                  b->pos = fsm_state.p;
                   return 201;
 
 
@@ -2830,6 +2838,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
       
    }
 
+   b->pos = fsm_state.p;
    return 200;
 
 }
