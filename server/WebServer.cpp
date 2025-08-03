@@ -283,7 +283,7 @@ int WebServer::run()
                     std::memset(buf, 0, sizeof(buf));
                     ssize_t bytes;
                     bytes = recv(event.ident, buf, BUFFER_READ, 0);
-                    conn->buffer += std::string(buf, bytes);
+                    conn->buffer = std::string(buf, bytes);
                     conn->update_last_activity();
                     if (bytes > BUFFER_READ)
                     {
@@ -332,7 +332,6 @@ int WebServer::run()
                             {
                                 std::cerr << "request finished" << std::endl;
                                 connections.erase(event.ident);
-                                conn->buffer = std::string(buf);
                                 connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r, conn->buffer);
                                 delete conn;
                                 struct kevent tmp_event;
@@ -422,9 +421,9 @@ int WebServer::run()
                 response += conn->getBuffer();
                 fsm_state_t state;
                 memset(&state, 0, sizeof(fsm_state_t));
-                if (conn->request_rest.size() > 0)
-                    run_multiple_responses(conn->request_rest, response, conn, state);
-                std::cout << "response is " << response << std::endl;
+                // if (conn->request_rest.size() > 0)
+                //     run_multiple_responses(conn->request_rest, response, conn, state);
+                // std::cout << "response is " << response << std::endl;
                 size_t bytes_sent = 0;
                 size_t total_size = response.size(); 
                 bytes_sent = send(event.ident, response.c_str(), total_size, 0);
