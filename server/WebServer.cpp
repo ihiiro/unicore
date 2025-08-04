@@ -116,106 +116,6 @@ void    WebServer::check_events_timeout()
     }
 }
 
-void WebServer::run_multiple_responses(std::string &request_rest, std::string &response, client_conn *conn, fsm_state_t &latest_state)
-{
-    int error = 0;
-    while (request_rest.size() > 0 && !error)
-    {
-        std::cerr << "Handling multiple requests in response" << std::endl;
-        unicore_buf_t buf_req;
-        buf_req.pos = (u_char *)request_rest.c_str();
-        buf_req.start = buf_req.pos;
-        buf_req.end = buf_req.start + request_rest.length() - 1;
-
-        fsm_state_t state;
-        std::memset(&state, 0, sizeof(fsm_state_t));
-        state.mimes = new ht;
-        state.mimes->buckets = new bucket [M];
-        std::memset (state.mimes->buckets, 0, M * sizeof (bucket));
-        insert(state.mimes, (u_char *)"audio/aac", (char *)".aac");
-        insert(state.mimes, (u_char *)"image/apng", (char *)".apng");
-        insert(state.mimes, (u_char *)"application/x-freearc", (char *)".arc");
-        insert(state.mimes, (u_char *)"image/avif", (char *)".avif");
-        insert(state.mimes, (u_char *)"video/x-msvideo", (char *)".avi");
-        insert(state.mimes, (u_char *)"application/octet-stream", (char *)".bin");
-        insert(state.mimes, (u_char *)"image/bmp", (char *)".bmp");
-        insert(state.mimes, (u_char *)"text/css", (char *)".css");
-        insert(state.mimes, (u_char *)"text/csv", (char *)".csv");
-        insert(state.mimes, (u_char *)"application/epub+zip" , (char *)".epub");
-        insert(state.mimes, (u_char *)"image/gif", (char *)".gif");
-        insert(state.mimes, (u_char *)"text/html", (char *)".html");
-        insert(state.mimes, (u_char *)"image/jpeg", (char *)".jpg");
-        insert(state.mimes, (u_char *)"text/markdown", (char *)".md");
-        insert(state.mimes, (u_char *)"audio/mpeg", (char *)".mp3");
-        insert(state.mimes, (u_char *)"video/mp4", (char *)".mp4");
-        insert(state.mimes, (u_char *)"video/mpeg", (char *)".mpeg");
-        insert(state.mimes, (u_char *)"image/png", (char *)".png");
-        insert(state.mimes, (u_char *)"application/pdf", (char *)".pdf");
-        insert(state.mimes, (u_char *)"image/svg+xml", (char *)".svg");
-        insert(state.mimes, (u_char *)"video/mp2t", (char *)".ts");
-        insert(state.mimes, (u_char *)"audio/wav", (char *)".wav");
-        insert(state.mimes, (u_char *)"audio/webm", (char *)".weba");
-        insert(state.mimes, (u_char *)"video/webm", (char *)".webm");
-        insert(state.mimes, (u_char *)"image/webp", (char *)".webp");
-        insert(state.mimes, (u_char *)"application/xhtml+xml", (char *)".xhtml");
-        insert(state.mimes, (u_char *)"application/xml", (char *)".xml");
-        state.R = 0;
-        state.file = new std::ofstream;
-        int req_line = unicore_http_parse_request_line(state, &buf_req, conn->info);
-        if (req_line == 1)
-        {
-            if (unicore_http_parse_field_lines(state, &buf_req) == 1)
-                std::cerr << "Parsed request-line and field-lines successfully" << std::endl;
-            int valid = unicore_http_parse_message_body(state, &buf_req);
-            if (state.redirect_guard && get(conn->info.redirection_list, state.r->absolute_path) && !(valid >= 400 && valid < 600))
-                req_line = 1;
-            else if (state.r->REQUEST_METHOD == POST || (valid >= 400 && valid < 600))
-                req_line = valid;
-            else
-                req_line = 1;
-            if (valid == 2)
-            {
-                std::cerr << "Request not finished yet" << std::endl;
-                latest_state = state;
-                request_rest = std::string((char *)buf_req.pos, buf_req.end - buf_req.pos);
-                break ;
-            }
-            else
-            {
-                std::cerr << "Request finished" << std::endl;
-                if (valid >= 400 && valid < 600)
-                {
-                    std::cerr << "Error in request: " << valid << std::endl;
-                    error = 1;
-                }
-                std::string new_response = "";
-                conn->request_line = req_line;
-                conn->request = *state.r;
-                if (buf_req.end - buf_req.pos > 0)
-                    conn->request_rest = std::string((char *)buf_req.pos, buf_req.end - buf_req.pos);
-                else
-                    conn->request_rest = "";
-                build_http_response(*conn, req_line);
-                response += conn->getBuffer();
-                continue ;
-            }
-            request_rest = std::string((char *)buf_req.pos, buf_req.end - buf_req.pos);
-        }
-        else if (req_line == 2)
-        {
-            std::cerr << "Request not done yet" << std::endl;
-            latest_state = state;
-            request_rest = std::string((char *)buf_req.pos, buf_req.end - buf_req.pos);
-            break ;
-        }
-        else
-        {
-            std::cerr << "Error parsing request line in multiple requests on fd " << conn->sockfd << std::endl;
-            error = 1;
-        }
-    }
-}
-
 int WebServer::run()
 {
     if (servers.empty() || check_all_failed())
@@ -283,7 +183,6 @@ int WebServer::run()
                     std::memset(buf, 0, sizeof(buf));
                     ssize_t bytes;
                     bytes = recv(event.ident, buf, BUFFER_READ, 0);
-                    conn->buffer = std::string(buf, bytes);
                     conn->update_last_activity();
                     if (bytes > BUFFER_READ)
                     {
@@ -291,9 +190,9 @@ int WebServer::run()
                         close(event.ident);
                         break;
                     }
-                    buf_req.pos = (u_char *)conn->buffer.c_str();
+                    buf_req.pos = (u_char *)buf;
                     buf_req.start = buf_req.pos;
-                    buf_req.end = buf_req.start + conn->buffer.length() - 1;
+                    buf_req.end = buf_req.start + bytes - 1;
                     if (bytes <= 0)
                     {
                         if (bytes < 0)
@@ -316,10 +215,6 @@ int WebServer::run()
                         if (conn->state.R == 2)
                         {
                             int valid = unicore_http_parse_message_body(conn->state , &buf_req);
-                            if (buf_req.end - buf_req.pos > 0)
-                                conn->buffer = std::string((char *)buf_req.pos , buf_req.end - buf_req.pos);
-                            else
-                                conn->buffer = "";
                             if (conn->info.redirection_list && get(conn->info.redirection_list, conn->state.r->absolute_path) && !(valid >= 400 && valid < 600))
                                 req_line = 1;
                             else if (conn->state.r->REQUEST_METHOD == POST || (valid >= 400 && valid < 600))
@@ -332,7 +227,7 @@ int WebServer::run()
                             {
                                 std::cerr << "request finished" << std::endl;
                                 connections.erase(event.ident);
-                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r, conn->buffer);
+                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                 delete conn;
                                 struct kevent tmp_event;
                                 EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -346,6 +241,7 @@ int WebServer::run()
                         else
                         {
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
+                            conn->state.mcms = conn->info.max_client_message_size;
                             if (!(req_line >= 400 && req_line < 600))
                                 conn->state.redirect_guard = conn->info.redirection_list && get(conn->info.redirection_list, conn->state.r->absolute_path);
                             if (req_line == 1)
@@ -354,10 +250,6 @@ int WebServer::run()
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
                                 valid = unicore_http_parse_message_body(conn->state, &buf_req);
-                                if (buf_req.end - buf_req.pos > 0)
-                                    conn->buffer = std::string((char *)buf_req.pos , buf_req.end - buf_req.pos);
-                                else
-                                    conn->buffer = "";
                                 if (conn->info.redirection_list && get(conn->info.redirection_list, conn->state.r->absolute_path) && !(valid >= 400 && valid < 600))
                                     req_line = 1;
                                 else if (conn->state.r->REQUEST_METHOD == POST || (valid >= 400 && valid < 600))
@@ -370,7 +262,7 @@ int WebServer::run()
                                 {
                                     std::cerr << "request finished bottom" << std::endl;
                                     connections.erase(event.ident);
-                                    connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r, conn->buffer);
+                                    connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                     delete conn;
                                     struct kevent tmp_event;
                                     EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -387,7 +279,7 @@ int WebServer::run()
                             {
                                 std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
                                 connections.erase(event.ident);
-                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r, conn->buffer);
+                                connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                 delete conn;
                                 struct kevent tmp_event;
                                 EV_SET(&tmp_event, event.ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
@@ -419,10 +311,6 @@ int WebServer::run()
                     conn->rest.clear();
                 }
                 response += conn->getBuffer();
-                fsm_state_t state;
-                memset(&state, 0, sizeof(fsm_state_t));
-                // if (conn->request_rest.size() > 0)
-                //     run_multiple_responses(conn->request_rest, response, conn, state);
                 // std::cout << "response is " << response << std::endl;
                 size_t bytes_sent = 0;
                 size_t total_size = response.size(); 
@@ -486,9 +374,7 @@ int WebServer::run()
                         std::cerr << "Keep-alive connection on fd " << event.ident << std::endl;
                         connections.erase(event.ident);
                         connections[event.ident] = new listening_conn(event.ident, conn->info);
-                        connections[event.ident]->buffer = conn->request_rest;
                         listening_conn *new_conn = dynamic_cast<listening_conn *>(connections[event.ident]);
-                        new_conn->state.R = state.R;
                         delete conn;
                         struct kevent tmp_event;
                         EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
