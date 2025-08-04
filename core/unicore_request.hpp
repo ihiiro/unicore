@@ -85,7 +85,7 @@ typedef struct
     u_char          *PATH_TRANSLATED;
     u_char          *QUERY_STRING;
     u_char          *GATEWAY_INTERFACE;
-    u_int           REQUEST_METHOD;
+    int                REQUEST_METHOD;
 
     u_int           http_version;
     bool            cgi;

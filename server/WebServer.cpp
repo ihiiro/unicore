@@ -208,6 +208,39 @@ int WebServer::run()
                         }
                         close(event.ident);
                         connections.erase(event.ident);
+                        if ( conn->state.r )
+                        {
+
+                            for ( int i = 0; i < M ; i++ )
+                            {
+
+                                if ( conn->state.r->headers )
+                                {
+
+                                    delete conn->state.r->headers->buckets[i].key;
+                                    if ( conn->state.r->headers->buckets )
+                                        delete (char *)conn->state.r->headers->buckets[i].value;
+
+                                }
+
+                            }
+                            if ( conn->state.r->headers )
+                            {
+
+                                delete[] conn->state.r->headers->buckets;
+                                delete conn->state.r->headers;
+
+                            }
+                            delete conn->state.r->PATH_INFO;
+                            delete conn->state.r->SCRIPT_NAME;
+                            delete conn->state.r->QUERY_STRING;
+                            delete conn->state.r->absolute_path;
+                            delete conn->state.r->static_uri_path;
+                            delete conn->state.r->PATH_TRANSLATED;
+                            delete conn->state.r->GATEWAY_INTERFACE;
+
+                        }
+                        delete conn;
                     }
                     else
                     {
@@ -241,6 +274,8 @@ int WebServer::run()
                         else
                         {
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
+                            if ( req_line == 501 )
+                                conn->state.r->REQUEST_METHOD = 0;
                             conn->state.mcms = conn->info.max_client_message_size;
                             if (!(req_line >= 400 && req_line < 600))
                                 conn->state.redirect_guard = conn->info.redirection_list && get(conn->info.redirection_list, conn->state.r->absolute_path);
@@ -279,6 +314,7 @@ int WebServer::run()
                             {
                                 std::cerr << "Error parsing request line on fd " << event.ident << std::endl;
                                 connections.erase(event.ident);
+                                std::cerr << "REQUEST METHOD-->" << conn->state.r->REQUEST_METHOD << std::endl;
                                 connections[event.ident] = new client_conn(event.ident, conn->info, req_line, *conn->state.r);
                                 delete conn;
                                 struct kevent tmp_event;
@@ -311,7 +347,7 @@ int WebServer::run()
                     conn->rest.clear();
                 }
                 response += conn->getBuffer();
-                // std::cout << "response is " << response << std::endl;
+                std::cout << "response is " << response << std::endl;
                 size_t bytes_sent = 0;
                 size_t total_size = response.size(); 
                 bytes_sent = send(event.ident, response.c_str(), total_size, 0);
@@ -374,7 +410,6 @@ int WebServer::run()
                         std::cerr << "Keep-alive connection on fd " << event.ident << std::endl;
                         connections.erase(event.ident);
                         connections[event.ident] = new listening_conn(event.ident, conn->info);
-                        listening_conn *new_conn = dynamic_cast<listening_conn *>(connections[event.ident]);
                         delete conn;
                         struct kevent tmp_event;
                         EV_SET(&tmp_event, event.ident, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);

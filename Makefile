@@ -1,4 +1,4 @@
-CFLAGS = -std=c++98 #-Wall -Wextra -Werror 
+CFLAGS =  -std=c++98 #-Wall -Wextra -Werror 
 
 MAIN_CFILES = main.cpp server/server.cpp server/connection.cpp server/WebServer.cpp\
 		core/unicore_http_parse.cpp \
