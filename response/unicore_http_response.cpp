@@ -218,7 +218,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
                 std::cerr << name << std::endl;
                 if (name == "." || name == "..")
                     continue;
-                html << "<li><a href=\"/" << name << "\">" << "go to " << name << "</a></li>";
+                html << "<li><a href=\"" << client.request.absolute_path << name << "\">" << name << "</a></li>";
             }
 
             closedir(dir);
