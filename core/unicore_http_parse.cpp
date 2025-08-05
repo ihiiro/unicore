@@ -2573,6 +2573,8 @@ int unicore_http_parse_multipart_body ( fsm_state_t& fsm_state , unicore_buf_t *
                else
                   fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + fsm_state.filename , std::ios::app );
                
+               if ( !fsm_state.file->is_open() )
+                  return 404;
             }
             *fsm_state.file << fsm_state.ch;
             break;
@@ -2691,7 +2693,6 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
 
          if ( !fsm_state.file->is_open() )
          {
-            std::cerr << "\n\n\nFILE OPENED\n\n\n";
 
             if ( content_type )
             {
@@ -2706,6 +2707,8 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                fsm_state.file->open ( "./_ROOT_/" + std::string ( fsm_state.r->route->root ) +"/" + std::string( fsm_state.r->route->upload_path ) + "/" + "nongenerative_chunked.txt" , std::ios::app );
 
          }
+         if ( !fsm_state.file->is_open() )
+            return 404;
 
       }
       return unicore_http_parse_chunked_body ( fsm_state , b );
@@ -2801,8 +2804,10 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                      if ( !fsm_state.file->is_open() )
                         std::cerr << "Error opening file for writing: " << fsm_state.r->route->upload_path << "\n";
                   }
-
+                  if ( !fsm_state.file->is_open() )
+                     return 404;
                }
+
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 
