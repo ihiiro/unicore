@@ -207,28 +207,21 @@ int WebServer::run()
                         }
                         close(event.ident);
                         connections.erase(event.ident);
-                        if ( conn->state.r )
+                        if (conn->state.r)
                         {
-
-                            for ( int i = 0; i < M ; i++ )
+                            for (int i = 0; i < M ; i++)
                             {
-
-                                if ( conn->state.r->headers )
+                                if (conn->state.r->headers)
                                 {
-
                                     delete conn->state.r->headers->buckets[i].key;
-                                    if ( conn->state.r->headers->buckets )
+                                    if (conn->state.r->headers->buckets)
                                         delete (char *)conn->state.r->headers->buckets[i].value;
-
                                 }
-
                             }
-                            if ( conn->state.r->headers )
+                            if (conn->state.r->headers)
                             {
-
                                 delete[] conn->state.r->headers->buckets;
                                 delete conn->state.r->headers;
-
                             }
                             delete conn->state.r->PATH_INFO;
                             delete conn->state.r->SCRIPT_NAME;
@@ -237,7 +230,6 @@ int WebServer::run()
                             delete conn->state.r->static_uri_path;
                             delete conn->state.r->PATH_TRANSLATED;
                             delete conn->state.r->GATEWAY_INTERFACE;
-
                         }
                         delete conn;
                     }
@@ -283,8 +275,8 @@ int WebServer::run()
                                 int valid = 0;
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-                                bucket *cookie = get ( conn->state.r->headers , ( u_char * )"cookie" );
-                                if ( cookie and !strcmp ( "/home" , ( char * )conn->state.r->absolute_path ) )
+                                bucket *cookie = get (conn->state.r->headers, (u_char *)"cookie");
+                                if ( cookie and !strcmp ( "/home" , ( char * )conn->state.r->absolute_path))
                                 {
                                     
                                     delete conn->state.r->static_uri_path;
@@ -362,6 +354,11 @@ int WebServer::run()
                 std::cerr << "Handling write event on fd " << event.ident << std::endl;
                 if (conn->offset != -1337)
                     build_http_response(*conn, conn->request_line);
+                if (conn->offset == -42)
+                {
+                    std::cerr << "CGI script is still running on fd " << event.ident << std::endl;
+                    continue;
+                }
                 std::string response = "";
                 if (conn->rest.size() > 0)
                 {

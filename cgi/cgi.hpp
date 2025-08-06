@@ -9,5 +9,9 @@
 #include <map>
 #include "../core/unicore_request.hpp"
 #include "../core/unicore_http_parse.hpp"
+#include "../server/connection.hpp"
 
-int execute_cgi(unicore_request_t &req, std::string &result);
+class client_conn;
+
+int execute_cgi(unicore_request_t &req, std::string &result, client_conn *conn);
+int monitor_cgi(client_conn *conn, std::string &result);

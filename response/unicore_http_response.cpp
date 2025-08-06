@@ -117,7 +117,7 @@ static std::map<std::string, std::string>& mime_types() {
     return types;
 }
 //--------------------------------------------------------------------ERROR---------FILES--------------------------------------------------------------------//
-void    check_files_errors(client_conn &client, http_response_t &response, std::map<int, std::string> &status_codes, std::string error_number)
+int    check_files_errors(client_conn &client, http_response_t &response, std::map<int, std::string> &status_codes, std::string error_number)
 {
     bucket *buck;
 
@@ -134,7 +134,7 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
             response.reason_phrase = "Not Found";
             response.headers["Content-Type"] = "text/html";
             response.body = " <html><body><h1> Not Found a weld 9ahba </h1></body></html>";
-            return;
+            return 1;
         }
         else
         {
@@ -144,20 +144,21 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
     }
     else
     {
+        std::cerr << "no error page found for error number: " << error_number << std::endl;
         response.status_code = std::stoi(error_number);
         response.reason_phrase = status_codes[response.status_code];
         response.headers["Content-Type"] = "text/html";
-        if (response.status_code > 300)
+        if (response.status_code >= 400)
             response.body = "<!DOCTYPE html>\n<html><body><h1>" + status_codes[response.status_code]+ "</h1></body></html>";
         else
             response.headers["Content-Length"] = "0";
     }
+    return 1;
 }
 //--------------------------------------------------------------------GET________________METHOD-----------------------------------------------------------------------------//
-void    getmethod(client_conn &client, http_response_t &response, std::map<int, std::string> &status_codes, std::map<std::string, std::string> &mime_types_map)
+int    getmethod(client_conn &client, http_response_t &response, std::map<int, std::string> &status_codes, std::map<std::string, std::string> &mime_types_map)
 {
     std::cerr << "getmethod called" << std::endl;
-    bucket *bucket;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
     std::cerr << "root: " << root << std::endl;
@@ -184,17 +185,48 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
     {
         if (client.request.cgi)
         {
+            if (!client.request.route->CGI_GET || (client.request.cgi_script_type == PYTHON && !client.request.route->CGI_PYTHON) || (client.request.cgi_script_type == PHP && !client.request.route->CGI_PHP))
+            {
+                std::cerr << "not a cgi lol request" << std::endl;
+                check_files_errors(client, response, status_codes, "403");
+                return 1;
+            }
             std::cerr << "cgi request" << std::endl;
+            client.keep_alive = false;
             if (client.request.route->CGI_GET)
             {
                 std::cerr << "CGI GET request" << std::endl;
-                execute_cgi(client.request,response.body);
+                if (client.cgi_running)
+                {
+                    response.status_code = monitor_cgi(&client, response.body);
+                    if (response.status_code == 500)
+                        check_files_errors(client, response, status_codes, "500");
+                    if (response.status_code != -1337)
+                        format_http_response(client, response);
+                }
+                else 
+                {
+                    response.status_code = execute_cgi(client.request, response.body, &client);
+                    std::cerr << "response.status_code: " << response.status_code << std::endl;
+                    if (response.status_code == 500)
+                        check_files_errors(client, response, status_codes, "500");
+                    if (response.status_code != -1337)
+                    {
+                        format_http_response(client, response);
+                        return -1;
+                    }
+                    else
+                    {
+                        client.offset = -42;
+                        return -1;
+                    }
+                }
                 // cgi(client, response);
             }
             else
             {
                 check_files_errors(client, response, status_codes, "403");
-                return;
+                return 1;
             }
         }
         else
@@ -205,7 +237,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
         if (!file.is_open())
         {
             check_files_errors(client, response, status_codes, "404");
-            return;
+            return 1;
         }
         client.filename = path;
         response.status_code = 200;
@@ -224,7 +256,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             response.status_code = 301;
             response.reason_phrase = "Moved Permanently";
             response.headers["Location"] = static_uri_path+ "/";
-            return;
+            return 1;
         }
         if (client.request.route->directory_listing)
         {
@@ -235,7 +267,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             if (dir == NULL)
             {
                 check_files_errors(client, response, status_codes, "403");
-                return;
+                return 1;
             }
             std::ostringstream html;
             html << "<html><head><title>Directory Listing</title></head><body>";
@@ -270,7 +302,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
             {
                 std::cerr << "could not open file: " << client.filename << std::endl;
                 check_files_errors(client, response, status_codes, "404");
-                return;
+                return 1;
             }
             response.status_code = 200;
             response.reason_phrase = "OK";
@@ -279,13 +311,14 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
                 response.headers["Content-Type"] = mime_types_map[ext];
             else
                 response.headers["Content-Type"] = "application/octet-stream";
-            return;
+            return 1;
         }
         else
             check_files_errors(client, response, status_codes, "403");
     }
     else
         check_files_errors(client, response, status_codes, "404");
+    return 1;
 }
 //--------------------------------------------------------------------DELETE________________METHOD-----------------------------------------------------------------------------//
 bool remove_directory_recursive(const std::string &path)
@@ -326,7 +359,6 @@ bool remove_directory_recursive(const std::string &path)
 void    deletemethod(client_conn &client, http_response_t &response)
 {
     std::cerr << "deletemethod called" << std::endl;
-    bucket *bucket;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
     if (client.request.static_uri_path != NULL)
@@ -466,6 +498,7 @@ void    postmethod(client_conn &client, http_response_t & response, int req_line
 void     build_http_response(client_conn &client, int req_line)
 {
     http_response_t response;
+    int status = 0;
 
     std::cerr << "req_line = "  << req_line <<std::endl;
     std::cerr << "REQUEST METHOD-->" << client.request.REQUEST_METHOD << std::endl;
@@ -536,7 +569,7 @@ void     build_http_response(client_conn &client, int req_line)
                     if (method == GET || method == POST || method == DELETE)
                     {
                         if (method == GET && client.request.route->ROUTE_GET)
-                            getmethod(client, response, status_codes, mime_types_map);
+                            status = getmethod(client, response, status_codes, mime_types_map);
                         else if (method == POST && client.request.route->ROUTE_POST)
                             postmethod(client, response, req_line);
                         else if (method == DELETE && client.request.route->ROUTE_DELETE)
@@ -550,7 +583,9 @@ void     build_http_response(client_conn &client, int req_line)
             }
         }
     }
-    format_http_response(client, response);
+    std::cerr << "status = " << status << std::endl;
+    if (status != -1)
+        format_http_response(client, response);
 }
 
 void format_http_response(client_conn &client, http_response_t &response)
@@ -558,8 +593,10 @@ void format_http_response(client_conn &client, http_response_t &response)
     std::ostringstream oss;
     std::string &buffer = client.getBuffer();
     buffer.clear();
-    if (client.request.cgi)
+    std::cerr << "format_http_response called" << std::endl;
+    if (client.request.cgi && response.status_code == 200)
     {
+        std::cerr << "client.request.cgi is true and response.status_code is " << response.status_code << std::endl;
         oss << response.body;
         client.offset = -1337; // Reset offset for next request
     }
@@ -588,7 +625,7 @@ void format_http_response(client_conn &client, http_response_t &response)
             {
                 std::streamsize file_size = get_file_size(client.filename);
                 std::cerr << "file_size: " << file_size << std::endl;
-                if (file_size >= 0 && file_size < CHUNK_SIZE)
+                if (file_size >= 0 && file_size < (long)CHUNK_SIZE)
                 {
                     std::cerr << "File size is less than CHUNK_SIZE, sending entire file in one response." << std::endl;
                     oss << "Content-Length: " << file_size << "\r\n\r\n";

@@ -132,6 +132,10 @@ client_conn::client_conn(int fd, const unicore_config_t& info, int request_line,
     this->chunked = false;
     this->rest = "";
     this->filename.clear();
+    this->fdout = -1;
+    this->cgi_pid = -1;
+    this->cgi_running = false;
+    this->keep_alive = true;
     gettimeofday(&last_activity, NULL);
     buffer.clear();
 }
@@ -146,6 +150,9 @@ client_conn::client_conn(client_conn const& other)
     this->chunked = other.chunked;
     this->rest = other.rest;
     this->filename = other.filename;
+    this->fdout = other.fdout;
+    this->cgi_pid = other.cgi_pid;
+    this->cgi_running = other.cgi_running;
     gettimeofday(&last_activity, NULL);
     buffer = other.buffer;
 }

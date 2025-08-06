@@ -14,7 +14,7 @@
 # include <sys/event.h>
 # include <sys/time.h>
 # include <arpa/inet.h>
-#include <signal.h>
+# include <signal.h>
 # include "../core/unicore_http_parse.hpp"
 # include "../core/unicore_defines.hpp"
 # include "server.hpp"
@@ -65,7 +65,10 @@ class listening_conn : public connection
 class client_conn : public connection
 {
     public:
+        int                 fdout;
+        int                 cgi_pid;
         int                 request_line;
+        bool                cgi_running;
         bool                chunked;
         bool                keep_alive;
         long				offset;
