@@ -133,12 +133,13 @@ void    check_files_errors(client_conn &client, http_response_t &response, std::
             response.status_code = 404;
             response.reason_phrase = "Not Found";
             response.headers["Content-Type"] = "text/html";
-            response.body = " <html><body><h1> Not Found a weld 9ahba </h1></body></html>";
+            response.body = " <html><body><h1> Not Found</h1></body></html>";
             return;
         }
         else
         {
             response.status_code = std::stoi(error_number);
+            response.reason_phrase = status_codes[response.status_code];
             response.headers["Content-Type"] = mime_types()[client.filename.substr(client.filename.find_last_of('.'))];
         }
     }
