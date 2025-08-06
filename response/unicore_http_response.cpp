@@ -139,6 +139,7 @@ int    check_files_errors(client_conn &client, http_response_t &response, std::m
         else
         {
             response.status_code = std::stoi(error_number);
+            response.reason_phrase = status_codes[response.status_code];
             response.headers["Content-Type"] = mime_types()[client.filename.substr(client.filename.find_last_of('.'))];
         }
     }

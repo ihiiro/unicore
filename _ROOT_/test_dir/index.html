@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Switcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .light-mode {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .dark-mode {
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #ddd;
+        }
+
+        .dark-button {
+            background-color: #444;
+            color: white;
+        }
+
+        .light-button {
+            background-color: #f4f4f4;
+            color: black;
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <h1>Welcome to Theme Switcher</h1>
+    <p>Click on any button to change the theme or redirect.</p>
+    
+    <!-- Buttons -->
+    <a class="light-button" href="/lm" >Light Mode</a><br>
+    <a class="dark-button" href="/dm">Dark Mode</a><br>
+    <a class="dark-button" href="/dms">Dark Mode for 1 Minute</a><br>
+    <a class="dark-button" href="/home">HOME</a><br>
+
+
+</body>
+</html>
