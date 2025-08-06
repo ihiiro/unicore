@@ -1,5 +1,35 @@
 #include "../response/unicore_http_response.hpp"
 
+bool    set_cookies(client_conn &client, http_response_t &response)
+{
+        if (client.request.REQUEST_METHOD != GET)
+            return false;
+        std::string absolute_path = (char *)client.request.absolute_path;
+
+        response.http_version = "HTTP/1.1";
+        response.reason_phrase = "OK";
+        if (absolute_path == "/dm")
+        {
+            response.headers["Set-Cookie"] = " mode=dark";
+            response.body = "dark mode set";
+            return true;
+        }
+        else if (absolute_path == "/dms")
+        {
+            response.headers["Set-Cookie"] = " mode=dark; Max-Age=60";
+            response.body = "dark mode session set ( cookies will expire in 1 minute ! )";
+            return true;
+        }
+        else if (absolute_path == "/lm")
+        {
+            response.headers["Set-Cookie"] = " mode=light";
+            response.body = "light mode set";
+            return true;
+        }
+        else
+            return false;
+}
+
 std::streamsize get_file_size(const std::string& filename)
 {
     std::ifstream file(filename.c_str(), std::ios::binary | std::ios::ate);
@@ -218,7 +248,7 @@ void    getmethod(client_conn &client, http_response_t &response, std::map<int, 
                 std::cerr << name << std::endl;
                 if (name == "." || name == "..")
                     continue;
-                html << "<li><a href=\"/" << name << "\">" << "go to " << name << "</a></li>";
+                html << "<li><a href=\"" << client.request.absolute_path << name << "\">" << name << "</a></li>";
             }
 
             closedir(dir);
@@ -440,80 +470,86 @@ void     build_http_response(client_conn &client, int req_line)
     std::cerr << "req_line = "  << req_line <<std::endl;
     std::cerr << "REQUEST METHOD-->" << client.request.REQUEST_METHOD << std::endl;
     std::cerr << "client.keep_alive = " << client.keep_alive << std::endl;
-    if (req_line >= 400 && req_line < 600)
-        client.keep_alive = false;
     if (req_line >= 100 && req_line < 600 && client.request.REQUEST_METHOD != POST)
     {
+        if (req_line >= 400 && req_line < 600)
+            client.keep_alive = false;
         response.http_version = "HTTP/1.1";
         std::cerr << "handling mmore than 1\n";
         std::ostringstream oss;
         oss << req_line;
         std::string req_line_str = oss.str();
         check_files_errors(client, response, get_all_errors(), req_line_str);
-    }
-else{
-    if (!client.chunked)
+    }   
+    else
     {
-        std::map<std::string, std::string> &mime_types_map = mime_types();
-        std::map<int, std::string> &status_codes = get_all_errors();
-        bucket          *headers_bucket;
-        bucket          *bucket;
-        std::string root;
-        std::string static_uri_path;
-
-
-        headers_bucket = get(client.request.headers, (const u_char *)"connection");
-        if (headers_bucket && headers_bucket->value)
+        if (!client.chunked)
         {
-            if (!std::strcmp((char *)headers_bucket->value, "keep-alive"))
-            {
-                response.headers["Connection"] = "keep-alive";
-                client.keep_alive = true;
-            }
+            if (set_cookies(client, response))
+               response.status_code = 200;
             else
             {
-                client.keep_alive = false;
-                response.headers["Connection"] = "close";
-            }
-        }
-        else
-        {
-            response.headers["Connection"] = "keep-alive";
-            client.keep_alive = true;
-        }
-        response.http_version = "HTTP/1.1";
-        root = client.request.route->root;
-        bucket = get(client.info.redirection_list, client.request.absolute_path);
-        if (bucket && bucket->value)
-        {
-            static_uri_path = (char *)bucket->value;
-            response.status_code = 301;
-            response.headers["Connection"] = "keep-alive";
-            response.headers["Content-Length"] = "0";
-            response.reason_phrase = "Moved Permanently";
-            response.headers["Location"] = static_uri_path;
-        }
-        else
-        {
-            std::cerr << "the redirection list is empty" << std::endl;
-            int method = client.request.REQUEST_METHOD;
-            std::cerr << "the method is: " << method << std::endl;
-            if (method == GET || method == POST || method == DELETE)
-            {
-                if (method == GET && client.request.route->ROUTE_GET)
-                    getmethod(client, response, status_codes, mime_types_map);
-                else if (method == POST && client.request.route->ROUTE_POST)
-                    postmethod(client, response, req_line);
-                else if (method == DELETE && client.request.route->ROUTE_DELETE)
-                    deletemethod(client, response);
+                std::map<std::string, std::string> &mime_types_map = mime_types();
+                std::map<int, std::string> &status_codes = get_all_errors();
+                bucket          *headers_bucket;
+                bucket          *bucket;
+                std::string root;
+                std::string static_uri_path;
+
+
+                headers_bucket = get(client.request.headers, (const u_char *)"connection");
+                if (headers_bucket && headers_bucket->value)
+                {
+                    if (!std::strcmp((char *)headers_bucket->value, "keep-alive"))
+                    {
+                        response.headers["Connection"] = "keep-alive";
+                        client.keep_alive = true;
+                    }
+                    else
+                    {
+                        client.keep_alive = false;
+                        response.headers["Connection"] = "close";
+                    }
+                }
                 else
                 {
-                    check_files_errors(client, response, status_codes, "405");
+                    response.headers["Connection"] = "keep-alive";
+                    client.keep_alive = true;
+                }
+                response.http_version = "HTTP/1.1";
+                root = client.request.route->root;
+                bucket = get(client.info.redirection_list, client.request.absolute_path);
+                if (bucket && bucket->value)
+                {
+                    static_uri_path = (char *)bucket->value;
+                    response.status_code = 301;
+                    response.headers["Connection"] = "keep-alive";
+                    response.headers["Content-Length"] = "0";
+                    response.reason_phrase = "Moved Permanently";
+                    response.headers["Location"] = static_uri_path;
+                }
+                else
+                {
+                    std::cerr << "the redirection list is empty" << std::endl;
+                    int method = client.request.REQUEST_METHOD;
+                    std::cerr << "the method is: " << method << std::endl;
+                    if (method == GET || method == POST || method == DELETE)
+                    {
+                        if (method == GET && client.request.route->ROUTE_GET)
+                            getmethod(client, response, status_codes, mime_types_map);
+                        else if (method == POST && client.request.route->ROUTE_POST)
+                            postmethod(client, response, req_line);
+                        else if (method == DELETE && client.request.route->ROUTE_DELETE)
+                            deletemethod(client, response);
+                        else
+                        {
+                            check_files_errors(client, response, status_codes, "405");
+                        }
+                    }
                 }
             }
         }
     }
-}
     format_http_response(client, response);
 }
 

@@ -283,6 +283,29 @@ int WebServer::run()
                                 int valid = 0;
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
+                                bucket *cookie = get ( conn->state.r->headers , ( u_char * )"cookie" );
+                                if ( cookie and !strcmp ( "/home" , ( char * )conn->state.r->absolute_path ) )
+                                {
+                                    
+                                    delete conn->state.r->static_uri_path;
+                                    if ( !strcmp ( "mode=dark" , ( char * )cookie->value ) )
+                                    {
+
+                                        conn->state.r->static_uri_path = new u_char [ 12 ];
+                                        std::strcpy ( ( char * )conn->state.r->static_uri_path , "/dhome.html" );
+                                        conn->state.r->static_uri_path [ 11 ] = '\0';
+
+                                    }
+                                    else
+                                    {
+
+                                        conn->state.r->static_uri_path = new u_char [ 11 ];
+                                        std::strcpy ( ( char * )conn->state.r->static_uri_path , "/home.html" );
+                                        conn->state.r->static_uri_path [ 10 ] = '\0';
+
+                                    }
+
+                                }
                                 valid = unicore_http_parse_message_body(conn->state, &buf_req);
                                 if (conn->info.redirection_list && get(conn->info.redirection_list, conn->state.r->absolute_path) && !(valid >= 400 && valid < 600))
                                     req_line = 1;
