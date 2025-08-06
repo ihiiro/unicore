@@ -53,7 +53,7 @@ void server::create_and_bind_socket()
 }
 
 server::server(const std::string &host, const size_t &port, const unicore_config_t &info)
-    : failed(false), listen_sockfd(-1), port(port), host(host) ,info(info)
+    : listen_sockfd(-1), failed(false), port(port), host(host) ,info(info)
 {
     std::cerr << "Server created for " << host << ":" << port << std::endl;
     failed = false;

@@ -2,7 +2,6 @@
 
 int execute_cgi(unicore_request_t &req, std::string &result)
 {
-    static int cgi_count = 0;
     int in_pipe[2];
     int out_pipe[2];
     char **env = NULL;

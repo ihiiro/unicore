@@ -123,15 +123,30 @@ listening_conn::~listening_conn()
 }
 
 client_conn::client_conn(int fd, const unicore_config_t& info, int request_line, unicore_request_t& request)
-    : connection(fd), offset(0), filename(""), info(info), request_line(request_line), request(request), chunked(false)
+    : connection(fd)
 {
+    this->info = info;
+    this->request_line = request_line;
+    this->request = request;
+    this->offset = 0;
+    this->chunked = false;
+    this->rest = "";
+    this->filename.clear();
+    gettimeofday(&last_activity, NULL);
+    buffer.clear();
 }
 
 client_conn::client_conn(client_conn const& other)
-    : connection(other.sockfd), offset(other.offset), filename(other.filename),
-      info(other.info), request_line(other.request_line), request(other.request),
-      chunked(other.chunked), rest(other.rest)
+    : connection(other.sockfd)
 {
+    this->info = other.info;
+    this->request_line = other.request_line;
+    this->request = other.request;
+    this->offset = other.offset;
+    this->chunked = other.chunked;
+    this->rest = other.rest;
+    this->filename = other.filename;
+    gettimeofday(&last_activity, NULL);
     buffer = other.buffer;
 }
 
@@ -171,19 +186,21 @@ connection::connection(int fd) : sockfd(fd)
 }
 
 connection::connection(const connection& other)
-    : sockfd(other.sockfd), buffer(other.buffer), last_activity(other.last_activity)
 {
+    sockfd = other.sockfd;
+    last_activity = other.last_activity;
+    buffer = other.buffer;
 }
 
 connection::~connection()
 {
 }
 
-server_conn::server_conn() : connection(), srv(nullptr)
+server_conn::server_conn() : connection(), srv(-1)
 {
 }
 
-server_conn::server_conn(int fd, server* srv)
+server_conn::server_conn(int fd, int srv)
     : connection(fd), srv(srv)
 {
 }

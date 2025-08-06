@@ -42,10 +42,10 @@ class connection
 class server_conn : public connection
 {
     public:
-        server	*srv;
+        int srv;
 
         server_conn();
-        server_conn(int fd, server* srv);
+        server_conn(int fd, int srv);
         server_conn(const server_conn& other);
         ~server_conn();
 };

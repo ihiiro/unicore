@@ -59,9 +59,8 @@ int WebServer::init()
             continue;
         }
         servers.push_back(srv);
-        unicore_route_t *r = (unicore_route_t *)get(servers[0].info.routes, (u_char *)"/")->value;
         struct kevent listen_event;
-        connections[srv.listen_sockfd] = new server_conn(srv.listen_sockfd, &servers.back());
+        connections[srv.listen_sockfd] = new server_conn(srv.listen_sockfd, i);
         EV_SET(&listen_event, srv.listen_sockfd, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR, 0, 0, &connections[srv.listen_sockfd]);
         if (kevent(kq, &listen_event, 1, NULL, 0, NULL) < 0)
         {
@@ -145,28 +144,28 @@ int WebServer::run()
                 server_conn *conn = dynamic_cast<server_conn *>(&gen_conn);
                 if (conn)
                 {
-                    server *srv = conn->srv;
-                    if (event.ident == static_cast<uintptr_t>(srv->listen_sockfd))
+                    server srv = servers[conn->srv];
+                    if (event.ident == static_cast<uintptr_t>(srv.listen_sockfd))
                     {
-                        srv->sockfd = accept(srv->listen_sockfd, NULL, NULL);
-                        if (srv->sockfd < 0)
+                        srv.sockfd = accept(srv.listen_sockfd, NULL, NULL);
+                        if (srv.sockfd < 0)
                         {
-                            std::cerr << "Error accepting connection on " << srv->host << ":" << srv->port << std::endl;
+                            std::cerr << "Error accepting connection on " << srv.host << ":" << srv.port << std::endl;
                             continue;
                         }
-                        int flags = fcntl(srv->sockfd, F_GETFL, 0);
-                        fcntl(srv->sockfd, F_SETFL, flags | O_NONBLOCK);
+                        int flags = fcntl(srv.sockfd, F_GETFL, 0);
+                        fcntl(srv.sockfd, F_SETFL, flags | O_NONBLOCK);
 
                         struct kevent client_event;
-                        connections[srv->sockfd] = new listening_conn(srv->sockfd, srv->info);
-                        EV_SET(&client_event, srv->sockfd, EVFILT_READ, EV_ADD | EV_ENABLE , 0, 0, connections[srv->sockfd]);
+                        connections[srv.sockfd] = new listening_conn(srv.sockfd, srv.info);
+                        EV_SET(&client_event, srv.sockfd, EVFILT_READ, EV_ADD | EV_ENABLE , 0, 0, connections[srv.sockfd]);
                         if (kevent(kq, &client_event, 1, NULL, 0, NULL) == -1)
                         {
                             std::cerr << "Failed to register client socket" << std::endl;
-                            close(srv->sockfd);
+                            close(srv.sockfd);
                             continue;
                         }
-                        std::cerr << "Accepted connection on " << srv->host << ":" << srv->port << std::endl;
+                        std::cerr << "Accepted connection on " << srv.host << ":" << srv.port << std::endl;
                     }
                 }
                 else

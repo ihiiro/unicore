@@ -5,9 +5,6 @@
 
 class	server
 {
-	private:
-		bool				running;
-
 	public:
 		int					sockfd;
 		int					listen_sockfd;
