@@ -133,7 +133,7 @@ int    check_files_errors(client_conn &client, http_response_t &response, std::m
             response.status_code = 404;
             response.reason_phrase = "Not Found";
             response.headers["Content-Type"] = "text/html";
-            response.body = " <html><body><h1> Not Found a weld 9ahba </h1></body></html>";
+            response.body = " <html><body><h1> Not Found  </h1></body></html>";
             return 1;
         }
         else
@@ -362,6 +362,12 @@ void    deletemethod(client_conn &client, http_response_t &response)
     std::cerr << "deletemethod called" << std::endl;
     std::string path, root, static_uri_path;
     root = client.request.route->root;
+    if (client.request.cgi)
+    {
+        std::cerr << "cgi request" << std::endl;
+        check_files_errors(client, response, get_all_errors(), "403");
+        return;
+    }
     if (client.request.static_uri_path != NULL)
     {
         static_uri_path = (char *)client.request.static_uri_path;
@@ -420,80 +426,88 @@ void    deletemethod(client_conn &client, http_response_t &response)
     }
 }
 //--------------------------------------------------------------------POST________________METHOD-----------------------------------------------------------------------------//
-void    postmethod(client_conn &client, http_response_t & response, int req_line)
+int   postmethod(client_conn &client, http_response_t & response, std::map<int, std::string> &status_codes, int req_line)
 {
-    if (!client.request.route->ROUTE_POST)
+    std::cerr << "postmethod called" << std::endl;
+        std::string path, root, static_uri_path;
+    root = client.request.route->root;
+    std::cerr << "root: " << root << std::endl;
+    if (client.request.static_uri_path != NULL)
     {
-        std::cerr << "route post not allowed" << std::endl;
-        std::string path;
-        std::string static_uri_path;
-        std::string root;
-        if (client.request.static_uri_path != NULL)
+        static_uri_path = (char *)client.request.static_uri_path;
+        path = "./_ROOT_/" + root + static_uri_path;
+    }
+    else
+    {
+        std::string script_name = (char *)client.request.SCRIPT_NAME;
+        path = "./_ROOT_/" + root + script_name;
+    }
+    if (client.request.SCRIPT_NAME)
+        std::cerr << "SCRIPT_NAME: " << client.request.SCRIPT_NAME << std::endl;
+    if (client.request.PATH_TRANSLATED)
+        std::cerr << "PATH_TRNANSLATED: " << client.request.PATH_TRANSLATED << std::endl;
+    //check if file exists
+    std::string type = check_path_type(path);
+    std::cerr << "type : " << type << std::endl;
+    std::cerr << "path : " << path << std::endl;
+
+    if(type == "file")
+    {
+        if (client.request.cgi)
         {
-            static_uri_path = (char *)client.request.static_uri_path;
-            path = "./_ROOT_/" + root + static_uri_path;
-        }
-        else
-        {
-            std::string script_name = (char *)client.request.SCRIPT_NAME;
-            path = "./_ROOT_/" + root + script_name;
-        }
-        // std::string path = "." + std::string(client.request.route->root) + std::string((char *)client.request.static_uri_path);
-        if (!std::ifstream(path).is_open())
-        {
-            check_files_errors(client, response, get_all_errors(), "404");
-            return;
-        }
-        else
-        {
-            std::string type = check_path_type(path);
-            if (type == "file")
+            if (!client.request.route->CGI_GET || (client.request.cgi_script_type == PYTHON && !client.request.route->CGI_PYTHON) || (client.request.cgi_script_type == PHP && !client.request.route->CGI_PHP))
             {
-                check_files_errors(client, response, get_all_errors(), "403");
+                std::cerr << "not a cgi lol request" << std::endl;
+                check_files_errors(client, response, status_codes, "403");
+                return 1;
             }
-            else if (type == "directory")
+            std::cerr << "cgi request" << std::endl;
+            client.keep_alive = false;
+            if (client.request.route->CGI_GET)
             {
-                std::string uri = (char *)client.request.static_uri_path;
-                if (uri.back() != '/')
+                std::cerr << "CGI GET request" << std::endl;
+                if (client.cgi_running)
                 {
-                    response.status_code = 301;
-                    response.reason_phrase = "Moved Permanently";
-                    response.headers["Location"] = uri + "/";
-                    return;
+                    response.status_code = monitor_cgi(&client, response.body);
+                    if (response.status_code == 500)
+                        check_files_errors(client, response, status_codes, "500");
+                    if (response.status_code != -1337)
+                        format_http_response(client, response);
                 }
-                else
+                else 
                 {
-                    if (client.request.route->file_if_directory_request)
+                    response.status_code = execute_cgi(client.request, response.body, &client);
+                    std::cerr << "response.status_code: " << response.status_code << std::endl;
+                    if (response.status_code == 500)
+                        check_files_errors(client, response, status_codes, "500");
+                    if (response.status_code != -1337)
                     {
-                        std::string file_path = path + client.request.route->file_if_directory_request;
-                        if (!std::ifstream(file_path).is_open())
-                        {
-                            check_files_errors(client, response, get_all_errors(), "403");
-                            return;
-                        }
+                        format_http_response(client, response);
+                        return -1;
                     }
                     else
                     {
-                        check_files_errors(client, response, get_all_errors(), "403");
-                        return;
+                        client.offset = -42;
+                        return -1;
                     }
                 }
+                // cgi(client, response);
             }
             else
             {
-                check_files_errors(client, response, get_all_errors(), "404");
-                return;
+                check_files_errors(client, response, status_codes, "403");
+                return 1;
             }
         }
     }
     else
     {
-        std::cerr << "postmethod called" << std::endl;
         std::ostringstream oss;
         oss << req_line;
         std::string req_line_str = oss.str();
-        check_files_errors(client, response, get_all_errors(), req_line_str);
+        check_files_errors(client, response, status_codes, req_line_str);
     }
+    return 1;
 }
 //--------------------------------------------------------------------BUILD________________HTTP_RESPONSE-----------------------------------------------------------------------------//
 void     build_http_response(client_conn &client, int req_line)
@@ -572,7 +586,7 @@ void     build_http_response(client_conn &client, int req_line)
                         if (method == GET && client.request.route->ROUTE_GET)
                             status = getmethod(client, response, status_codes, mime_types_map);
                         else if (method == POST && client.request.route->ROUTE_POST)
-                            postmethod(client, response, req_line);
+                            status = postmethod(client, response, status_codes, req_line);
                         else if (method == DELETE && client.request.route->ROUTE_DELETE)
                             deletemethod(client, response);
                         else

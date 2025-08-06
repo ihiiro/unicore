@@ -302,7 +302,7 @@ int WebServer::run()
                                 if (conn->info.redirection_list && get(conn->info.redirection_list, conn->state.r->absolute_path) && !(valid >= 400 && valid < 600))
                                     req_line = 1;
                                 else if (conn->state.r->REQUEST_METHOD == POST || (valid >= 400 && valid < 600))
-                                req_line = valid;
+                                    req_line = valid;
                                 else
                                     req_line = 1;
                                 if  (valid == 2)

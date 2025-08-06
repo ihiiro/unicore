@@ -2763,7 +2763,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                   {
 
                      b->pos = fsm_state.p;
-                     return 1;
+                     return 200;
 
                   }
                   fsm_state.r->route->message_body.append ( 1 , ( char )*fsm_state.p );
@@ -2775,9 +2775,11 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
                {
 
                      b->pos = fsm_state.p;
-                     return 1;
+                     return 200;
+
 
                }
+               fsm_state.R = 2;
                return 2;
 
             }
