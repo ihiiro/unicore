@@ -1350,7 +1350,6 @@ int unicore_http_parse_field_lines ( fsm_state_t& fsm_state , unicore_buf_t *b )
 int unicore_http_parse_chunked_body ( fsm_state_t& fsm_state , unicore_buf_t *b )
 {
 
-   static int I = 0;
    static const u_int hex_dec [ ] = {
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
       0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 ,
