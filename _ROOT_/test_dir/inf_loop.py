@@ -1,3 +1,4 @@
 #!/usr/bin/env python3
-print("Status: 302 Found")
-print("Location: /another-page\n")
+import time
+print("Content-Type: text/plain\n")
+print("This is an infinite loop test.")

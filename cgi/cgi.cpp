@@ -95,7 +95,7 @@ int execute_cgi(unicore_request_t &req, std::string &result, client_conn *conn)
             close(in_pipe[1]);
         return 500;
     }
-    fcntl(out_pipe[0], F_SETFL, fcntl(conn->fdout, F_GETFL) | O_NONBLOCK);
+    fcntl(out_pipe[0], F_SETFL, O_NONBLOCK);
 
     pid_t pid = fork();
     if (pid < 0)
@@ -116,7 +116,7 @@ int execute_cgi(unicore_request_t &req, std::string &result, client_conn *conn)
         close(out_pipe[0]);
         std::string path_translated = "./_ROOT_/" + std::string((char *)req.route->root) + std::string((char *)req.SCRIPT_NAME);
 
-        env = new char *[10];
+        env = new char *[8];
         int i = 0;
         env[i++] = (char *)"GATEWAY_INTERFACE=CGI/1.1";
         env[i++] = (char *)"SERVER_PROTOCOL=HTTP/1.1";
@@ -133,6 +133,7 @@ int execute_cgi(unicore_request_t &req, std::string &result, client_conn *conn)
             env[i++] = (char *)("QUERY_STRING=" + std::string((char *)req.QUERY_STRING)).c_str();
         else
             env[i++] = (char *)"QUERY_STRING=";
+        env[i++] = (char *)("BODY=" + req.route->message_body).c_str();
         env[i++] = NULL;
 
         char **args;
@@ -150,7 +151,6 @@ int execute_cgi(unicore_request_t &req, std::string &result, client_conn *conn)
             args[1] = (char *)path_translated.c_str();
             args[2] = NULL;    
         }
-        std::cerr << "Executing CGI script: " << args[1] << std::endl;
         execve((char *)args[1], args, env);
         perror("execve");
         delete[] env;
@@ -168,20 +168,22 @@ int execute_cgi(unicore_request_t &req, std::string &result, client_conn *conn)
         gettimeofday(&start, NULL);
 
         double elapsed = 0.0;
-        while (elapsed < 1.0)
+        while (elapsed < 0.2)
         {
             waitpid(pid, &status, WNOHANG);
             gettimeofday(&now, NULL);
             elapsed = (now.tv_sec - start.tv_sec) + (now.tv_usec - start.tv_usec) / 1000000.0;
+            usleep(10000);
         }
         char buffer[80000];
         ssize_t bytes;
         bytes = read(out_pipe[0], buffer, sizeof(buffer) - 1);
+        std::cerr << "CGI script output: " << bytes << " bytes" << std::endl;
         if (bytes < 0)
         {
             perror("read");
-            result = "";
             close(out_pipe[0]);
+            result = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
             return 500;
         }
         else if (bytes == 0)

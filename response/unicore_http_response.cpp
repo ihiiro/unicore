@@ -451,11 +451,11 @@ int   postmethod(client_conn &client, http_response_t & response, std::map<int, 
     std::cerr << "type : " << type << std::endl;
     std::cerr << "path : " << path << std::endl;
 
-    if(type == "file")
+    if(client.request.cgi)
     {
-        if (client.request.cgi)
+        if (type == "file")
         {
-            if (!client.request.route->CGI_GET || (client.request.cgi_script_type == PYTHON && !client.request.route->CGI_PYTHON) || (client.request.cgi_script_type == PHP && !client.request.route->CGI_PHP))
+            if (!client.request.route->CGI_POST || (client.request.cgi_script_type == PYTHON && !client.request.route->CGI_PYTHON) || (client.request.cgi_script_type == PHP && !client.request.route->CGI_PHP))
             {
                 std::cerr << "not a cgi lol request" << std::endl;
                 check_files_errors(client, response, status_codes, "403");
@@ -499,6 +499,10 @@ int   postmethod(client_conn &client, http_response_t & response, std::map<int, 
                 return 1;
             }
         }
+        else
+        {
+            check_files_errors(client, response, status_codes, "404");
+        }
     }
     else
     {
@@ -518,6 +522,7 @@ void     build_http_response(client_conn &client, int req_line)
     std::cerr << "req_line = "  << req_line <<std::endl;
     std::cerr << "REQUEST METHOD-->" << client.request.REQUEST_METHOD << std::endl;
     std::cerr << "client.keep_alive = " << client.keep_alive << std::endl;
+    // if (req_line >= 400 && req_line < 600 && client.request.REQUEST_METHOD == POST)
     if (req_line >= 100 && req_line < 600 && client.request.REQUEST_METHOD != POST)
     {
         if (req_line >= 400 && req_line < 600)

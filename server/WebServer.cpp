@@ -126,7 +126,7 @@ int WebServer::run()
     {
         struct timespec ts;
         ts.tv_sec = 0;
-        ts.tv_nsec = 10000000;
+        ts.tv_nsec = 1000000;
         int num_events = kevent(kq, NULL, 0, events, 10240, &ts);
         if (num_events < 0)
         {
@@ -265,7 +265,7 @@ int WebServer::run()
                         else
                         {
                             req_line = unicore_http_parse_request_line(conn->state, &buf_req, conn->info);
-                            if ( req_line == 501 )
+                            if (req_line == 501 || req_line == 400)
                                 conn->state.r->REQUEST_METHOD = 0;
                             conn->state.mcms = conn->info.max_client_message_size;
                             if (!(req_line >= 400 && req_line < 600))
@@ -275,28 +275,22 @@ int WebServer::run()
                                 int valid = 0;
                                 if (unicore_http_parse_field_lines(conn->state , &buf_req) == 1)
                                     std::cerr << "parsed request-line and field-lines successfully" << std::endl;
-                                bucket *cookie = get (conn->state.r->headers, (u_char *)"cookie");
-                                if ( cookie and !strcmp ( "/home" , ( char * )conn->state.r->absolute_path))
+                                bucket *cookie = get(conn->state.r->headers, (u_char *)"cookie");
+                                if (cookie && !strcmp("/home", (char *)conn->state.r->absolute_path))
                                 {
-                                    
                                     delete conn->state.r->static_uri_path;
-                                    if ( !strcmp ( "mode=dark" , ( char * )cookie->value ) )
+                                    if (!strcmp("mode=dark", (char *)cookie->value))
                                     {
-
-                                        conn->state.r->static_uri_path = new u_char [ 12 ];
-                                        std::strcpy ( ( char * )conn->state.r->static_uri_path , "/dhome.html" );
-                                        conn->state.r->static_uri_path [ 11 ] = '\0';
-
+                                        conn->state.r->static_uri_path = new u_char[12];
+                                        std::strcpy((char *)conn->state.r->static_uri_path, "/dhome.html");
+                                        conn->state.r->static_uri_path[11] = '\0';
                                     }
                                     else
                                     {
-
-                                        conn->state.r->static_uri_path = new u_char [ 11 ];
-                                        std::strcpy ( ( char * )conn->state.r->static_uri_path , "/home.html" );
-                                        conn->state.r->static_uri_path [ 10 ] = '\0';
-
+                                        conn->state.r->static_uri_path = new u_char[11];
+                                        std::strcpy((char *)conn->state.r->static_uri_path, "/home.html");
+                                        conn->state.r->static_uri_path[10] = '\0';
                                     }
-
                                 }
                                 valid = unicore_http_parse_message_body(conn->state, &buf_req);
                                 if (conn->info.redirection_list && get(conn->info.redirection_list, conn->state.r->absolute_path) && !(valid >= 400 && valid < 600))
@@ -406,15 +400,10 @@ int WebServer::run()
                         struct timeval timeout;
                         FD_ZERO(&readfds);
                         FD_SET(event.ident, &readfds);
-                        timeout.tv_sec = 1;
-                        timeout.tv_usec = 0;
+                        timeout.tv_sec = 0;
+                        timeout.tv_usec = 100000;
 
-                        int ready = select(event.ident, &readfds, NULL, NULL, &timeout);
-                        if (ready > 0 && FD_ISSET(event.ident, &readfds))
-                        {
-                            char tmp[1];
-                            recv(event.ident, tmp, 1, 0);
-                        }
+                        select(event.ident, &readfds, NULL, NULL, &timeout);
                         std::cerr << "Closing connection on fd " << event.ident << std::endl;
                         struct kevent tmp_event;
                         connections.erase(event.ident);

@@ -2756,6 +2756,7 @@ int unicore_http_parse_message_body ( fsm_state_t& fsm_state , unicore_buf_t *b 
             if ( fsm_state.r->cgi )
             {
 
+               fsm_state.r->route->message_body.clear();
                for ( fsm_state.p = b->pos; fsm_state.p <= b->end ; fsm_state.p++ )
                {
 

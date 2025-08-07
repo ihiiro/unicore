@@ -33,8 +33,7 @@ void server::create_and_bind_socket()
         addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     }
 
-    int flags = fcntl(socketfd, F_GETFL, 0);
-    if (fcntl(socketfd, F_SETFL, flags | O_NONBLOCK) < 0)
+    if (fcntl(socketfd, F_SETFL, O_NONBLOCK) < 0)
     {
         std::cerr << "Error setting socket to non-blocking mode" << std::endl;
         close(socketfd);
